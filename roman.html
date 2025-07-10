@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roman Numeral Converter & Calculator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for Inter font and general body styling */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        /* Custom styles for better focus and interactive elements */
+        input:focus, select:focus, button:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5); /* Blue focus ring */
+        }
+        /* Style for the message box */
+        .message-box {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #ef4444; /* Red for error */
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .message-box.show {
+            opacity: 1;
+        }
+        .message-box.success {
+            background-color: #22c55e; /* Green for success */
+        }
+
+        /* Styles for tabs */
+        .tab-button {
+            padding: 12px 24px;
+            cursor: pointer;
+            border: none;
+            background-color: #e2e8f0; /* Light gray */
+            color: #4a5568; /* Dark gray text */
+            font-weight: 600;
+            transition: all 0.2s ease-in-out;
+            border-radius: 8px 8px 0 0;
+        }
+        .tab-button.active {
+            background-color: #ffffff; /* White for active tab */
+            color: #2b6cb0; /* Blue text for active tab */
+            border-bottom: 3px solid #2b6cb0;
+        }
+        .tab-button:hover:not(.active) {
+            background-color: #cbd5e0; /* Slightly darker gray on hover */
+        }
+        .tab-content {
+            display: none; /* Hidden by default */
+            padding-top: 16px; /* Space from tabs */
+        }
+        .tab-content.active {
+            display: block; /* Shown when active */
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <!-- Main container for the application -->
+    <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-2xl flex flex-col gap-8">
+
+        <!-- Message Box for alerts -->
+        <div id="messageBox" class="message-box"></div>
+
+        <!-- Tab Navigation -->
+        <div class="flex border-b border-gray-200">
+            <button id="converterTab" class="tab-button active">Number Converter</button>
+            <button id="calculatorTab" class="tab-button">Roman Calculator</button>
+        </div>
+
+        <!-- Tab Content Container -->
+        <div id="tabContentContainer">
+            <!-- Number Conversion Section (Tab 1) -->
+            <div id="converterContent" class="tab-content active">
+                <div class="flex-1 p-6 bg-gray-50 rounded-lg shadow-inner">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Number Converter</h2>
+
+                    <!-- Decimal to Roman Conversion -->
+                    <div class="mb-6">
+                        <label for="decimalInput" class="block text-gray-700 text-sm font-semibold mb-2">Decimal to Roman</label>
+                        <input type="number" id="decimalInput" placeholder="Enter decimal number (1-39999)"
+                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 transition duration-200 ease-in-out">
+                        <button id="convertDecimal"
+                                class="mt-4 w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition duration-200 ease-in-out font-semibold shadow-md">
+                            Convert to Roman
+                        </button>
+                        <div class="mt-4 p-3 bg-blue-100 text-blue-800 rounded-lg font-medium text-center" id="romanOutput">
+                            Roman Numeral: -
+                        </div>
+                    </div>
+
+                    <!-- Roman to Decimal Conversion -->
+                    <div>
+                        <label for="romanInput" class="block text-gray-700 text-sm font-semibold mb-2">Roman to Decimal</label>
+                        <input type="text" id="romanInput" placeholder="Enter Roman numeral (e.g., XIV, MMMMM)"
+                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 transition duration-200 ease-in-out uppercase">
+                        <button id="convertRoman"
+                                class="mt-4 w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition duration-200 ease-in-out font-semibold shadow-md">
+                            Convert to Decimal
+                        </button>
+                        <div class="mt-4 p-3 bg-blue-100 text-blue-800 rounded-lg font-medium text-center" id="decimalOutput">
+                            Decimal Number: -
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Roman Numeral Calculator Section (Tab 2) -->
+            <div id="calculatorContent" class="tab-content">
+                <div class="flex-1 p-6 bg-gray-50 rounded-lg shadow-inner">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Roman Calculator</h2>
+
+                    <div class="mb-4">
+                        <label for="romanCalcInput1" class="block text-gray-700 text-sm font-semibold mb-2">First Roman Numeral</label>
+                        <input type="text" id="romanCalcInput1" placeholder="e.g., X"
+                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-400 transition duration-200 ease-in-out uppercase">
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="operationSelect" class="block text-gray-700 text-sm font-semibold mb-2">Operation</label>
+                        <select id="operationSelect"
+                                class="w-full p-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-purple-400 transition duration-200 ease-in-out">
+                            <option value="add">+</option>
+                            <option value="subtract">-</option>
+                            <option value="multiply">*</option>
+                            <option value="divide">/</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-6">
+                        <label for="romanCalcInput2" class="block text-gray-700 text-sm font-semibold mb-2">Second Roman Numeral</label>
+                        <input type="text" id="romanCalcInput2" placeholder="e.g., V"
+                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-400 transition duration-200 ease-in-out uppercase">
+                    </div>
+
+                    <button id="calculateRoman"
+                            class="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition duration-200 ease-in-out font-semibold shadow-md">
+                        Calculate
+                    </button>
+
+                    <div class="mt-6 p-4 bg-purple-100 text-purple-800 rounded-lg font-medium text-center" id="calcResultRoman">
+                        Result (Roman): -
+                    </div>
+                    <div class="mt-2 p-4 bg-purple-100 text-purple-800 rounded-lg font-medium text-center" id="calcResultDecimal">
+                        Result (Decimal): -
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Function to display a message box
+        function showMessage(message, type = 'error') {
+            const messageBox = document.getElementById('messageBox');
+            messageBox.textContent = message;
+            messageBox.className = 'message-box show'; // Reset classes
+            if (type === 'success') {
+                messageBox.classList.add('success');
+            } else {
+                messageBox.classList.add('error');
+            }
+
+            setTimeout(() => {
+                messageBox.classList.remove('show');
+            }, 3000); // Hide after 3 seconds
+        }
+
+        // --- Roman Numeral Conversion Logic ---
+
+        // Map for Roman numeral values
+        const romanMap = {
+            'I': 1, 'V': 5, 'X': 10, 'L': 50,
+            'C': 100, 'D': 500, 'M': 1000
+        };
+
+        // Array of Roman numeral values and symbols for conversion from decimal
+        const romanNumerals = [
+            { value: 1000, symbol: 'M' },
+            { value: 900, symbol: 'CM' },
+            { value: 500, symbol: 'D' },
+            { value: 400, symbol: 'CD' },
+            { value: 100, symbol: 'C' },
+            { value: 90, symbol: 'XC' },
+            { value: 50, symbol: 'L' },
+            { value: 40, symbol: 'XL' },
+            { value: 10, symbol: 'X' },
+            { value: 9, symbol: 'IX' },
+            { value: 5, symbol: 'V' },
+            { value: 4, symbol: 'IV' },
+            { value: 1, symbol: 'I' }
+        ];
+
+        /**
+         * Converts a decimal number to a Roman numeral string.
+         * Supports numbers from 1 to 39999 (extended range by repeating M).
+         * @param {number} num - The decimal number to convert.
+         * @returns {string} The Roman numeral representation or an error message.
+         */
+        function decimalToRoman(num) {
+            // Updated range for larger numbers
+            if (isNaN(num) || num < 1 || num > 39999) {
+                return 'Invalid input. Enter a number between 1 and 39,999.';
+            }
+
+            let result = '';
+            let tempNum = num;
+
+            for (const numeral of romanNumerals) {
+                while (tempNum >= numeral.value) {
+                    result += numeral.symbol;
+                    tempNum -= numeral.value;
+                }
+            }
+            return result;
+        }
+
+        /**
+         * Converts a Roman numeral string to a decimal number.
+         * @param {string} roman - The Roman numeral string to convert.
+         * @returns {number | string} The decimal number or an error message.
+         */
+        function romanToDecimal(roman) {
+            // Basic validation for Roman numeral characters
+            const validRomanChars = /^[IVXLCDM]+$/;
+            if (!validRomanChars.test(roman)) {
+                return 'Invalid Roman numeral characters.';
+            }
+
+            let total = 0;
+            for (let i = 0; i < roman.length; i++) {
+                const currentVal = romanMap[roman[i]];
+                const nextVal = romanMap[roman[i + 1]];
+
+                if (nextVal && currentVal < nextVal) {
+                    total -= currentVal;
+                } else {
+                    total += currentVal;
+                }
+            }
+
+            // Additional validation for Roman numeral rules (e.g., IIII is invalid)
+            // Convert back to Roman and check if it matches the original
+            const convertedBack = decimalToRoman(total);
+            // Check if conversion back resulted in an error or is outside the valid range
+            if (typeof convertedBack === 'string' && convertedBack.includes('Invalid')) {
+                return 'Invalid Roman numeral format or out of valid range.';
+            }
+            if (convertedBack !== roman) {
+                // This catches cases like "IIII" which converts to 4, but 4 is "IV".
+                // Or "VV" which converts to 10, but 10 is "X".
+                return 'Invalid Roman numeral format.';
+            }
+
+            // Ensure the converted decimal is within the valid range
+            if (total < 1 || total > 39999) {
+                return 'Roman numeral converts to a number outside the valid range (1-39,999).';
+            }
+
+            return total;
+        }
+
+        // --- Event Listeners for Number Conversion Section ---
+
+        document.getElementById('convertDecimal').addEventListener('click', () => {
+            const decimalInput = parseInt(document.getElementById('decimalInput').value);
+            const romanOutputDiv = document.getElementById('romanOutput');
+            const result = decimalToRoman(decimalInput);
+            if (typeof result === 'string' && result.includes('Invalid')) {
+                showMessage(result, 'error');
+                romanOutputDiv.textContent = 'Roman Numeral: -';
+            } else {
+                romanOutputDiv.textContent = `Roman Numeral: ${result}`;
+                showMessage('Conversion successful!', 'success');
+            }
+        });
+
+        document.getElementById('convertRoman').addEventListener('click', () => {
+            const romanInput = document.getElementById('romanInput').value.toUpperCase(); // Convert to uppercase for consistency
+            const decimalOutputDiv = document.getElementById('decimalOutput');
+            const result = romanToDecimal(romanInput);
+            if (typeof result === 'string' && result.includes('Invalid')) {
+                showMessage(result, 'error');
+                decimalOutputDiv.textContent = 'Decimal Number: -';
+            } else {
+                decimalOutputDiv.textContent = `Decimal Number: ${result}`;
+                showMessage('Conversion successful!', 'success');
+            }
+        });
+
+        // --- Roman Numeral Calculator Logic ---
+
+        document.getElementById('calculateRoman').addEventListener('click', () => {
+            const roman1 = document.getElementById('romanCalcInput1').value.toUpperCase();
+            const roman2 = document.getElementById('romanCalcInput2').value.toUpperCase();
+            const operation = document.getElementById('operationSelect').value;
+            const calcResultRomanDiv = document.getElementById('calcResultRoman');
+            const calcResultDecimalDiv = document.getElementById('calcResultDecimal');
+
+            calcResultRomanDiv.textContent = 'Result (Roman): -';
+            calcResultDecimalDiv.textContent = 'Result (Decimal): -';
+
+            const num1 = romanToDecimal(roman1);
+            const num2 = romanToDecimal(roman2);
+
+            if (typeof num1 === 'string' || typeof num2 === 'string') {
+                showMessage(`Invalid Roman numeral input: ${typeof num1 === 'string' ? num1 : num2}`, 'error');
+                return;
+            }
+
+            let resultDecimal;
+            let errorMessage = '';
+
+            switch (operation) {
+                case 'add':
+                    resultDecimal = num1 + num2;
+                    break;
+                case 'subtract':
+                    resultDecimal = num1 - num2;
+                    break;
+                case 'multiply':
+                    resultDecimal = num1 * num2;
+                    break;
+                case 'divide':
+                    if (num2 === 0) {
+                        errorMessage = 'Cannot divide by zero.';
+                    } else {
+                        resultDecimal = Math.floor(num1 / num2); // Roman numerals don't have fractions, so we floor the result
+                    }
+                    break;
+                default:
+                    errorMessage = 'Invalid operation selected.';
+            }
+
+            if (errorMessage) {
+                showMessage(errorMessage, 'error');
+                return;
+            }
+
+            // Roman numerals only represent positive integers within the extended range
+            if (resultDecimal < 1 || resultDecimal > 39999) {
+                showMessage('Result is outside the valid Roman numeral range (1-39,999) or is negative.', 'error');
+                return;
+            }
+
+            const resultRoman = decimalToRoman(resultDecimal);
+
+            if (typeof resultRoman === 'string' && resultRoman.includes('Invalid')) {
+                showMessage(resultRoman, 'error');
+            } else {
+                calcResultRomanDiv.textContent = `Result (Roman): ${resultRoman}`;
+                calcResultDecimalDiv.textContent = `Result (Decimal): ${resultDecimal}`;
+                showMessage('Calculation successful!', 'success');
+            }
+        });
+
+        // --- Tab Switching Logic ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const converterTabBtn = document.getElementById('converterTab');
+            const calculatorTabBtn = document.getElementById('calculatorTab');
+            const converterContent = document.getElementById('converterContent');
+            const calculatorContent = document.getElementById('calculatorContent');
+
+            function showTab(tabId) {
+                // Deactivate all tabs and hide all content
+                converterTabBtn.classList.remove('active');
+                calculatorTabBtn.classList.remove('active');
+                converterContent.classList.remove('active');
+                calculatorContent.classList.remove('active');
+
+                // Activate the selected tab and show its content
+                if (tabId === 'converter') {
+                    converterTabBtn.classList.add('active');
+                    converterContent.classList.add('active');
+                } else if (tabId === 'calculator') {
+                    calculatorTabBtn.classList.add('active');
+                    calculatorContent.classList.add('active');
+                }
+            }
+
+            // Event listeners for tab buttons
+            converterTabBtn.addEventListener('click', () => showTab('converter'));
+            calculatorTabBtn.addEventListener('click', () => showTab('calculator'));
+
+            // Show the converter tab by default on load
+            showTab('converter');
+        });
+    </script>
+</body>
+</html>

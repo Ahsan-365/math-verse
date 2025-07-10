@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Probability Tree Creator</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter for a clean look -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Basic body styling with Inter font and light background */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5; /* Light gray background */
+            color: #333; /* Dark gray text */
+        }
+        /* Canvas styling for border, background, rounded corners, shadow, and centering */
+        canvas {
+            border: 1px solid #cbd5e0; /* Tailwind gray-300 */
+            background-color: #ffffff; /* White background */
+            border-radius: 0.5rem; /* Tailwind rounded-lg */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Tailwind shadow-md */
+            display: block; /* Ensures it takes full width and can be centered */
+            margin: 1.5rem auto; /* Tailwind my-6 mx-auto for vertical and horizontal centering */
+            touch-action: none; /* Prevents default touch actions like scrolling/zooming on canvas */
+        }
+    </style>
+</head>
+<body class="p-6">
+    <!-- Main container for the application, centered and styled with shadow -->
+    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Probability Tree Creator</h1>
+
+        <!-- Grid layout for input controls -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- Section for adding root node and displaying selected node -->
+            <div class="bg-gray-50 p-6 rounded-lg shadow-inner">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">Tree Structure</h2>
+                <div class="mb-4">
+                    <label for="rootNodeLabel" class="block text-sm font-medium text-gray-700 mb-1">Root Node Label:</label>
+                    <input type="text" id="rootNodeLabel" placeholder="e.g., Start, Initial Event"
+                           class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <button id="addRootNodeBtn"
+                        class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150 ease-in-out">
+                    Add Root Node
+                </button>
+                <div class="mt-4">
+                    <label for="selectedNodeDisplay" class="block text-sm font-medium text-gray-700 mb-1">Selected Node (Click on a node to select):</label>
+                    <input type="text" id="selectedNodeDisplay" readonly
+                           class="w-full p-2 border border-gray-200 bg-gray-100 rounded-md cursor-not-allowed">
+                </div>
+            </div>
+
+            <!-- Section for adding branches (outcomes) to the selected node -->
+            <div class="bg-gray-50 p-6 rounded-lg shadow-inner">
+                <h2 class="text-xl font-semibold text-gray-700 mb-4">Add Outcome to Selected Node</h2>
+                <div class="mb-4">
+                    <label for="branchLabel" class="block text-sm font-medium text-gray-700 mb-1">Outcome Label:</label>
+                    <input type="text" id="branchLabel" placeholder="e.g., Heads, Success, Red Ball"
+                           class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label for="branchProbability" class="block text-sm font-medium text-gray-700 mb-1">Probability (0-1):</label>
+                    <input type="number" id="branchProbability" min="0" max="1" step="0.01" value="0.5"
+                           class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label for="newNodeLabel" class="block text-sm font-medium text-gray-700 mb-1">New Node Label (Outcome leads to):</label>
+                    <input type="text" id="newNodeLabel" placeholder="e.g., Flip 2, Result B"
+                           class="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <button id="addBranchBtn"
+                        class="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition duration-150 ease-in-out">
+                    Add Outcome
+                </button>
+            </div>
+        </div>
+
+        <!-- Button to clear the entire tree -->
+        <div class="flex justify-center mb-6">
+            <button id="clearTreeBtn"
+                    class="bg-red-600 text-white py-2 px-6 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition duration-150 ease-in-out">
+                Clear Tree
+            </button>
+        </div>
+
+        <!-- Canvas element where the probability tree will be drawn -->
+        <canvas id="probabilityTreeCanvas" width="800" height="600"></canvas>
+    </div>
+
+    <script>
+        // Get references to DOM elements
+        const canvas = document.getElementById('probabilityTreeCanvas');
+        const ctx = canvas.getContext('2d');
+        const rootNodeLabelInput = document.getElementById('rootNodeLabel');
+        const branchLabelInput = document.getElementById('branchLabel');
+        const branchProbabilityInput = document.getElementById('branchProbability');
+        const newNodeLabelInput = document.getElementById('newNodeLabel'); // Input for the label of the new node created by a branch
+        const addRootNodeBtn = document.getElementById('addRootNodeBtn');
+        const addBranchBtn = document.getElementById('addBranchBtn');
+        const clearTreeBtn = document.getElementById('clearTreeBtn');
+        const selectedNodeDisplay = document.getElementById('selectedNodeDisplay');
+
+        // --- Tree Data Structure ---
+        // Node: {
+        //   id: string,          // Unique ID for the node
+        //   label: string,       // Text label displayed on the node
+        //   x: number,           // X coordinate on canvas (calculated during layout)
+        //   y: number,           // Y coordinate on canvas (calculated during layout)
+        //   parentBranchId: string | null, // ID of the branch leading to this node (null for root)
+        //   children: string[],  // Array of IDs of child nodes
+        // }
+        // Branch: {
+        //   id: string,          // Unique ID for the branch
+        //   fromNodeId: string,  // ID of the source node
+        //   toNodeId: string,    // ID of the destination node
+        //   label: string,       // Text label displayed on the branch
+        //   probability: number, // Probability value (0-1)
+        // }
+        let treeData = {
+            nodes: new Map(),       // Stores nodes, mapped by their ID
+            branches: new Map(),    // Stores branches, mapped by their ID
+            rootNodeId: null,       // ID of the root node
+            nextNodeId: 0,          // Counter for generating unique node IDs
+            nextBranchId: 0,        // Counter for generating unique branch IDs
+            selectedNodeId: null,   // ID of the currently selected node
+        };
+
+        // --- Constants for Drawing ---
+        const NODE_RADIUS = 30; // Radius of the circular nodes
+        const NODE_COLOR = '#4299e1'; // Blue color for nodes (Tailwind blue-500)
+        const SELECTED_NODE_COLOR = '#ecc94b'; // Yellow color for selected node (Tailwind yellow-400)
+        const TEXT_COLOR = '#2d3748'; // Dark gray for text (Tailwind gray-800)
+        const LINE_COLOR = '#4a5568'; // Dark gray for lines (Tailwind gray-700)
+        const LEVEL_SPACING = 100; // Vertical spacing between tree levels
+        const MIN_HORIZONTAL_NODE_SPACING = 60; // Minimum horizontal spacing between nodes at the same level
+        const FONT_SIZE_NODE = 14; // Font size for node labels
+        const FONT_SIZE_BRANCH = 12; // Font size for branch labels and probabilities
+        const FONT_SIZE_FINAL_PROB = 14; // Font size for final path probabilities
+
+        // --- Helper Functions ---
+
+        /**
+         * Generates a unique ID for a node or branch.
+         * @param {string} type - 'node' or 'branch'
+         * @returns {string} Unique ID (e.g., 'n0', 'b1')
+         */
+        function generateId(type) {
+            if (type === 'node') {
+                return `n${treeData.nextNodeId++}`;
+            } else if (type === 'branch') {
+                return `b${treeData.nextBranchId++}`;
+            }
+            return '';
+        }
+
+        /**
+         * Adds a new node to the tree data structure.
+         * @param {string} label - The text label for the new node.
+         * @param {string | null} parentBranchId - The ID of the branch that leads to this node. Null for the root node.
+         * @returns {object} The newly created node object.
+         */
+        function addNode(label, parentBranchId = null) {
+            const newNode = {
+                id: generateId('node'),
+                label: label,
+                x: 0, // X coordinate will be calculated during layout
+                y: 0, // Y coordinate will be calculated during layout
+                parentBranchId: parentBranchId,
+                children: [], // Initialize with no children
+            };
+            treeData.nodes.set(newNode.id, newNode); // Add node to the map
+            return newNode;
+        }
+
+        /**
+         * Adds a new branch (outcome) connecting two nodes in the tree.
+         * @param {string} fromNodeId - The ID of the source node (parent).
+         * @param {string} toNodeId - The ID of the destination node (child).
+         * @param {string} label - The text label for the branch (e.g., "Heads").
+         * @param {number} probability - The probability associated with this branch (0-1).
+         * @returns {object} The newly created branch object.
+         */
+        function addBranch(fromNodeId, toNodeId, label, probability) {
+            const newBranch = {
+                id: generateId('branch'),
+                fromNodeId: fromNodeId,
+                toNodeId: toNodeId,
+                label: label,
+                probability: probability,
+            };
+            treeData.branches.set(newBranch.id, newBranch); // Add branch to the map
+
+            // Add the child node's ID to the parent node's children list
+            const fromNode = treeData.nodes.get(fromNodeId);
+            if (fromNode) {
+                fromNode.children.push(toNodeId);
+            }
+            return newBranch;
+        }
+
+        /**
+         * Selects a node in the tree and updates the UI to reflect the selection.
+         * @param {string | null} nodeId - The ID of the node to select, or null to deselect.
+         */
+        function selectNode(nodeId) {
+            treeData.selectedNodeId = nodeId; // Set the selected node ID
+            const selectedNode = nodeId ? treeData.nodes.get(nodeId) : null;
+            selectedNodeDisplay.value = selectedNode ? selectedNode.label : 'None'; // Update display input
+            drawTree(); // Redraw the tree to highlight the selected node
+        }
+
+        /**
+         * Determines if a click occurred on a node and returns its ID.
+         * @param {number} mouseX - The X coordinate of the mouse click on the canvas.
+         * @param {number} mouseY - The Y coordinate of the mouse click on the canvas.
+         * @returns {string | null} The ID of the node clicked, or null if no node was clicked.
+         */
+        function getNodeAtCoordinates(mouseX, mouseY) {
+            // Iterate through all nodes to check if the click is within any node's radius
+            for (const [id, node] of treeData.nodes.entries()) {
+                const dist = Math.sqrt(Math.pow(mouseX - node.x, 2) + Math.pow(mouseY - node.y, 2));
+                if (dist <= NODE_RADIUS) {
+                    return id; // Return the ID of the clicked node
+                }
+            }
+            return null; // No node was clicked
+        }
+
+        /**
+         * Calculates the optimal (x, y) coordinates for all nodes in the tree.
+         * This algorithm uses a two-pass approach:
+         * 1. Calculates the depth of each node and the approximate width needed for each subtree.
+         * 2. Recursively positions nodes, centering children under their parent while maintaining spacing.
+         */
+        function layoutTree() {
+            if (!treeData.rootNodeId) {
+                return; // No tree to layout if no root node
+            }
+
+            const rootNode = treeData.nodes.get(treeData.rootNodeId);
+            if (!rootNode) {
+                return; // Root node not found (shouldn't happen if rootNodeId is set)
+            }
+
+            // --- Pass 1: Calculate Depths and Subtree Widths ---
+            const depths = new Map();       // Map<nodeId, depth>
+            const nodesAtDepth = new Map(); // Map<depth, Array<nodeId>>
+            let maxDepth = 0;
+
+            // Use a queue for a Breadth-First Search (BFS) to determine depths
+            const queue = [{ id: treeData.rootNodeId, depth: 0 }];
+            depths.set(treeData.rootNodeId, 0);
+            nodesAtDepth.set(0, [treeData.rootNodeId]); // Initialize nodes at depth 0
+
+            let head = 0;
+            while (head < queue.length) {
+                const { id, depth } = queue[head++];
+                maxDepth = Math.max(maxDepth, depth); // Keep track of the maximum depth
+
+                const node = treeData.nodes.get(id);
+                if (node && node.children) {
+                    for (const childId of node.children) {
+                        if (!depths.has(childId)) { // If child not yet visited
+                            depths.set(childId, depth + 1); // Assign depth
+                            if (!nodesAtDepth.has(depth + 1)) {
+                                nodesAtDepth.set(depth + 1, []); // Create array for new depth if needed
+                            }
+                            nodesAtDepth.get(depth + 1).push(childId); // Add child to its depth's list
+                            queue.push({ id: childId, depth: depth + 1 }); // Add child to queue
+                        }
+                    }
+                }
+            }
+
+            // Assign Y coordinates based on depth
+            for (const [id, node] of treeData.nodes.entries()) {
+                const depth = depths.get(id) || 0; // Default to 0 if depth not found (e.g., for root)
+                node.y = (depth * LEVEL_SPACING) + NODE_RADIUS + 20; // Calculate Y position with top padding
+            }
+
+            // Calculate approximate width needed for each subtree
+            const subtreeWidths = new Map(); // Map<nodeId, width>
+
+            function calculateSubtreeWidthsRecursive(nodeId) {
+                const node = treeData.nodes.get(nodeId);
+                if (!node) return 0;
+
+                if (node.children.length === 0) {
+                    // Leaf node: its width is its own size plus minimum spacing
+                    subtreeWidths.set(nodeId, NODE_RADIUS * 2 + MIN_HORIZONTAL_NODE_SPACING);
+                    return NODE_RADIUS * 2 + MIN_HORIZONTAL_NODE_SPACING;
+                }
+
+                let totalChildrenWidth = 0;
+                for (const childId of node.children) {
+                    totalChildrenWidth += calculateSubtreeWidthsRecursive(childId);
+                }
+
+                // Node's width is the maximum of its own size or the sum of its children's widths
+                const width = Math.max(NODE_RADIUS * 2 + MIN_HORIZONTAL_NODE_SPACING, totalChildrenWidth);
+                subtreeWidths.set(nodeId, width);
+                return width;
+            }
+
+            // Start calculating subtree widths from the root
+            calculateSubtreeWidthsRecursive(treeData.rootNodeId);
+
+            // --- Pass 2: Position Nodes Recursively ---
+            function positionNodeRecursive(nodeId, xStart) {
+                const node = treeData.nodes.get(nodeId);
+                if (!node) return;
+
+                const nodeWidth = subtreeWidths.get(nodeId) || (NODE_RADIUS * 2 + MIN_HORIZONTAL_NODE_SPACING);
+                node.x = xStart + nodeWidth / 2; // Center the node within its allocated width
+
+                if (node.children.length === 0) {
+                    return; // Leaf node, no children to position
+                }
+
+                let currentChildX = xStart; // Starting X for the first child
+                for (const childId of node.children) {
+                    const childWidth = subtreeWidths.get(childId) || (NODE_RADIUS * 2 + MIN_HORIZONTAL_NODE_SPACING);
+                    positionNodeRecursive(childId, currentChildX); // Recursively position child
+                    currentChildX += childWidth; // Move to the next child's starting X
+                }
+            }
+
+            // Start positioning from the root, centering the entire tree horizontally
+            const totalTreeWidth = subtreeWidths.get(treeData.rootNodeId) || canvas.width;
+            positionNodeRecursive(treeData.rootNodeId, (canvas.width - totalTreeWidth) / 2);
+
+
+            // Adjust canvas height if the tree extends beyond current height
+            const requiredHeight = (maxDepth + 1) * LEVEL_SPACING + NODE_RADIUS * 2 + 50; // Add some bottom padding
+            if (canvas.height < requiredHeight) {
+                canvas.height = requiredHeight;
+            }
+        }
+
+        /**
+         * Clears the canvas and draws the entire probability tree, including nodes, branches, and final probabilities.
+         */
+        function drawTree() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the entire canvas
+
+            layoutTree(); // Recalculate node positions before drawing
+
+            // --- Draw Branches ---
+            // Draw branches first so that nodes are drawn on top of them
+            for (const [id, branch] of treeData.branches.entries()) {
+                const fromNode = treeData.nodes.get(branch.fromNodeId);
+                const toNode = treeData.nodes.get(branch.toNodeId);
+
+                if (fromNode && toNode) {
+                    ctx.beginPath();
+                    ctx.moveTo(fromNode.x, fromNode.y); // Start of the line
+                    ctx.lineTo(toNode.x, toNode.y);     // End of the line
+                    ctx.strokeStyle = LINE_COLOR;
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    // Draw branch label and probability text
+                    const midX = (fromNode.x + toNode.x) / 2;
+                    const midY = (fromNode.y + toNode.y) / 2;
+
+                    ctx.fillStyle = TEXT_COLOR;
+                    ctx.font = `${FONT_SIZE_BRANCH}px Inter`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+
+                    // Calculate an offset to draw text slightly off the line for better readability
+                    const angle = Math.atan2(toNode.y - fromNode.y, toNode.x - fromNode.x);
+                    const offsetX = -Math.sin(angle) * 15; // Offset perpendicular to the line
+                    const offsetY = Math.cos(angle) * 15;
+
+                    ctx.fillText(`${branch.label} (${branch.probability})`, midX + offsetX, midY + offsetY);
+                }
+            }
+
+            // --- Draw Nodes ---
+            // Draw nodes after branches so they appear on top
+            for (const [id, node] of treeData.nodes.entries()) {
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, NODE_RADIUS, 0, Math.PI * 2); // Draw a circle
+                ctx.fillStyle = node.id === treeData.selectedNodeId ? SELECTED_NODE_COLOR : NODE_COLOR; // Highlight selected node
+                ctx.fill(); // Fill the circle
+                ctx.strokeStyle = LINE_COLOR;
+                ctx.lineWidth = 2;
+                ctx.stroke(); // Draw the circle border
+
+                // Draw node label text
+                ctx.fillStyle = TEXT_COLOR;
+                ctx.font = `${FONT_SIZE_NODE}px Inter`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(node.label, node.x, node.y);
+            }
+
+            // --- Calculate and Draw Final Probabilities ---
+            calculateAndDrawFinalProbabilities();
+        }
+
+        /**
+         * Traverses the tree to calculate the cumulative probability of each path from the root to a leaf node.
+         * Then, it draws these final probabilities next to the corresponding leaf nodes.
+         */
+        function calculateAndDrawFinalProbabilities() {
+            if (!treeData.rootNodeId) {
+                return; // No tree, no probabilities to calculate
+            }
+
+            const rootNode = treeData.nodes.get(treeData.rootNodeId);
+            if (!rootNode) {
+                return;
+            }
+
+            const paths = []; // Array to store information about each complete path
+
+            /**
+             * Recursive function to traverse the tree and accumulate probabilities.
+             * @param {string} nodeId - The ID of the current node being visited.
+             * @param {string[]} currentPath - An array of node IDs representing the path from the root to the current node.
+             * @param {number} currentProbability - The cumulative probability of reaching the current node.
+             */
+            function traverse(nodeId, currentPath, currentProbability) {
+                const node = treeData.nodes.get(nodeId);
+                if (!node) return;
+
+                const newPath = [...currentPath, nodeId]; // Add current node to the path
+
+                let branchProb = 1; // Probability of the branch leading to the current node
+                // If it's not the root node, get the probability from its incoming branch
+                if (node.id !== treeData.rootNodeId && node.parentBranchId) {
+                    const parentBranch = treeData.branches.get(node.parentBranchId);
+                    if (parentBranch) {
+                        branchProb = parentBranch.probability;
+                    }
+                }
+
+                // Calculate the cumulative probability up to the current node
+                const cumulativeProbability = currentProbability * branchProb;
+
+                if (node.children.length === 0) {
+                    // This is a leaf node (end of a path), so store the path and its probability
+                    paths.push({ path: newPath, probability: cumulativeProbability, lastNodeId: nodeId });
+                } else {
+                    // If not a leaf node, continue traversing for its children
+                    for (const childId of node.children) {
+                        traverse(childId, newPath, cumulativeProbability);
+                    }
+                }
+            }
+
+            // Start the traversal from the root node with an initial probability of 1
+            traverse(treeData.rootNodeId, [], 1);
+
+            // --- Draw Final Probabilities on Canvas ---
+            ctx.fillStyle = '#2b6cb0'; // Blue color for final probabilities (Tailwind blue-700)
+            ctx.font = `bold ${FONT_SIZE_FINAL_PROB}px Inter`; // Bold font for emphasis
+            ctx.textAlign = 'left'; // Align text to the left
+            ctx.textBaseline = 'middle'; // Vertically center text
+
+            for (const pathInfo of paths) {
+                const lastNode = treeData.nodes.get(pathInfo.lastNodeId);
+                if (lastNode) {
+                    const text = `P = ${pathInfo.probability.toFixed(4)}`; // Format probability to 4 decimal places
+                    // Position text to the right of the leaf node
+                    ctx.fillText(text, lastNode.x + NODE_RADIUS + 10, lastNode.y);
+                }
+            }
+        }
+
+
+        // --- Event Listeners ---
+
+        // Event listener for adding the root node
+        addRootNodeBtn.addEventListener('click', () => {
+            const label = rootNodeLabelInput.value.trim(); // Get label from input
+            if (label && !treeData.rootNodeId) { // Check if label is not empty and no root exists
+                treeData.rootNodeId = addNode(label).id; // Add the root node and store its ID
+                selectNode(treeData.rootNodeId); // Select the newly added root node
+                rootNodeLabelInput.value = ''; // Clear the input field
+                drawTree(); // Redraw the tree
+            } else if (treeData.rootNodeId) {
+                // Inform user if a root node already exists
+                showMessageBox("A root node already exists. Clear the tree to add a new one.");
+            } else {
+                // Inform user to enter a label
+                showMessageBox("Please enter a label for the root node.");
+            }
+        });
+
+        // Event listener for adding a branch (outcome) to the selected node
+        addBranchBtn.addEventListener('click', () => {
+            const branchLabel = branchLabelInput.value.trim();
+            const probability = parseFloat(branchProbabilityInput.value);
+            const newNodeLabel = newNodeLabelInput.value.trim(); // Label for the new node this branch will lead to
+
+            if (!treeData.selectedNodeId) {
+                showMessageBox("Please select a parent node first by clicking on it in the tree.");
+                return;
+            }
+            if (!branchLabel) {
+                showMessageBox("Please enter a label for the outcome (branch).");
+                return;
+            }
+            if (isNaN(probability) || probability < 0 || probability > 1) {
+                showMessageBox("Please enter a valid probability between 0 and 1.");
+                return;
+            }
+            if (!newNodeLabel) {
+                showMessageBox("Please enter a label for the new node this outcome will lead to.");
+                return;
+            }
+
+            const fromNodeId = treeData.selectedNodeId; // The selected node is the source of the new branch
+            const newChildNode = addNode(newNodeLabel, null); // Create the new child node
+            const newBranch = addBranch(fromNodeId, newChildNode.id, branchLabel, probability); // Create the branch
+            newChildNode.parentBranchId = newBranch.id; // Link the new node to its incoming branch
+
+            // Clear input fields and redraw the tree
+            branchLabelInput.value = '';
+            branchProbabilityInput.value = '0.5';
+            newNodeLabelInput.value = '';
+            selectNode(newChildNode.id); // Automatically select the newly created child node
+            drawTree();
+        });
+
+        // Event listener for clearing the entire tree
+        clearTreeBtn.addEventListener('click', () => {
+            // Show a confirmation message box before clearing
+            showMessageBox("Are you sure you want to clear the entire tree?", true, () => {
+                // Reset all tree data to initial empty state
+                treeData = {
+                    nodes: new Map(),
+                    branches: new Map(),
+                    rootNodeId: null,
+                    nextNodeId: 0,
+                    nextBranchId: 0,
+                    selectedNodeId: null,
+                };
+                selectNode(null); // Deselect any node
+                canvas.height = 600; // Reset canvas height to default
+                drawTree(); // Clear canvas by redrawing an empty tree
+            });
+        });
+
+        // Event listener for clicks on the canvas (for node selection)
+        canvas.addEventListener('click', (event) => {
+            const rect = canvas.getBoundingClientRect(); // Get canvas position and size
+            // Calculate mouse coordinates relative to the canvas
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
+
+            const clickedNodeId = getNodeAtCoordinates(mouseX, mouseY); // Check if a node was clicked
+            selectNode(clickedNodeId); // Select the clicked node (or deselect if outside a node)
+        });
+
+        // --- Custom Message Box Implementation (replaces alert/confirm) ---
+        /**
+         * Displays a custom message box.
+         * @param {string} message - The message to display.
+         * @param {boolean} isConfirm - If true, displays "Cancel" and "Confirm" buttons. Otherwise, just "OK".
+         * @param {function} onConfirm - Callback function to execute if "Confirm" (or "OK" for non-confirm) is clicked.
+         */
+        function showMessageBox(message, isConfirm = false, onConfirm = () => {}) {
+            let messageBox = document.getElementById('customMessageBox');
+            // Create the message box element if it doesn't exist
+            if (!messageBox) {
+                messageBox = document.createElement('div');
+                messageBox.id = 'customMessageBox';
+                messageBox.className = 'fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 hidden';
+                messageBox.innerHTML = `
+                    <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full">
+                        <p id="messageBoxText" class="text-gray-800 text-lg mb-4"></p>
+                        <div class="flex justify-end space-x-3">
+                            <button id="messageBoxCancel" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">Cancel</button>
+                            <button id="messageBoxOK" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">OK</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(messageBox);
+
+                // Add event listeners to the message box buttons
+                document.getElementById('messageBoxOK').addEventListener('click', () => {
+                    messageBox.classList.add('hidden'); // Hide the message box
+                    if (isConfirm) {
+                        onConfirm(); // Execute callback for confirm actions
+                    }
+                });
+                document.getElementById('messageBoxCancel').addEventListener('click', () => {
+                    messageBox.classList.add('hidden'); // Hide the message box
+                });
+            }
+
+            document.getElementById('messageBoxText').textContent = message; // Set the message text
+            const okBtn = document.getElementById('messageBoxOK');
+            const cancelBtn = document.getElementById('messageBoxCancel');
+
+            // Adjust button visibility and text based on whether it's a confirmation dialog
+            if (isConfirm) {
+                cancelBtn.classList.remove('hidden');
+                okBtn.textContent = 'Confirm';
+            } else {
+                cancelBtn.classList.add('hidden');
+                okBtn.textContent = 'OK';
+            }
+
+            messageBox.classList.remove('hidden'); // Show the message box
+        }
+
+
+        // Initial drawing of the empty tree when the page loads
+        drawTree();
+    </script>
+</body>
+</html>

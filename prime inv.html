@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prime Number Inventor</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for Inter font and general body styling */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+        /* Ensure the main container grows to fit content but respects max-width */
+        .container {
+            max-width: 90%; /* Responsive width */
+            width: 600px; /* Max width for larger screens */
+        }
+        /* Spinner animation */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #6366f1; /* Indigo-500 */
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="container bg-white p-8 rounded-xl shadow-lg border border-gray-200">
+        <h1 class="text-3xl font-extrabold text-gray-800 mb-6 text-center">Prime Number Inventor</h1>
+
+        <div class="mb-6 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0">
+                <div class="flex-1">
+                    <label for="startNumber" class="block text-sm font-medium text-gray-700 mb-1">Start Number:</label>
+                    <!-- Changed type to text to handle BigInt input correctly -->
+                    <input type="text" id="startNumber" value="1"
+                           class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out">
+                </div>
+                <div class="flex-1">
+                    <label for="endNumber" class="block text-sm font-medium text-gray-700 mb-1">End Number:</label>
+                    <!-- Changed type to text to handle BigInt input correctly -->
+                    <input type="text" id="endNumber" value="100"
+                           class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out">
+                </div>
+            </div>
+            <button id="findPrimesBtn"
+                    class="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-6 rounded-lg shadow-md hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-300 ease-in-out transform hover:scale-105">
+                Find Prime Numbers
+            </button>
+        </div>
+
+        <div id="loadingIndicator" class="flex items-center justify-center py-4 hidden">
+            <div class="spinner mr-3"></div>
+            <p class="text-gray-600 font-medium">Calculating primes, please wait...</p>
+        </div>
+
+        <div id="resultsContainer" class="mt-8 p-6 bg-gray-50 border border-gray-200 rounded-lg shadow-inner">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">Results:</h2>
+            <p id="primeCountOutput" class="text-gray-800 text-lg font-bold mb-2"></p>
+            <p id="primeNumbersOutput" class="text-gray-900 text-lg leading-relaxed break-words"></p>
+            <p id="errorMessage" class="text-red-600 text-sm mt-2 hidden"></p>
+            <p id="performanceWarning" class="text-orange-600 text-sm mt-4 hidden">
+                Note: For extremely large numbers, the primality test is probabilistic. For very wide ranges, calculations can still be very slow or infeasible in a browser.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const startNumberInput = document.getElementById('startNumber');
+            const endNumberInput = document.getElementById('endNumber');
+            const findPrimesBtn = document.getElementById('findPrimesBtn');
+            const primeNumbersOutput = document.getElementById('primeNumbersOutput');
+            const primeCountOutput = document.getElementById('primeCountOutput');
+            const errorMessage = document.getElementById('errorMessage');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const performanceWarning = document.getElementById('performanceWarning');
+
+            /**
+             * Helper function for modular exponentiation: (base^exp) % mod
+             * @param {BigInt} base
+             * @param {BigInt} exp
+             * @param {BigInt} mod
+             * @returns {BigInt}
+             */
+            function power(base, exp, mod) {
+                let res = 1n;
+                base %= mod;
+                while (exp > 0n) {
+                    if (exp % 2n === 1n) res = (res * base) % mod;
+                    base = (base * base) % mod;
+                    exp /= 2n;
+                }
+                return res;
+            }
+
+            /**
+             * Checks if a BigInt number is prime using the Miller-Rabin primality test.
+             * This is a probabilistic test. The more bases used, the lower the probability of error.
+             * For practical purposes with these bases, the chance of error is extremely small.
+             * @param {BigInt} n The BigInt number to check.
+             * @returns {boolean} True if the number is probably prime, false if composite.
+             */
+            function isPrimeBigInt(n) {
+                // Handle small numbers deterministically
+                if (n <= 1n) return false;
+                if (n <= 3n) return true; // 2n, 3n are prime
+                if (n % 2n === 0n) return false; // Even numbers > 2n are not prime
+
+                // Write n-1 as 2^s * d, where d is odd
+                let d = n - 1n;
+                let s = 0n;
+                while (d % 2n === 0n) {
+                    d /= 2n;
+                    s++;
+                }
+
+                // Bases for Miller-Rabin test. These are commonly used for high confidence.
+                // For numbers up to 3,317,044,064,679,887,385,961,981, the bases {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37} are sufficient for deterministic test.
+                // For larger BigInts, it remains probabilistic.
+                const bases = [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 29n, 31n, 37n];
+
+                // Perform the Miller-Rabin test for each base
+                for (let a of bases) {
+                    // If base 'a' is greater than or equal to 'n', it cannot be a valid test base.
+                    // This can happen if 'n' is a small prime like 2, 3, 5, etc., which are handled above.
+                    // For larger 'n', 'a' will always be less than 'n'.
+                    if (a >= n) continue;
+
+                    let x = power(a, d, n); // Calculate a^d % n
+
+                    // If x is 1 or n-1, n is likely prime for this base
+                    if (x === 1n || x === n - 1n) {
+                        continue;
+                    }
+
+                    let isComposite = true; // Assume composite until proven otherwise
+                    // Check powers of 2 up to s-1
+                    for (let r = 1n; r < s; r++) {
+                        x = power(x, 2n, n); // Calculate x^2 % n
+                        if (x === n - 1n) {
+                            isComposite = false; // n is likely prime for this base
+                            break;
+                        }
+                    }
+
+                    // If after all checks for this base, it's still composite, then n is definitely composite
+                    if (isComposite) return false;
+                }
+                return true; // All bases passed, n is probably prime
+            }
+
+            /**
+             * Finds all prime numbers within a given BigInt range.
+             * This function is designed to be asynchronous to allow the UI to update
+             * with a loading indicator during long computations.
+             * @param {BigInt} start The starting BigInt number of the range.
+             * @param {BigInt} end The ending BigInt number of the range.
+             * @returns {Promise<BigInt[]>} A promise that resolves with an array of prime numbers.
+             */
+            async function findPrimesInRange(start, end) {
+                const primes = [];
+                // Use a small initial delay to allow the loading indicator to render before heavy computation begins
+                await new Promise(resolve => setTimeout(resolve, 50));
+                let iterationCounter = 0; // Use a regular number for responsiveness check to avoid BigInt modulo overhead
+
+                for (let i = start; i <= end; i = i + 1n) {
+                    iterationCounter++;
+                    // Introduce a small pause periodically to prevent UI freezing for very long loops
+                    // Adjust the modulo value (e.g., 10000) based on desired responsiveness vs. overhead
+                    if (iterationCounter % 100000 === 0) { // Check every 100,000 iterations
+                        await new Promise(resolve => setTimeout(resolve, 0));
+                    }
+                    if (isPrimeBigInt(i)) {
+                        primes.push(i);
+                    }
+                }
+                return primes;
+            }
+
+            /**
+             * Handles the click event for the "Find Prime Numbers" button.
+             */
+            findPrimesBtn.addEventListener('click', async () => {
+                errorMessage.classList.add('hidden'); // Hide any previous error messages
+                performanceWarning.classList.add('hidden'); // Hide any previous warning
+                primeNumbersOutput.textContent = ''; // Clear previous results
+                primeCountOutput.textContent = ''; // Clear previous count
+                loadingIndicator.classList.remove('hidden'); // Show loading indicator
+                findPrimesBtn.disabled = true; // Disable button during calculation
+
+                let start, end;
+                try {
+                    // Parse input as BigInt
+                    start = BigInt(startNumberInput.value);
+                    end = BigInt(endNumberInput.value);
+                } catch (e) {
+                    errorMessage.textContent = 'Invalid number input. Please enter whole numbers.';
+                    errorMessage.classList.remove('hidden');
+                    loadingIndicator.classList.add('hidden');
+                    findPrimesBtn.disabled = false;
+                    return;
+                }
+
+                // Input validation for BigInts
+                if (start < 1n || end < 1n) {
+                    errorMessage.textContent = 'Numbers must be greater than or equal to 1.';
+                    errorMessage.classList.remove('hidden');
+                    loadingIndicator.classList.add('hidden');
+                    findPrimesBtn.disabled = false;
+                    return;
+                }
+                if (start > end) {
+                    errorMessage.textContent = 'Start number cannot be greater than end number.';
+                    errorMessage.classList.remove('hidden');
+                    loadingIndicator.classList.add('hidden');
+                    findPrimesBtn.disabled = false;
+                    return;
+                }
+
+                // Show performance warning for very large ranges
+                // The threshold here is a rough estimate; adjust based on practical performance.
+                if (end - start > 1000000n || end > 100000000000000n) {
+                    performanceWarning.classList.remove('hidden');
+                }
+
+                try {
+                    // Call the asynchronous prime finding function
+                    const primes = await findPrimesInRange(start, end);
+
+                    if (primes.length > 0) {
+                        primeCountOutput.textContent = `Found ${primes.length} prime numbers:`;
+                        // Join primes with comma and space, ensuring BigInts are converted to string
+                        primeNumbersOutput.textContent = primes.map(p => p.toString()).join(', ');
+                    } else {
+                        primeCountOutput.textContent = `Found 0 prime numbers.`;
+                        primeNumbersOutput.textContent = `No prime numbers found between ${start} and ${end}.`;
+                    }
+                } catch (error) {
+                    console.error("Error finding primes:", error);
+                    errorMessage.textContent = 'An error occurred during calculation. Please try again.';
+                    errorMessage.classList.remove('hidden');
+                } finally {
+                    loadingIndicator.classList.add('hidden'); // Hide loading indicator
+                    findPrimesBtn.disabled = false; // Re-enable button
+                }
+            });
+        });
+    </script>
+</body>
+</html>

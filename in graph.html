@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inequality Visualizer</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for Inter font and general aesthetics */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 16px; /* More rounded corners */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Softer shadow */
+            padding: 30px;
+            width: 100%;
+            max-width: 900px; /* Increased max-width for better canvas size */
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .tab-button {
+            padding: 12px 24px;
+            border-radius: 12px; /* Rounded tab buttons */
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background-color: #e2e8f0; /* Light gray for inactive */
+            color: #4a5568; /* Darker text */
+            flex-grow: 1;
+            text-align: center;
+        }
+        .tab-button.active {
+            background-color: #4c51bf; /* Deeper indigo for active */
+            color: #ffffff;
+            box-shadow: 0 4px 10px rgba(76, 81, 191, 0.3); /* Shadow for active tab */
+        }
+        .tab-button:hover:not(.active) {
+            background-color: #cbd5e0; /* Lighter gray on hover */
+        }
+        .tab-content {
+            display: none;
+            padding-top: 20px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        canvas {
+            border: 1px solid #cbd5e0; /* Light border for canvas */
+            background-color: #f7fafc; /* Very light background for canvas */
+            border-radius: 12px;
+            width: 100%; /* Ensure canvas takes full width */
+            height: 400px; /* Fixed height for consistency */
+            display: block; /* Remove extra space below canvas */
+        }
+        input[type="text"] {
+            padding: 12px 16px;
+            border: 2px solid #cbd5e0;
+            border-radius: 12px;
+            font-size: 1rem;
+            width: 100%;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea; /* Indigo on focus */
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+        .action-button {
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .action-button.primary {
+            background-color: #667eea; /* Primary indigo */
+            color: #ffffff;
+        }
+        .action-button.primary:hover {
+            background-color: #5a67d8; /* Darker indigo on hover */
+            box-shadow: 0 6px 15px rgba(102, 126, 234, 0.3);
+        }
+        .action-button.secondary {
+            background-color: #e53e3e; /* Red for clear */
+            color: #ffffff;
+        }
+        .action-button.secondary:hover {
+            background-color: #c53030; /* Darker red on hover */
+            box-shadow: 0 6px 15px rgba(229, 62, 62, 0.3);
+        }
+        .message-box {
+            background-color: #fff3cd; /* Light yellow for warnings */
+            color: #856404; /* Dark yellow text */
+            border: 1px solid #ffeeba;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            display: none; /* Hidden by default */
+            font-size: 0.9rem;
+        }
+        .message-box.error {
+            background-color: #f8d7da; /* Light red for errors */
+            color: #721c24; /* Dark red text */
+            border-color: #f5c6cb;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            .tab-buttons {
+                flex-direction: column;
+            }
+            .tab-button {
+                margin-bottom: 10px;
+            }
+            .button-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-extrabold text-gray-800 text-center mb-6">Inequality Visualizer</h1>
+
+        <!-- Tab Buttons -->
+        <div class="flex flex-col sm:flex-row gap-4 mb-6 tab-buttons">
+            <button class="tab-button active" data-tab="numberLine">Number Line</button>
+            <button class="tab-button" data-tab="graph">2D Graph</button>
+        </div>
+
+        <!-- Number Line Tab Content -->
+        <div id="numberLine" class="tab-content active">
+            <div class="mb-4">
+                <label for="numberLineInput" class="block text-gray-700 text-sm font-bold mb-2">
+                    Enter inequality (e.g., x > 5, 2x <= 10, 1 < x < 5):
+                </label>
+                <input type="text" id="numberLineInput" placeholder="e.g., x > 5 or 1 < x < 5" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+            </div>
+            <div class="flex gap-4 button-group">
+                <button id="drawNumberLine" class="action-button primary flex-1">Draw Number Line</button>
+                <button id="clearNumberLine" class="action-button secondary flex-1">Clear</button>
+            </div>
+            <div id="numberLineMessage" class="message-box"></div>
+            <canvas id="numberLineCanvas"></canvas>
+        </div>
+
+        <!-- Graph Tab Content -->
+        <div id="graph" class="tab-content">
+            <div class="mb-4">
+                <label for="graphInput" class="block text-gray-700 text-sm font-bold mb-2">
+                    Enter inequality (e.g., y < 2x + 1, x >= -3, 1 < x < 5):
+                </label>
+                <input type="text" id="graphInput" placeholder="e.g., y < 2x + 1 or 1 < x < 5" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+            </div>
+            <div class="flex gap-4 button-group">
+                <button id="drawGraph" class="action-button primary flex-1">Draw Graph</button>
+                <button id="clearGraph" class="action-button secondary flex-1">Clear</button>
+            </div>
+            <div id="graphMessage" class="message-box"></div>
+            <canvas id="graphCanvas"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // Get DOM elements
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        const numberLineInput = document.getElementById('numberLineInput');
+        const numberLineCanvas = document.getElementById('numberLineCanvas');
+        const drawNumberLineBtn = document.getElementById('drawNumberLine');
+        const clearNumberLineBtn = document.getElementById('clearNumberLine');
+        const numberLineMessage = document.getElementById('numberLineMessage');
+        const nlCtx = numberLineCanvas.getContext('2d');
+
+        const graphInput = document.getElementById('graphInput');
+        const graphCanvas = document.getElementById('graphCanvas');
+        const drawGraphBtn = document.getElementById('drawGraph');
+        const clearGraphBtn = document.getElementById('clearGraph');
+        const graphMessage = document.getElementById('graphMessage');
+        const gCtx = graphCanvas.getContext('2d');
+
+        // --- Tab Switching Logic ---
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons and content
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+
+                // Add active class to clicked button and corresponding content
+                button.classList.add('active');
+                const targetTabId = button.dataset.tab;
+                document.getElementById(targetTabId).classList.add('active');
+
+                // Clear canvases when switching tabs to avoid stale drawings
+                clearCanvas(nlCtx, numberLineCanvas);
+                clearCanvas(gCtx, graphCanvas);
+                hideMessage(numberLineMessage);
+                hideMessage(graphMessage);
+                numberLineInput.value = '';
+                graphInput.value = '';
+            });
+        });
+
+        // --- Helper Functions ---
+
+        /**
+         * Displays a message in the specified message box.
+         * @param {HTMLElement} messageBoxElement - The message box DOM element.
+         * @param {string} message - The message text.
+         * @param {boolean} isError - True if it's an error message, false for warning/info.
+         */
+        function showMessage(messageBoxElement, message, isError = false) {
+            messageBoxElement.textContent = message;
+            messageBoxElement.classList.remove('error');
+            if (isError) {
+                messageBoxElement.classList.add('error');
+            }
+            messageBoxElement.style.display = 'block';
+        }
+
+        /**
+         * Hides the specified message box.
+         * @param {HTMLElement} messageBoxElement - The message box DOM element.
+         */
+        function hideMessage(messageBoxElement) {
+            messageBoxElement.style.display = 'none';
+            messageBoxElement.textContent = '';
+        }
+
+        /**
+         * Clears the canvas and resets its dimensions.
+         * @param {CanvasRenderingContext2D} ctx - The 2D rendering context of the canvas.
+         * @param {HTMLCanvasElement} canvas - The canvas DOM element.
+         */
+        function clearCanvas(ctx, canvas) {
+            // Set canvas dimensions to match display size for proper scaling
+            const dpi = window.devicePixelRatio || 1;
+            canvas.width = canvas.offsetWidth * dpi;
+            canvas.height = canvas.offsetHeight * dpi;
+            ctx.scale(dpi, dpi); // Scale context to match DPI
+
+            ctx.clearRect(0, 0, canvas.width / dpi, canvas.height / dpi);
+        }
+
+        // --- Number Line Logic ---
+
+        /**
+         * Parses a single-variable inequality string.
+         * Supports forms like 'x > 5', '2x <= 10', '-3x + 1 < 7', and compound '1 < x < 5'.
+         * @param {string} inequalityStr - The inequality string.
+         * @returns {object|null} An object with { type, variable, operator, value, isStrict } or
+         * { type, value1, operator1, isStrict1, value2, operator2, isStrict2 } or null if invalid.
+         */
+        function parseNumberLineInequality(inequalityStr) {
+            inequalityStr = inequalityStr.replace(/\s+/g, '').toLowerCase(); // Remove spaces and convert to lowercase
+
+            // Regex for compound inequalities: C1 op1 V op2 C2 (e.g., 1 < x < 5)
+            const compoundRegex = /^(-?\d*\.?\d*)\s*(<=|>=|<|>)\s*([xy])\s*(<=|>=|<|>)\s*(-?\d*\.?\d*)$/;
+            let match = inequalityStr.match(compoundRegex);
+
+            if (match) {
+                const val1 = parseFloat(match[1]);
+                let op1 = match[2];
+                const variable = match[3];
+                const op2 = match[4];
+                const val2 = parseFloat(match[5]);
+
+                if (isNaN(val1) || isNaN(val2)) return null;
+
+                // Ensure the inequality is in the form C1 < V < C2 or C1 > V > C2
+                // If it's C1 > V > C2, we should flip it to C2 < V < C1 for consistent processing
+                // For example, 5 > x > 1 should be treated as 1 < x < 5
+                if ((op1 === '>' || op1 === '>=') && (op2 === '>' || op2 === '>=')) {
+                    // This implies val1 > variable > val2. Swap values and operators to make it val2 < variable < val1
+                    return {
+                        type: `compound-${variable}`,
+                        value1: val2,
+                        operator1: op2 === '>' ? '<' : '<=', // Flip operator
+                        isStrict1: op2 === '>',
+                        value2: val1,
+                        operator2: op1 === '>' ? '<' : '<=', // Flip operator
+                        isStrict2: op1 === '>'
+                    };
+                } else if (!((op1 === '<' || op1 === '<=') && (op2 === '<' || op2 === '<='))) {
+                    // If not both are '<' or '<=', it's an unsupported compound type (e.g., 1 < x > 5)
+                    return null;
+                }
+
+                return {
+                    type: `compound-${variable}`,
+                    value1: val1,
+                    operator1: op1,
+                    isStrict1: op1 === '<' || op1 === '>',
+                    value2: val2,
+                    operator2: op2,
+                    isStrict2: op2 === '<' || op2 === '>'
+                };
+            }
+
+            // Regex for simple inequalities: Ax op C or C op Ax
+            const simpleRegex = /^(-?\d*\.?\d*)([xy])\s*(<=|>=|<|>)\s*(-?\d*\.?\d*)$|(-?\d*\.?\d*)\s*(<=|>=|<|>)\s*(-?\d*\.?\d*)([xy])$/;
+            match = inequalityStr.match(simpleRegex);
+
+            if (!match) {
+                return null; // Invalid format
+            }
+
+            let variable, operator, value, coefficient;
+
+            if (match[2] && match[3] && match[4]) { // Case: Ax op C or x op C
+                coefficient = parseFloat(match[1]) || (match[1] === '-' ? -1 : 1);
+                variable = match[2];
+                operator = match[3];
+                value = parseFloat(match[4]);
+            } else if (match[5] && match[6] && match[7] && match[8]) { // Case: C op Ax or C op x
+                coefficient = parseFloat(match[8]) || (match[8] === '-' ? -1 : 1);
+                variable = match[8];
+                operator = match[6];
+                value = parseFloat(match[5]);
+
+                // Flip operator if variable is on the right
+                switch (operator) {
+                    case '<': operator = '>'; break;
+                    case '>': operator = '<'; break;
+                    case '<=': operator = '>='; break;
+                    case '>=': operator = '<='; break;
+                }
+            } else {
+                return null;
+            }
+
+            if (isNaN(value) || isNaN(coefficient)) {
+                return null;
+            }
+
+            let solvedValue = value / coefficient;
+            let solvedOperator = operator;
+
+            if (coefficient < 0) {
+                switch (operator) {
+                    case '<': solvedOperator = '>'; break;
+                    case '>': solvedOperator = '<'; break;
+                    case '<=': solvedOperator = '>='; break;
+                    case '>=': solvedOperator = '<='; break;
+                }
+            }
+
+            const isStrict = solvedOperator === '<' || solvedOperator === '>';
+
+            return {
+                type: 'simple', // Indicate it's a simple inequality
+                variable: variable,
+                operator: solvedOperator,
+                value: solvedValue,
+                isStrict: isStrict
+            };
+        }
+
+
+        /**
+         * Draws the number line representation of an inequality.
+         * @param {object} inequality - Parsed inequality object.
+         */
+        function drawNumberLine(inequality) {
+            clearCanvas(nlCtx, numberLineCanvas);
+            hideMessage(numberLineMessage);
+
+            const canvasWidth = numberLineCanvas.width / (window.devicePixelRatio || 1);
+            const canvasHeight = numberLineCanvas.height / (window.devicePixelRatio || 1);
+            const centerX = canvasWidth / 2;
+            const centerY = canvasHeight / 2;
+            const lineLength = canvasWidth * 0.8;
+            const startX = centerX - lineLength / 2;
+            const endX = centerX + lineLength / 2;
+            const tickLength = 10;
+            const arrowHeadSize = 10;
+
+            // Determine min/max values for scale
+            let minVal, maxVal;
+            if (inequality.type === 'simple') {
+                const criticalValue = inequality.value;
+                const range = 10;
+                minVal = Math.floor(criticalValue - range);
+                maxVal = Math.ceil(criticalValue + range);
+            } else if (inequality.type.startsWith('compound')) {
+                minVal = Math.floor(Math.min(inequality.value1, inequality.value2) - 5); // Extend range a bit
+                maxVal = Math.ceil(Math.max(inequality.value1, inequality.value2) + 5);
+            }
+            const scale = lineLength / (maxVal - minVal);
+
+            // Draw the main line
+            nlCtx.beginPath();
+            nlCtx.moveTo(startX, centerY);
+            nlCtx.lineTo(endX, centerY);
+            nlCtx.strokeStyle = '#4a5568';
+            nlCtx.lineWidth = 2;
+            nlCtx.stroke();
+
+            // Draw tick marks and labels
+            nlCtx.font = '14px Inter';
+            nlCtx.fillStyle = '#4a5568';
+            nlCtx.textAlign = 'center';
+            nlCtx.textBaseline = 'top';
+
+            for (let i = minVal; i <= maxVal; i++) {
+                const x = startX + (i - minVal) * scale;
+                nlCtx.beginPath();
+                nlCtx.moveTo(x, centerY - tickLength / 2);
+                nlCtx.lineTo(x, centerY + tickLength / 2);
+                nlCtx.stroke();
+                // Label every other integer or the critical value(s)
+                if (i % 2 === 0 || i === Math.round(inequality.value) || (inequality.type.startsWith('compound') && (i === Math.round(inequality.value1) || i === Math.round(inequality.value2)))) {
+                    nlCtx.fillText(i.toString(), x, centerY + tickLength / 2 + 5);
+                }
+            }
+
+            if (inequality.type === 'simple') {
+                const criticalValue = inequality.value;
+                const criticalX = startX + (criticalValue - minVal) * scale;
+
+                // Draw critical point circle
+                nlCtx.beginPath();
+                nlCtx.arc(criticalX, centerY, 6, 0, Math.PI * 2);
+                if (inequality.isStrict) {
+                    nlCtx.fillStyle = '#ffffff'; // Open circle
+                    nlCtx.fill();
+                    nlCtx.strokeStyle = '#667eea';
+                    nlCtx.lineWidth = 2;
+                    nlCtx.stroke();
+                } else {
+                    nlCtx.fillStyle = '#667eea'; // Closed circle
+                    nlCtx.fill();
+                }
+
+                // Draw solution line/arrow
+                nlCtx.beginPath();
+                nlCtx.strokeStyle = '#667eea';
+                nlCtx.lineWidth = 4;
+                nlCtx.lineCap = 'round';
+
+                if (inequality.operator === '>' || inequality.operator === '>=') {
+                    nlCtx.moveTo(criticalX, centerY);
+                    nlCtx.lineTo(endX, centerY);
+                    nlCtx.stroke();
+                    // Draw arrow head right
+                    nlCtx.beginPath();
+                    nlCtx.moveTo(endX - arrowHeadSize, centerY - arrowHeadSize / 2);
+                    nlCtx.lineTo(endX, centerY);
+                    nlCtx.lineTo(endX - arrowHeadSize, centerY + arrowHeadSize / 2);
+                    nlCtx.fill();
+                } else if (inequality.operator === '<' || inequality.operator === '<=') {
+                    nlCtx.moveTo(criticalX, centerY);
+                    nlCtx.lineTo(startX, centerY);
+                    nlCtx.stroke();
+                    // Draw arrow head left
+                    nlCtx.beginPath();
+                    nlCtx.moveTo(startX + arrowHeadSize, centerY - arrowHeadSize / 2);
+                    nlCtx.lineTo(startX, centerY);
+                    nlCtx.lineTo(startX + arrowHeadSize, centerY + arrowHeadSize / 2);
+                    nlCtx.fill();
+                }
+            } else if (inequality.type.startsWith('compound')) {
+                const val1X = startX + (inequality.value1 - minVal) * scale;
+                const val2X = startX + (inequality.value2 - minVal) * scale;
+
+                // Ensure shadeStartX is always less than shadeEndX for consistent drawing
+                const shadeStartX = Math.min(val1X, val2X);
+                const shadeEndX = Math.max(val1X, val2X);
+
+                // Draw circles at value1 and value2
+                // Circle for value1
+                nlCtx.beginPath();
+                nlCtx.arc(val1X, centerY, 6, 0, Math.PI * 2);
+                if (inequality.isStrict1) {
+                    nlCtx.fillStyle = '#ffffff'; // Open circle
+                    nlCtx.fill();
+                    nlCtx.strokeStyle = '#667eea';
+                    nlCtx.lineWidth = 2;
+                    nlCtx.stroke();
+                } else {
+                    nlCtx.fillStyle = '#667eea'; // Closed circle
+                    nlCtx.fill();
+                }
+
+                // Circle for value2
+                nlCtx.beginPath();
+                nlCtx.arc(val2X, centerY, 6, 0, Math.PI * 2);
+                if (inequality.isStrict2) {
+                    nlCtx.fillStyle = '#ffffff'; // Open circle
+                    nlCtx.fill();
+                    nlCtx.strokeStyle = '#667eea';
+                    nlCtx.lineWidth = 2;
+                    nlCtx.stroke();
+                } else {
+                    nlCtx.fillStyle = '#667eea'; // Closed circle
+                    nlCtx.fill();
+                }
+
+                // Shade the region between the two values
+                nlCtx.beginPath();
+                nlCtx.strokeStyle = '#667eea';
+                nlCtx.lineWidth = 4;
+                nlCtx.lineCap = 'round';
+                nlCtx.moveTo(shadeStartX, centerY);
+                nlCtx.lineTo(shadeEndX, centerY);
+                nlCtx.stroke();
+
+                // No arrows for compound inequalities on number line as it's a bounded region
+            }
+        }
+
+        // --- Graph Logic (2D) ---
+
+        /**
+         * Parses a two-variable inequality string.
+         * Supports forms like 'y < 2x + 1', 'x >= -3', 'y <= 5', and compound '1 < x < 5'.
+         * @param {string} inequalityStr - The inequality string.
+         * @returns {object|null} An object with { type, operator, isStrict, m, b, value } or
+         * { type, value1, operator1, isStrict1, value2, operator2, isStrict2 } or null.
+         */
+        function parseGraphInequality(inequalityStr) {
+            inequalityStr = inequalityStr.replace(/\s+/g, '').toLowerCase();
+
+            // Regex for compound inequalities: C1 op1 V op2 C2 (e.g., 1 < x < 5)
+            const compoundRegex = /^(-?\d*\.?\d*)\s*(<=|>=|<|>)\s*([xy])\s*(<=|>=|<|>)\s*(-?\d*\.?\d*)$/;
+            let match = inequalityStr.match(compoundRegex);
+
+            if (match) {
+                const val1 = parseFloat(match[1]);
+                let op1 = match[2];
+                const variable = match[3];
+                const op2 = match[4];
+                const val2 = parseFloat(match[5]);
+
+                if (isNaN(val1) || isNaN(val2)) return null;
+
+                // Ensure the inequality is in the form C1 < V < C2 or C1 > V > C2
+                // If it's C1 > V > C2, we should flip it to C2 < V < C1 for consistent processing
+                // For example, 5 > x > 1 should be treated as 1 < x < 5
+                if ((op1 === '>' || op1 === '>=') && (op2 === '>' || op2 === '>=')) {
+                    // This implies val1 > variable > val2. Swap values and operators to make it val2 < variable < val1
+                    return {
+                        type: `compound-${variable}`,
+                        value1: val2,
+                        operator1: op2 === '>' ? '<' : '<=', // Flip operator
+                        isStrict1: op2 === '>',
+                        value2: val1,
+                        operator2: op1 === '>' ? '<' : '<=', // Flip operator
+                        isStrict2: op1 === '>'
+                    };
+                } else if (!((op1 === '<' || op1 === '<=') && (op2 === '<' || op2 === '<='))) {
+                    // If not both are '<' or '<=', it's an unsupported compound type (e.g., 1 < x > 5)
+                    return null;
+                }
+
+                return {
+                    type: `compound-${variable}`,
+                    value1: val1,
+                    operator1: op1,
+                    isStrict1: op1 === '<' || op1 === '>',
+                    value2: val2,
+                    operator2: op2,
+                    isStrict2: op2 === '<' || op2 === '>'
+                };
+            }
+
+            // Regex for y op mx + b
+            const yLinearRegex = /^(y)\s*(<=|>=|<|>)\s*(-?\d*\.?\d*)?(x)?([+\-]\d*\.?\d*)?$/;
+            match = inequalityStr.match(yLinearRegex);
+            if (match) {
+                const operator = match[2];
+                const isStrict = operator === '<' || operator === '>';
+                const m = parseFloat(match[3]) || (match[3] === '-' ? -1 : 1); // Coefficient of x
+                const hasX = match[4] === 'x';
+                const b = parseFloat(match[5]) || 0; // Constant term
+
+                if (!hasX) { // If no 'x' is present, it's a y = constant line
+                     return { type: 'y-constant', operator, isStrict, value: m * b }; // m here is actually the value
+                }
+
+                return { type: 'y-linear', operator, isStrict, m, b };
+            }
+
+            // Regex for x op c
+            const xConstantRegex = /^(x)\s*(<=|>=|<|>)\s*(-?\d*\.?\d*)$/;
+            match = inequalityStr.match(xConstantRegex);
+            if (match) {
+                const operator = match[2];
+                const isStrict = operator === '<' || operator === '>';
+                const value = parseFloat(match[3]);
+                if (isNaN(value)) return null;
+                return { type: 'x-constant', operator, isStrict, value };
+            }
+
+            // Regex for y op c
+            const yConstantRegex = /^(y)\s*(<=|>=|<|>)\s*(-?\d*\.?\d*)$/;
+            match = inequalityStr.match(yConstantRegex);
+            if (match) {
+                const operator = match[2];
+                const isStrict = operator === '<' || operator === '>';
+                const value = parseFloat(match[3]);
+                if (isNaN(value)) return null;
+                return { type: 'y-constant', operator, isStrict, value };
+            }
+
+            return null; // No match
+        }
+
+
+        /**
+         * Draws the 2D graph representation of an inequality.
+         * @param {object} inequality - Parsed inequality object.
+         */
+        function drawGraph(inequality) {
+            clearCanvas(gCtx, graphCanvas);
+            hideMessage(graphMessage);
+
+            const canvasWidth = graphCanvas.width / (window.devicePixelRatio || 1);
+            const canvasHeight = graphCanvas.height / (window.devicePixelRatio || 1);
+            const originX = canvasWidth / 2;
+            const originY = canvasHeight / 2;
+            const scale = 30; // Pixels per unit
+
+            // Draw axes
+            gCtx.strokeStyle = '#4a5568';
+            gCtx.lineWidth = 1;
+            gCtx.font = '12px Inter';
+            gCtx.fillStyle = '#4a5568';
+            gCtx.textAlign = 'center';
+            gCtx.textBaseline = 'middle';
+
+            // X-axis
+            gCtx.beginPath();
+            gCtx.moveTo(0, originY);
+            gCtx.lineTo(canvasWidth, originY);
+            gCtx.stroke();
+            // X-axis arrow
+            gCtx.beginPath();
+            gCtx.moveTo(canvasWidth, originY);
+            gCtx.lineTo(canvasWidth - 10, originY - 5);
+            gCtx.moveTo(canvasWidth, originY);
+            gCtx.lineTo(canvasWidth - 10, originY + 5);
+            gCtx.stroke();
+            gCtx.fillText('X', canvasWidth - 15, originY + 15);
+
+            // Y-axis
+            gCtx.beginPath();
+            gCtx.moveTo(originX, 0);
+            gCtx.lineTo(originX, canvasHeight);
+            gCtx.stroke();
+            // Y-axis arrow
+            gCtx.beginPath();
+            gCtx.moveTo(originX, 0);
+            gCtx.lineTo(originX - 5, 10);
+            gCtx.moveTo(originX, 0);
+            gCtx.lineTo(originX + 5, 10);
+            gCtx.stroke();
+            gCtx.fillText('Y', originX - 15, 15);
+
+            // Draw grid lines and labels
+            gCtx.strokeStyle = '#e2e8f0'; // Lighter grid lines
+            gCtx.lineWidth = 0.5;
+
+            for (let i = -Math.floor(originX / scale); i <= Math.ceil((canvasWidth - originX) / scale); i++) {
+                if (i === 0) continue;
+                const x = originX + i * scale;
+                gCtx.beginPath();
+                gCtx.moveTo(x, 0);
+                gCtx.lineTo(x, canvasHeight);
+                gCtx.stroke();
+                gCtx.fillText(i.toString(), x, originY + 10);
+            }
+
+            for (let i = -Math.floor(originY / scale); i <= Math.ceil((canvasHeight - originY) / scale); i++) {
+                if (i === 0) continue;
+                const y = originY - i * scale; // Y-axis is inverted in canvas
+                gCtx.beginPath();
+                gCtx.moveTo(0, y);
+                gCtx.lineTo(canvasWidth, y);
+                gCtx.stroke();
+                gCtx.fillText(i.toString(), originX - 10, y);
+            }
+
+            // Draw the inequality line(s) and shade
+            gCtx.fillStyle = 'rgba(102, 126, 234, 0.2)'; // Light indigo translucent fill
+
+            if (inequality.type === 'compound-x') {
+                const x1 = originX + inequality.value1 * scale;
+                const x2 = originX + inequality.value2 * scale;
+
+                // Draw first boundary line
+                gCtx.beginPath();
+                gCtx.strokeStyle = '#667eea';
+                gCtx.lineWidth = 2;
+                gCtx.setLineDash(inequality.isStrict1 ? [5, 5] : []);
+                gCtx.moveTo(x1, 0);
+                gCtx.lineTo(x1, canvasHeight);
+                gCtx.stroke();
+
+                // Draw second boundary line
+                gCtx.beginPath();
+                gCtx.setLineDash(inequality.isStrict2 ? [5, 5] : []);
+                gCtx.moveTo(x2, 0);
+                gCtx.lineTo(x2, canvasHeight);
+                gCtx.stroke();
+                gCtx.setLineDash([]); // Reset line dash
+
+                // Shade between the two lines
+                gCtx.fillRect(Math.min(x1, x2), 0, Math.abs(x2 - x1), canvasHeight);
+
+            } else if (inequality.type === 'compound-y') {
+                const y1 = originY - inequality.value1 * scale;
+                const y2 = originY - inequality.value2 * scale;
+
+                // Draw first boundary line
+                gCtx.beginPath();
+                gCtx.strokeStyle = '#667eea';
+                gCtx.lineWidth = 2;
+                gCtx.setLineDash(inequality.isStrict1 ? [5, 5] : []);
+                gCtx.moveTo(0, y1);
+                gCtx.lineTo(canvasWidth, y1);
+                gCtx.stroke();
+
+                // Draw second boundary line
+                gCtx.beginPath();
+                gCtx.setLineDash(inequality.isStrict2 ? [5, 5] : []);
+                gCtx.moveTo(0, y2);
+                gCtx.lineTo(canvasWidth, y2);
+                gCtx.stroke();
+                gCtx.setLineDash([]); // Reset line dash
+
+                // Shade between the two lines
+                gCtx.fillRect(0, Math.min(y1, y2), canvasWidth, Math.abs(y2 - y1));
+
+            } else { // Handle single inequalities (existing logic)
+                gCtx.beginPath();
+                gCtx.strokeStyle = '#667eea';
+                gCtx.lineWidth = 2;
+                gCtx.setLineDash(inequality.isStrict ? [5, 5] : []);
+
+                if (inequality.type === 'y-linear') {
+                    const m = inequality.m;
+                    const b = inequality.b;
+                    const y1 = originY - (m * (-originX / scale) + b) * scale;
+                    const y2 = originY - (m * ((canvasWidth - originX) / scale) + b) * scale;
+                    gCtx.moveTo(0, y1);
+                    gCtx.lineTo(canvasWidth, y2);
+                } else if (inequality.type === 'x-constant') {
+                    const xVal = originX + inequality.value * scale;
+                    gCtx.moveTo(xVal, 0);
+                    gCtx.lineTo(xVal, canvasHeight);
+                } else if (inequality.type === 'y-constant') {
+                    const yVal = originY - inequality.value * scale;
+                    gCtx.moveTo(0, yVal);
+                    gCtx.lineTo(canvasWidth, yVal);
+                }
+                gCtx.stroke();
+                gCtx.setLineDash([]); // Reset line dash
+
+                // Shade the region for single inequalities
+                let testX = 0; // Origin point for testing
+                let testY = 0;
+                let shouldShade;
+
+                if (inequality.type === 'y-linear') {
+                    const m = inequality.m;
+                    const b = inequality.b;
+                    const testResult = testY < (m * testX + b);
+                    if (inequality.operator.includes('<')) {
+                        shouldShade = testResult;
+                    } else {
+                        shouldShade = !testResult;
+                    }
+                } else if (inequality.type === 'x-constant') {
+                    const testResult = testX < inequality.value;
+                    if (inequality.operator.includes('<')) {
+                        shouldShade = testResult;
+                    } else {
+                        shouldShade = !testResult;
+                    }
+                } else if (inequality.type === 'y-constant') {
+                     const testResult = testY < inequality.value;
+                    if (inequality.operator.includes('<')) {
+                        shouldShade = testResult;
+                    } else {
+                        shouldShade = !testResult;
+                    }
+                }
+
+                gCtx.beginPath();
+                if (inequality.type === 'y-linear') {
+                    const m = inequality.m;
+                    const b = inequality.b;
+                    const yAtLeft = originY - (m * (-originX / scale) + b) * scale;
+                    const yAtRight = originY - (m * ((canvasWidth - originX) / scale) + b) * scale;
+
+                    if ((inequality.operator.includes('<') && shouldShade) || (inequality.operator.includes('>') && !shouldShade)) {
+                        gCtx.moveTo(0, yAtLeft);
+                        gCtx.lineTo(canvasWidth, yAtRight);
+                        gCtx.lineTo(canvasWidth, canvasHeight);
+                        gCtx.lineTo(0, canvasHeight);
+                        gCtx.closePath();
+                    } else {
+                        gCtx.moveTo(0, yAtLeft);
+                        gCtx.lineTo(canvasWidth, yAtRight);
+                        gCtx.lineTo(canvasWidth, 0);
+                        gCtx.lineTo(0, 0);
+                        gCtx.closePath();
+                    }
+                } else if (inequality.type === 'x-constant') {
+                    const xVal = originX + inequality.value * scale;
+                    if ((inequality.operator.includes('<') && shouldShade) || (inequality.operator.includes('>') && !shouldShade)) {
+                        gCtx.moveTo(0, 0);
+                        gCtx.lineTo(xVal, 0);
+                        gCtx.lineTo(xVal, canvasHeight);
+                        gCtx.lineTo(0, canvasHeight);
+                        gCtx.closePath();
+                    } else {
+                        gCtx.moveTo(xVal, 0);
+                        gCtx.lineTo(canvasWidth, 0);
+                        gCtx.lineTo(canvasWidth, canvasHeight);
+                        gCtx.lineTo(xVal, canvasHeight);
+                        gCtx.closePath();
+                    }
+                } else if (inequality.type === 'y-constant') {
+                    const yVal = originY - inequality.value * scale;
+                    if ((inequality.operator.includes('<') && shouldShade) || (inequality.operator.includes('>') && !shouldShade)) {
+                        gCtx.moveTo(0, yVal);
+                        gCtx.lineTo(canvasWidth, yVal);
+                        gCtx.lineTo(canvasWidth, canvasHeight);
+                        gCtx.lineTo(0, canvasHeight);
+                        gCtx.closePath();
+                    } else {
+                        gCtx.moveTo(0, yVal);
+                        gCtx.lineTo(canvasWidth, yVal);
+                        gCtx.lineTo(canvasWidth, 0);
+                        gCtx.lineTo(0, 0);
+                        gCtx.closePath();
+                    }
+                }
+                gCtx.fill();
+            }
+        }
+
+
+        // --- Event Listeners ---
+
+        // Resize observer to handle canvas resizing
+        const resizeObserver = new ResizeObserver(entries => {
+            for (let entry of entries) {
+                if (entry.target === numberLineCanvas) {
+                    clearCanvas(nlCtx, numberLineCanvas);
+                    // Redraw if there's a valid inequality in the input
+                    const inequalityStr = numberLineInput.value;
+                    if (inequalityStr) {
+                        const parsed = parseNumberLineInequality(inequalityStr);
+                        if (parsed) {
+                            drawNumberLine(parsed);
+                        }
+                    }
+                } else if (entry.target === graphCanvas) {
+                    clearCanvas(gCtx, graphCanvas);
+                    // Redraw if there's a valid inequality in the input
+                    const inequalityStr = graphInput.value;
+                    if (inequalityStr) {
+                        const parsed = parseGraphInequality(inequalityStr);
+                        if (parsed) {
+                            drawGraph(parsed);
+                        }
+                    }
+                }
+            }
+        });
+
+        // Observe both canvases
+        resizeObserver.observe(numberLineCanvas);
+        resizeObserver.observe(graphCanvas);
+
+
+        // Number Line Buttons
+        drawNumberLineBtn.addEventListener('click', () => {
+            const inequalityStr = numberLineInput.value;
+            if (!inequalityStr) {
+                showMessage(numberLineMessage, 'Please enter an inequality.', true);
+                clearCanvas(nlCtx, numberLineCanvas);
+                return;
+            }
+
+            const inequality = parseNumberLineInequality(inequalityStr);
+            if (inequality) {
+                drawNumberLine(inequality);
+            } else {
+                showMessage(numberLineMessage, 'Invalid inequality format. Please use forms like "x > 5", "2x <= 10", or "1 < x < 5".', true);
+                clearCanvas(nlCtx, numberLineCanvas);
+            }
+        });
+
+        clearNumberLineBtn.addEventListener('click', () => {
+            clearCanvas(nlCtx, numberLineCanvas);
+            numberLineInput.value = '';
+            hideMessage(numberLineMessage);
+        });
+
+        // Graph Buttons
+        drawGraphBtn.addEventListener('click', () => {
+            const inequalityStr = graphInput.value;
+            if (!inequalityStr) {
+                showMessage(graphMessage, 'Please enter an inequality.', true);
+                clearCanvas(gCtx, graphCanvas);
+                return;
+            }
+
+            const inequality = parseGraphInequality(inequalityStr);
+            if (inequality) {
+                drawGraph(inequality);
+            } else {
+                showMessage(graphMessage, 'Invalid inequality format. Please use forms like "y < 2x + 1", "x >= -3", or "1 < x < 5".', true);
+                clearCanvas(gCtx, graphCanvas);
+            }
+        });
+
+        clearGraphBtn.addEventListener('click', () => {
+            clearCanvas(gCtx, graphCanvas);
+            graphInput.value = '';
+            hideMessage(graphMessage);
+        });
+
+        // Initial clear and setup when the page loads
+        window.onload = () => {
+            clearCanvas(nlCtx, numberLineCanvas);
+            clearCanvas(gCtx, graphCanvas);
+        };
+
+    </script>
+</body>
+</html>

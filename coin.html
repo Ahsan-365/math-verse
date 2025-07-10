@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coin Toss & Dice Roll Simulator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for Inter font and general body styling */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        /* Keyframe animation for coin spin with 3D effect and scaling */
+        @keyframes coinSpin {
+            0% { transform: rotateY(0deg) scale(1); }
+            25% { transform: rotateY(180deg) scale(0.9); }
+            50% { transform: rotateY(360deg) scale(1.1); }
+            75% { transform: rotateY(540deg) scale(0.9); }
+            100% { transform: rotateY(720deg) scale(1); } /* Spin twice */
+        }
+        /* Keyframe animation for dice container rotation */
+        @keyframes diceRoll {
+            0% { transform: rotate(0deg); opacity: 1; }
+            25% { transform: rotate(90deg); opacity: 0.7; }
+            50% { transform: rotate(180deg); opacity: 0.5; }
+            75% { transform: rotate(270deg); opacity: 0.7; }
+            100% { transform: rotate(360deg); opacity: 1; }
+        }
+        .coin-spinning {
+            animation: coinSpin 0.8s ease-out forwards;
+            transform-style: preserve-3d; /* Important for 3D transforms */
+        }
+        .dice-rolling {
+            animation: diceRoll 0.5s ease-out forwards;
+        }
+        .perspective-1000 {
+            perspective: 1000px; /* Enables 3D transforms for child elements */
+        }
+        .backface-hidden {
+            backface-visibility: hidden; /* Hides the back of the element during 3D transforms */
+        }
+    </style>
+</head>
+<body class="selection:bg-blue-200">
+    <div class="flex flex-col md:flex-row gap-8 p-6 bg-white rounded-xl shadow-lg max-w-4xl w-full">
+
+        <!-- Coin Toss Section -->
+        <div class="flex-1 bg-gradient-to-br from-blue-500 to-indigo-600 p-8 rounded-lg shadow-md flex flex-col items-center justify-center text-white text-center">
+            <h2 class="text-3xl font-bold mb-6">Coin Toss</h2>
+            <!-- Coin visual container with perspective -->
+            <div id="coinContainer" class="w-32 h-32 mb-8 perspective-1000 flex items-center justify-center">
+                <div id="coinVisual" class="relative w-full h-full rounded-full bg-yellow-400 flex items-center justify-center text-gray-800 text-4xl font-bold border-4 border-yellow-600 shadow-lg transition-transform duration-300 ease-in-out backface-hidden">
+                    <span id="coinFace">?</span>
+                </div>
+            </div>
+            <button id="tossCoinBtn" class="bg-white text-blue-700 hover:bg-blue-100 font-semibold py-3 px-8 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300">
+                Toss Coin
+            </button>
+        </div>
+
+        <!-- Dice Roll Section -->
+        <div class="flex-1 bg-gradient-to-br from-green-500 to-teal-600 p-8 rounded-lg shadow-md flex flex-col items-center justify-center text-white text-center">
+            <h2 class="text-3xl font-bold mb-6">Dice Roll</h2>
+            <!-- Dice visual container -->
+            <div id="diceContainer" class="w-32 h-32 mb-8 flex items-center justify-center">
+                <div id="diceVisual" class="w-full h-full bg-white rounded-lg shadow-lg flex items-center justify-center text-gray-800 border-4 border-gray-300">
+                    <!-- Initial placeholder for dice, will be replaced by SVG -->
+                    <span class="text-4xl font-bold">?</span>
+                </div>
+            </div>
+            <button id="rollDiceBtn" class="bg-white text-green-700 hover:bg-green-100 font-semibold py-3 px-8 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300">
+                Roll Dice
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Get references to HTML elements
+        const tossCoinBtn = document.getElementById('tossCoinBtn');
+        const coinVisualDiv = document.getElementById('coinVisual');
+        const coinFaceSpan = document.getElementById('coinFace'); // Span inside coinVisual
+        const rollDiceBtn = document.getElementById('rollDiceBtn');
+        const diceVisualDiv = document.getElementById('diceVisual'); // The div that will contain the SVG
+
+        /**
+         * Generates SVG for a dice face based on the number.
+         * Each dot is a simple circle element.
+         * @param {number} num The number on the dice (1-6).
+         * @returns {string} SVG string for the dice face.
+         */
+        function getDiceSVG(num) {
+            // Define common dot positions
+            const dot = `<circle cx="50" cy="50" r="10" fill="currentColor"/>`; // Center dot
+            const topLeft = `<circle cx="25" cy="25" r="10" fill="currentColor"/>`;
+            const topRight = `<circle cx="75" cy="25" r="10" fill="currentColor"/>`;
+            const bottomLeft = `<circle cx="25" cy="75" r="10" fill="currentColor"/>`;
+            const bottomRight = `<circle cx="75" cy="75" r="10" fill="currentColor"/>`;
+            const midLeft = `<circle cx="25" cy="50" r="10" fill="currentColor"/>`;
+            const midRight = `<circle cx="75" cy="50" r="10" fill="currentColor"/>`;
+
+            let dots = '';
+            // Determine which dots to include based on the dice number
+            switch (num) {
+                case 1: dots = dot; break;
+                case 2: dots = topLeft + bottomRight; break;
+                case 3: dots = topLeft + dot + bottomRight; break;
+                case 4: dots = topLeft + topRight + bottomLeft + bottomRight; break;
+                case 5: dots = topLeft + topRight + dot + bottomLeft + bottomRight; break;
+                case 6: dots = topLeft + topRight + midLeft + midRight + bottomLeft + bottomRight; break;
+                default: dots = ''; // Fallback for invalid numbers
+            }
+
+            // Return the complete SVG string
+            return `
+                <svg viewBox="0 0 100 100" class="w-full h-full text-gray-800">
+                    ${dots}
+                </svg>
+            `;
+        }
+
+        /**
+         * Simulates a coin toss with a visual spin animation and updates the display.
+         */
+        function tossCoin() {
+            // Disable button during animation to prevent multiple clicks
+            tossCoinBtn.disabled = true;
+            coinFaceSpan.textContent = ''; // Clear content during spin
+            coinVisualDiv.classList.add('coin-spinning'); // Add animation class
+
+            // Set a timeout for the animation duration
+            setTimeout(() => {
+                // Change 'H' to 'Heads' and 'T' to 'Tails' for a more neutral/explicit result
+                const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
+                coinFaceSpan.textContent = result; // Display the result
+                coinVisualDiv.classList.remove('coin-spinning'); // Remove animation class to reset
+                tossCoinBtn.disabled = false; // Re-enable button
+            }, 800); // Duration matches CSS animation
+        }
+
+        /**
+         * Simulates a dice roll with a visual tumbling animation and updates the display.
+         */
+        function rollDice() {
+            // Disable button during animation
+            rollDiceBtn.disabled = true;
+            diceVisualDiv.classList.add('dice-rolling'); // Add animation class to container
+
+            let animationInterval;
+            let count = 0;
+            const maxRolls = 10; // Number of times to change face during the roll animation
+
+            // Rapidly change dice faces during the animation
+            animationInterval = setInterval(() => {
+                const tempResult = Math.floor(Math.random() * 6) + 1; // Generate random number 1-6
+                diceVisualDiv.innerHTML = getDiceSVG(tempResult); // Update SVG
+                count++;
+                if (count >= maxRolls) {
+                    clearInterval(animationInterval); // Stop changing faces after maxRolls
+                }
+            }, 50); // Change face every 50ms
+
+            // Set a timeout for the overall animation duration
+            setTimeout(() => {
+                clearInterval(animationInterval); // Ensure interval is cleared when animation finishes
+                const result = Math.floor(Math.random() * 6) + 1; // Get the final random result
+                diceVisualDiv.innerHTML = getDiceSVG(result); // Display the final dice face
+                diceVisualDiv.classList.remove('dice-rolling'); // Remove animation class to reset
+                rollDiceBtn.disabled = false; // Re-enable button
+            }, 500); // Duration matches CSS animation
+        }
+
+        // Add event listeners to the buttons
+        tossCoinBtn.addEventListener('click', tossCoin);
+        rollDiceBtn.addEventListener('click', rollDice);
+
+        // Initial state on load: set placeholder for coin and dice
+        window.onload = function() {
+            coinFaceSpan.textContent = '?';
+            diceVisualDiv.innerHTML = '<span class="text-4xl font-bold">?</span>'; // Initial placeholder for dice
+        };
+    </script>
+</body>
+</html>

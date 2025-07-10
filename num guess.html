@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Guessing Game</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom font for a cleaner look */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Full viewport height */
+            margin: 0;
+            padding: 1rem; /* Add some padding for smaller screens */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-xl shadow-2xl max-w-md w-full text-center border border-gray-200">
+        <h1 class="text-4xl font-extrabold text-gray-800 mb-4">Guess The Number!</h1>
+        <p id="rangeMessage" class="text-lg text-gray-600 mb-6">I'm thinking of a number between 1 and 100.</p>
+
+        <!-- Difficulty Level Selection -->
+        <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Select Difficulty:</label>
+            <div class="flex justify-center space-x-4">
+                <label class="inline-flex items-center">
+                    <input type="radio" name="difficulty" value="easy" class="form-radio h-5 w-5 text-blue-600" checked>
+                    <span class="ml-2 text-gray-700">Easy (1-50)</span>
+                </label>
+                <label class="inline-flex items-center">
+                    <input type="radio" name="difficulty" value="medium" class="form-radio h-5 w-5 text-blue-600">
+                    <span class="ml-2 text-gray-700">Medium (1-100)</span>
+                </label>
+                <label class="inline-flex items-center">
+                    <input type="radio" name="difficulty" value="hard" class="form-radio h-5 w-5 text-blue-600">
+                    <span class="ml-2 text-gray-700">Hard (1-200)</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <input
+                type="number"
+                id="guessInput"
+                class="w-full p-3 border-2 border-blue-300 rounded-lg focus:outline-none focus:ring-4 focus:ring-blue-200 text-center text-xl font-medium text-gray-700 transition duration-300 ease-in-out"
+                placeholder="Enter your guess"
+                min="1"
+                max="100"
+            >
+        </div>
+
+        <button
+            id="checkButton"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300 mb-4"
+        >
+            Check My Guess
+        </button>
+
+        <p id="message" class="text-xl font-semibold mb-4 text-gray-700"></p>
+
+        <button
+            id="playAgainButton"
+            class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300 hidden"
+        >
+            Play Again
+        </button>
+    </div>
+
+    <script>
+        // Get references to HTML elements
+        const guessInput = document.getElementById('guessInput');
+        const checkButton = document.getElementById('checkButton');
+        const message = document.getElementById('message');
+        const playAgainButton = document.getElementById('playAgainButton');
+        const rangeMessage = document.getElementById('rangeMessage');
+        const difficultyRadios = document.querySelectorAll('input[name="difficulty"]');
+
+        let randomNumber; // The number to be guessed
+        let attempts;     // Number of attempts made by the user
+        let maxNumber;    // The maximum number for the current difficulty level
+
+        /**
+         * @function initializeGame
+         * @description Initializes or resets the game state based on selected difficulty.
+         * Generates a new random number, resets attempts, clears messages,
+         * enables input/button, and hides the "Play Again" button.
+         */
+        function initializeGame() {
+            // Determine the max number based on selected difficulty
+            let selectedDifficulty = document.querySelector('input[name="difficulty"]:checked').value;
+            if (selectedDifficulty === 'easy') {
+                maxNumber = 50;
+            } else if (selectedDifficulty === 'medium') {
+                maxNumber = 100;
+            } else { // hard
+                maxNumber = 200;
+            }
+
+            // Update the range message displayed to the user
+            rangeMessage.textContent = `I'm thinking of a number between 1 and ${maxNumber}.`;
+            guessInput.setAttribute('max', maxNumber); // Update input's max attribute
+
+            // Generate a random number between 1 and maxNumber (inclusive)
+            randomNumber = Math.floor(Math.random() * maxNumber) + 1;
+            attempts = 0; // Reset attempts
+            message.textContent = ''; // Clear any previous messages
+            guessInput.value = ''; // Clear the input field
+            guessInput.disabled = false; // Enable the input field
+            checkButton.disabled = false; // Enable the check button
+            playAgainButton.classList.add('hidden'); // Hide the "Play Again" button
+            guessInput.focus(); // Set focus on the input field for immediate typing
+            console.log(`New game started. Difficulty: ${selectedDifficulty}, Random number: ${randomNumber} (1-${maxNumber})`); // For debugging
+        }
+
+        /**
+         * @function checkGuess
+         * @description Checks the user's guess against the random number.
+         * Provides feedback (too high, too low, correct) and manages game state.
+         */
+        function checkGuess() {
+            const userGuess = parseInt(guessInput.value); // Get user's guess as an integer
+
+            // Validate the input based on the current maxNumber
+            if (isNaN(userGuess) || userGuess < 1 || userGuess > maxNumber) {
+                message.textContent = `Please enter a valid number between 1 and ${maxNumber}.`;
+                message.className = 'text-xl font-semibold mb-4 text-red-600'; // Red for error
+                return; // Exit the function if input is invalid
+            }
+
+            attempts++; // Increment the attempt count
+
+            if (userGuess === randomNumber) {
+                // Correct guess
+                message.textContent = `Congratulations! You guessed the number ${randomNumber} in ${attempts} attempts!`;
+                message.className = 'text-xl font-semibold mb-4 text-green-600'; // Green for success
+                guessInput.disabled = true; // Disable input
+                checkButton.disabled = true; // Disable check button
+                playAgainButton.classList.remove('hidden'); // Show "Play Again" button
+            } else if (userGuess < randomNumber) {
+                // Guess is too low
+                message.textContent = 'Too low! Try again.';
+                message.className = 'text-xl font-semibold mb-4 text-orange-500'; // Orange for hint
+            } else {
+                // Guess is too high
+                message.textContent = 'Too high! Try again.';
+                message.className = 'text-xl font-semibold mb-4 text-orange-500'; // Orange for hint
+            }
+            guessInput.value = ''; // Clear input for next guess
+            guessInput.focus(); // Keep focus on the input field
+        }
+
+        // Event Listeners
+        // Listen for clicks on the "Check My Guess" button
+        checkButton.addEventListener('click', checkGuess);
+
+        // Listen for 'Enter' key press in the input field
+        guessInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                checkGuess(); // Trigger checkGuess function on Enter key
+            }
+        });
+
+        // Listen for clicks on the "Play Again" button
+        playAgainButton.addEventListener('click', initializeGame);
+
+        // Listen for changes in difficulty level
+        difficultyRadios.forEach(radio => {
+            radio.addEventListener('change', initializeGame);
+        });
+
+        // Initialize the game when the page loads
+        window.onload = initializeGame;
+    </script>
+</body>
+</html>

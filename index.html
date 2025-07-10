@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to the Magical World of Mathematics</title>
+    <!-- Tailwind CSS CDN for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons (e.g., search icon) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts - Inter for a clean, modern look -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles not easily achievable with Tailwind or for overrides */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #8A2387, #E94057, #F27121); /* Dynamic gradient background for Math World */
+            background-size: 400% 400%;
+            animation: gradientAnimation 15s ease infinite; /* Smooth gradient animation */
+            overflow-x: hidden; /* Prevent horizontal scrollbar from animations */
+        }
+
+        /* Keyframe animation for the background gradient */
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Hide scrollbar for a cleaner look, but allow scrolling */
+        body::-webkit-scrollbar {
+            display: none; /* For Chrome, Safari, Opera */
+        }
+        body {
+            -ms-overflow-style: none;  /* For IE and Edge */
+            scrollbar-width: none;  /* For Firefox */
+        }
+
+        /* Entry animation for elements */
+        .fade-in-up {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Specific animation delays for staggered effect */
+        .h1-animated { animation-delay: 0.2s; }
+        .search-animated { animation-delay: 0.5s; }
+        .math-container-animated { animation-delay: 0.8s; }
+
+        .math-button {
+            /* Common button styles - background will be set by JS */
+            color: white;
+            font-weight: 600;
+            padding: 1rem 1.5rem; /* py-4 px-6 */
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
+            transition: transform 0.2s ease, box-shadow 0.3s ease, scale 0.1s ease; /* Transition for non-background properties */
+            font-size: 1.125rem; /* text-lg */
+            letter-spacing: 0.025em; /* tracking-wide */
+            outline: none; /* focus:outline-none */
+            cursor: pointer;
+            border: none; /* Ensure no default button border */
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Subtle text shadow for better readability */
+        }
+        .math-button:hover {
+            transform: translateY(-8px); /* Lift button slightly more on hover */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* hover:shadow-lg */
+        }
+        .math-button:active {
+            transform: translateY(0) scale(0.98); /* Slight press effect */
+            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.06); /* Reduced shadow when active */
+        }
+        .math-button:focus {
+            box-shadow: 0 0 0 4px rgba(66, 153, 225, 0.6); /* Consistent blue ring on focus */
+        }
+
+        /* Custom glow effect for focus */
+        .search-input-glow:focus {
+            box-shadow: 0 0 0 5px rgba(66, 153, 225, 0.6); /* Blue glow */
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-5 box-border text-gray-800">
+    <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-10 text-center leading-tight tracking-wide
+               fade-in-up h1-animated drop-shadow-lg">
+        Welcome to the Magical World of Mathematics!
+    </h1>
+
+    <!-- Search Bar Section -->
+    <div class="relative w-full max-w-xl mb-8 fade-in-up search-animated">
+        <input type="text" id="mathSearch" placeholder="Search for a math tool..."
+               class="w-full pl-12 pr-4 py-3 rounded-full shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-300
+                      transition-all duration-300 ease-in-out text-lg bg-white border border-gray-100
+                      search-input-glow">
+        <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl"></i>
+    </div>
+
+    <div class="math-container grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6 bg-white
+                rounded-2xl shadow-2xl max-w-5xl w-full fade-in-up math-container-animated">
+        <!-- Each button represents a math tool.
+             The 'onclick' event opens the specified HTML file in a new tab. -->
+
+        <button class="math-button" onclick="window.open('base cal.html', '_blank')">
+            Base Calculator
+        </button>
+
+        <button class="math-button" onclick="window.open('base con.html', '_blank')">
+            Base Converter
+        </button>
+
+        <button class="math-button" onclick="window.open('char num.html', '_blank')">
+            Number Characteristics Analyzer
+        </button>
+
+        <button class="math-button" onclick="window.open('coin.html', '_blank')">
+            Coin and Dice
+        </button>
+
+        <button class="math-button" onclick="window.open('graph.html', '_blank')">
+            Graph Plotter
+        </button>
+
+        <button class="math-button" onclick="window.open('guess.html', '_blank')">
+            Magic Number Guessing
+        </button>
+
+        <button class="math-button" onclick="window.open('num guess.html', '_blank')">
+            Number Guessing Game
+        </button>
+
+        <button class="math-button" onclick="window.open('in graph.html', '_blank')">
+            Inequality Graph
+        </button>
+
+        <button class="math-button" onclick="window.open('I gate.html', '_blank')">
+            Logic Gate Simulator
+        </button>
+
+        <button class="math-button" onclick="window.open('matrix.html', '_blank')">
+            Matrix Calculator
+        </button>
+
+        <button class="math-button" onclick="window.open('p tree.html', '_blank')">
+            Probability Tree Simulator
+        </button>
+
+        <button class="math-button" onclick="window.open('pascal.html', '_blank')">
+            Binomial Expander
+        </button>
+
+        <button class="math-button" onclick="window.open('prime.html', '_blank')">
+            Prime Number Checker
+        </button>
+
+        <button class="math-button" onclick="window.open('prime inv.html', '_blank')">
+            Prime Number Investigator
+        </button>
+
+        <button class="math-button" onclick="window.open('roman.html', '_blank')">
+            Roman Numeral Operation
+        </button>
+
+        <button class="math-button" onclick="window.open('sc cal.html', '_blank')">
+            Scientific Calculator
+        </button>
+
+        <button class="math-button" onclick="window.open('unit.html', '_blank')">
+            Universal Unit Converter
+        </button>
+
+        <button class="math-button" onclick="window.open('venn.html', '_blank')">
+            Venn Diagram Creator
+        </button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchInput = document.getElementById('mathSearch');
+            const mathButtons = document.querySelectorAll('.math-button');
+
+            // Function to generate a random hex color that is generally dark
+            function getRandomDarkColor() {
+                // Generate RGB values between 0 and 150 to ensure darker colors
+                const r = Math.floor(Math.random() * 151);
+                const g = Math.floor(Math.random() * 151);
+                const b = Math.floor(Math.random() * 151);
+                return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+            }
+
+            // Function to slightly darken a hex color for hover effect
+            function darkenColor(hex, percent) {
+                let f = parseInt(hex.slice(1), 16),
+                    t = percent < 0 ? 0 : 255,
+                    p = percent < 0 ? percent * -1 : percent,
+                    R = f >> 16,
+                    G = (f >> 8) & 0x00ff,
+                    B = f & 0x0000ff;
+                return "#" + (
+                    0x1000000 +
+                    (Math.round((t - R) * p) + R) * 0x10000 +
+                    (Math.round((t - G) * p) + G) * 0x100 +
+                    (Math.round((t - B) * p) + B)
+                ).toString(16).slice(1);
+            }
+
+            // Apply random gradients to each button
+            mathButtons.forEach(button => {
+                const color1 = getRandomDarkColor();
+                const color2 = getRandomDarkColor();
+                button.style.background = `linear-gradient(to bottom right, ${color1}, ${color2})`;
+
+                // Add hover and active background transitions
+                button.addEventListener('mouseenter', () => {
+                    const hoverColor1 = darkenColor(color1, 0.1); // Darken by 10%
+                    const hoverColor2 = darkenColor(color2, 0.1); // Darken by 10%
+                    button.style.background = `linear-gradient(to bottom right, ${hoverColor1}, ${hoverColor2})`;
+                });
+
+                button.addEventListener('mouseleave', () => {
+                    button.style.background = `linear-gradient(to bottom right, ${color1}, ${color2})`; // Revert to original
+                });
+
+                button.addEventListener('mousedown', () => {
+                    const activeColor1 = darkenColor(color1, 0.2); // Darken by 20%
+                    const activeColor2 = darkenColor(color2, 0.2); // Darken by 20%
+                    button.style.background = `linear-gradient(to bottom right, ${activeColor1}, ${activeColor2})`;
+                });
+
+                button.addEventListener('mouseup', () => {
+                    // Revert to hover state if still hovering, else to original
+                    if (button.matches(':hover')) {
+                        const hoverColor1 = darkenColor(color1, 0.1);
+                        const hoverColor2 = darkenColor(color2, 0.1);
+                        button.style.background = `linear-gradient(to bottom right, ${hoverColor1}, ${hoverColor2})`;
+                    } else {
+                        button.style.background = `linear-gradient(to bottom right, ${color1}, ${color2})`;
+                    }
+                });
+            });
+
+            // Function to filter math tools based on search input
+            searchInput.addEventListener('input', (event) => {
+                const searchTerm = event.target.value.toLowerCase(); // Get search term and convert to lowercase
+
+                mathButtons.forEach(button => {
+                    const toolName = button.textContent.toLowerCase(); // Get tool name and convert to lowercase
+                    if (toolName.includes(searchTerm)) {
+                        button.style.display = 'block'; // Show the button if it matches
+                    } else {
+                        button.style.display = 'none'; // Hide the button if it doesn't match
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

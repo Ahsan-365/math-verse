@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Graph Creator</title>
+    <!-- Tailwind CSS CDN for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Plotly.js CDN for powerful graphing capabilities -->
+    <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+    <!-- Math.js CDN for parsing and evaluating mathematical expressions -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.0.0/math.min.js"></script>
+    <style>
+        /* Custom styles for the body to ensure full height and centering */
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #e0f2fe; /* Lighter blue-gray background for a fresher look */
+            margin: 0;
+            padding: 20px; /* Maintain side padding */
+            padding-top: 40px; /* Increased top padding to ensure main title visibility */
+            box-sizing: border-box;
+            color: #1f2937; /* Darker text color */
+            min-height: 100vh; /* Ensure body takes full viewport height */
+            display: flex; /* Still using flex for centering the single container horizontally */
+            flex-direction: column; /* Stack children vertically */
+            align-items: center; /* Center children horizontally */
+        }
+
+        /* Ensure the graph container is responsive */
+        #graph {
+            width: 100%;
+            min-height: 450px; /* Slightly increased min-height for better visibility on smaller screens */
+            height: auto; /* Changed from fixed height to auto for better responsiveness */
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15); /* More pronounced shadow for depth */
+            margin-top: 1.5rem;
+            transition: all 0.3s ease-in-out; /* Smooth transition for potential future interactions */
+            flex-grow: 1; /* Allow graph to grow within flex container */
+        }
+
+        /* Responsive height for graph on smaller screens - this media query is now less critical
+           due to 'height: auto', but kept for potential fine-tuning if needed. */
+        @media (max-width: 768px) {
+            #graph {
+                min-height: 400px; /* Adjust min-height for tablets and smaller if auto is too small */
+            }
+        }
+
+        /* Message box styling */
+        .message-box {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            font-weight: 500;
+            text-align: center;
+            max-width: 90%; /* Ensure message box doesn't overflow on small screens */
+        }
+
+        .message-box.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .message-box.error {
+            background-color: #ef4444; /* Red for errors */
+            color: white;
+        }
+
+        .message-box.success {
+            background-color: #22c55e; /* Green for success */
+            color: white;
+        }
+
+        /* Enhancements for input and button focus/hover */
+        input:focus {
+            outline: none;
+            border-color: #3b82f6; /* Blue border on focus */
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25); /* Light blue glow on focus */
+        }
+
+        button:hover {
+            transform: translateY(-2px); /* Slight lift on hover */
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* More pronounced shadow on hover */
+        }
+
+        button:active {
+            transform: translateY(0); /* Return to original position on click */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow on active */
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <!-- Main container for the application -->
+    <div class="container bg-white p-6 sm:p-8 rounded-xl shadow-lg w-full max-w-4xl flex flex-col items-center">
+        <!-- Main title for the page, now with more top spacing -->
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-blue-800 mb-8 text-center animate-fade-in-down">Dynamic Graph Plotter</h1>
+
+        <!-- Input section for equation -->
+        <div class="input-section w-full mb-6">
+            <label for="equationInput" class="block text-base sm:text-lg font-medium text-gray-700 mb-3 text-center">
+                Enter your equation:
+                <span class="block text-sm text-gray-500 mt-1">
+                    (Use <code class="bg-blue-50 px-1 py-0.5 rounded-md text-blue-700 font-mono text-xs">x</code> for 2D, or <code class="bg-blue-50 px-1 py-0.5 rounded-md text-blue-700 font-mono text-xs">x</code> and <code class="bg-blue-50 px-1 py-0.5 rounded-md text-blue-700 font-mono text-xs">y</code> for 3D)
+                    <br>
+                    Examples: <code class="bg-gray-100 px-1 py-0.5 rounded-md text-gray-700 font-mono text-xs">x^2</code>, <code class="bg-gray-100 px-1 py-0.5 rounded-md text-gray-700 font-mono text-xs">sin(x)</code>, <code class="bg-gray-100 px-1 py-0.5 rounded-md text-gray-700 font-mono text-xs">2*x + 5</code> (2D)
+                    <br>
+                    <code class="bg-gray-100 px-1 py-0.5 rounded-md text-gray-700 font-mono text-xs">x^2 + y^2</code>, <code class="bg-gray-100 px-1 py-0.5 rounded-md text-gray-700 font-mono text-xs">sin(x)*cos(y)</code> (3D)
+                </span>
+            </label>
+            <div class="flex flex-col sm:flex-row gap-4">
+                <input
+                    type="text"
+                    id="equationInput"
+                    value="x^2"
+                    placeholder="e.g., x^2, sin(x)*cos(y)"
+                    class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-base sm:text-lg shadow-sm"
+                />
+                <button
+                    id="createGraphBtn"
+                    class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150 text-base sm:text-lg"
+                >
+                    Plot Graph
+                </button>
+            </div>
+        </div>
+
+        <!-- Graph rendering area -->
+        <div id="graph"></div>
+
+        <!-- Message box for displaying errors or notifications -->
+        <div id="messageBox" class="message-box"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const equationInput = document.getElementById('equationInput');
+            const createGraphBtn = document.getElementById('createGraphBtn');
+            const graphDiv = document.getElementById('graph');
+            const messageBox = document.getElementById('messageBox');
+
+            /**
+             * Displays a message in the message box.
+             * @param {string} message - The message to display.
+             * @param {string} type - 'success' or 'error' to determine background color.
+             */
+            function showMessage(message, type = 'error') {
+                messageBox.textContent = message;
+                messageBox.className = 'message-box show ' + type;
+
+                setTimeout(() => {
+                    messageBox.classList.remove('show');
+                }, 3000); // Hide after 3 seconds
+            }
+
+            /**
+             * Creates and renders the graph based on the user-provided equation.
+             */
+            function createGraph() {
+                const equationString = equationInput.value.trim();
+                if (!equationString) {
+                    showMessage('Please enter an equation to graph.', 'error');
+                    return;
+                }
+
+                const is3D = /[yY]/.test(equationString);
+
+                let parser;
+                try {
+                    parser = math.parser();
+                    if (is3D) {
+                        parser.evaluate(`f(x, y) = ${equationString}`);
+                    } else {
+                        parser.evaluate(`f(x) = ${equationString}`);
+                    }
+                } catch (error) {
+                    showMessage('Invalid equation syntax: ' + error.message, 'error');
+                    return;
+                }
+
+                let traces = [];
+                let layout = {};
+
+                const config = {
+                    responsive: true,
+                    displayModeBar: true // Enable the Plotly mode bar for zoom/pan
+                };
+
+                if (is3D) {
+                    const xRange = [-5, 5];
+                    const yRange = [-5, 5];
+                    const gridSize = 30; // Number of points in each dimension for 3D grid
+
+                    const xValues = [];
+                    const yValues = [];
+                    const zValues = []; // 2D array for 3D surface
+
+                    for (let i = 0; i < gridSize; i++) {
+                        xValues.push(xRange[0] + (i / (gridSize - 1)) * (xRange[1] - xRange[0]));
+                        yValues.push(yRange[0] + (i / (gridSize - 1)) * (yRange[1] - yRange[0]));
+                    }
+
+                    for (let i = 0; i < gridSize; i++) {
+                        const row = [];
+                        for (let j = 0; j < gridSize; j++) {
+                            const x = xValues[j];
+                            const y = yValues[i];
+
+                            try {
+                                const z = parser.evaluate(`f(${x}, ${y})`);
+                                row.push(z);
+                            } catch (error) {
+                                row.push(NaN); // Push NaN if evaluation fails
+                            }
+                        }
+                        zValues.push(row);
+                    }
+
+                    const trace3D = {
+                        z: zValues,
+                        x: xValues,
+                        y: yValues,
+                        type: 'surface', // 3D surface plot
+                        name: `z = ${equationString}`,
+                        colorscale: 'Viridis' // A nice colormap for surfaces
+                    };
+                    traces.push(trace3D);
+
+                    layout = {
+                        title: {
+                            text: `Graph of <b>z = ${equationString}</b>`, /* Bold the equation */
+                            font: { family: 'Inter, sans-serif', size: 26, color: '#1f2937' },
+                            yref: 'paper', y: 0.95, /* Position title slightly higher */
+                            x: 0.5, xanchor: 'center'
+                        },
+                        scene: {
+                            xaxis: {
+                                title: 'x-axis',
+                                range: xRange,
+                                gridcolor: '#cbd5e1', zerolinecolor: '#94a3b8',
+                                backgroundcolor: '#f8fafc', showbackground: true,
+                            },
+                            yaxis: {
+                                title: 'y-axis',
+                                range: yRange,
+                                gridcolor: '#cbd5e1', zerolinecolor: '#94a3b8',
+                                backgroundcolor: '#f8fafc', showbackground: true,
+                            },
+                            zaxis: {
+                                title: 'z-axis',
+                                gridcolor: '#cbd5e1', zerolinecolor: '#94a3b8',
+                                backgroundcolor: '#f8fafc', showbackground: true,
+                            },
+                            bgcolor: '#f1f5f9', /* Slightly darker background for 3D scene */
+                            aspectmode: 'cube' /* Maintain aspect ratio for better 3D perception */
+                        },
+                        margin: { l: 20, r: 20, b: 20, t: 100 }, /* Increased top margin for title */
+                        hovermode: 'closest',
+                        paper_bgcolor: '#ffffff'
+                    };
+
+                } else {
+                    // 2D Graphing logic
+                    const xMin = -10;
+                    const xMax = 10;
+                    const numPoints = 500;
+
+                    const xValues = [];
+                    const yValues = [];
+
+                    for (let i = 0; i < numPoints; i++) {
+                        const x = xMin + (i / (numPoints - 1)) * (xMax - xMin);
+                        xValues.push(x);
+                        try {
+                            const y = parser.evaluate(`f(${x})`);
+                            yValues.push(y);
+                        } catch (error) {
+                            yValues.push(NaN);
+                        }
+                    }
+
+                    const trace2D = {
+                        x: xValues,
+                        y: yValues,
+                        mode: 'lines',
+                        type: 'scatter',
+                        name: `y = ${equationString}`,
+                        line: {
+                            color: 'rgb(59, 130, 246)',
+                            width: 2.5 /* Slightly thicker line */
+                        }
+                    };
+                    traces.push(trace2D);
+
+                    layout = {
+                        title: {
+                            text: `Graph of <b>y = ${equationString}</b>`, /* Bold the equation */
+                            font: { family: 'Inter, sans-serif', size: 26, color: '#1f2937' },
+                            yref: 'paper', y: 0.95, /* Position title slightly higher */
+                            x: 0.5, xanchor: 'center'
+                        },
+                        xaxis: {
+                            title: { text: 'x-axis', font: { family: 'Inter, sans-serif', size: 18, color: '#4b5563' } },
+                            range: [xMin, xMax],
+                            gridcolor: '#cbd5e1', zerolinecolor: '#94a3b8' /* Clearer grid lines */
+                        },
+                        yaxis: {
+                            title: { text: 'y-axis', font: { family: 'Inter, sans-serif', size: 18, color: '#4b5563' } },
+                            gridcolor: '#cbd5e1', zerolinecolor: '#94a3b8' /* Clearer grid lines */
+                        },
+                        margin: { l: 60, r: 60, b: 60, t: 100 }, /* Increased top margin for title */
+                        hovermode: 'closest',
+                        plot_bgcolor: '#f8fafc',
+                        paper_bgcolor: '#ffffff'
+                    };
+                }
+
+                Plotly.newPlot(graphDiv, traces, layout, config)
+                    .then(() => {
+                        // Optional: showMessage('Graph updated successfully!', 'success');
+                    })
+                    .catch(err => {
+                        showMessage('Error plotting graph: ' + err.message, 'error');
+                    });
+            }
+
+            // Event listeners
+            createGraphBtn.addEventListener('click', createGraph);
+            equationInput.addEventListener('keypress', (event) => {
+                if (event.key === 'Enter') {
+                    createGraph();
+                }
+            });
+
+            // Initial graph creation on page load
+            createGraph();
+        });
+    </script>
+</body>
+</html>

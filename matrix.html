@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrix Calculator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top for better scrolling */
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .calculator-container {
+            background-color: #ffffff;
+            border-radius: 16px; /* More rounded corners */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Softer shadow */
+            width: 100%;
+            max-width: 900px; /* Increased max-width */
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .tab-button {
+            padding: 16px 24px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            border-bottom: 3px solid transparent;
+            color: #6b7280; /* Gray text */
+        }
+        .tab-button.active {
+            color: #4f46e5; /* Indigo */
+            border-color: #4f46e5;
+            background-color: #eef2ff; /* Light indigo background */
+        }
+        .tab-content {
+            display: none;
+            padding: 24px;
+            flex-grow: 1; /* Allow content to take available space */
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .matrix-input-grid {
+            display: grid;
+            gap: 8px; /* Gap between inputs */
+        }
+        .matrix-input-grid input {
+            width: 60px; /* Fixed width for inputs */
+            height: 36px;
+            text-align: center;
+            border: 1px solid #d1d5db; /* Light gray border */
+            border-radius: 8px; /* Rounded input fields */
+            font-size: 1rem;
+            background-color: #f9fafb; /* Very light gray background */
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .matrix-input-grid input:focus {
+            outline: none;
+            border-color: #818cf8; /* Light indigo on focus */
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); /* Soft focus ring */
+        }
+        .btn-primary {
+            background-color: #6366f1; /* Indigo */
+            color: white;
+            padding: 6px 10px; /* Even smaller default padding */
+            border-radius: 10px; /* Slightly more rounded */
+            font-weight: 600;
+            font-size: 0.75rem; /* text-xs for smaller screens */
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+            white-space: nowrap; /* Prevent text wrapping on small buttons */
+        }
+        .btn-primary:hover {
+            background-color: #4f46e5; /* Darker indigo on hover */
+            transform: translateY(-1px);
+        }
+        .btn-primary:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(99, 102, 241, 0.3);
+        }
+        /* Responsive adjustments for primary button */
+        @media (min-width: 768px) { /* md breakpoint */
+            .btn-primary {
+                padding: 12px 20px; /* Larger padding on desktop */
+                font-size: 1rem; /* text-base */
+            }
+        }
+        .btn-secondary {
+            background-color: #e0e7ff; /* Lighter indigo */
+            color: #4f46e5; /* Indigo text */
+            padding: 6px 10px; /* Smaller default padding */
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.875rem; /* text-sm */
+            transition: background-color 0.2s ease;
+        }
+        .btn-secondary:hover {
+            background-color: #c7d2fe; /* Even lighter indigo on hover */
+        }
+        /* Responsive adjustments for secondary button */
+        @media (min-width: 768px) { /* md breakpoint */
+            .btn-secondary {
+                padding: 10px 16px; /* Larger padding on desktop */
+                font-size: 1rem; /* text-base */
+            }
+        }
+        .result-display {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 16px;
+            min-height: 100px;
+            font-family: monospace; /* Monospace for matrix display */
+            white-space: pre-wrap; /* Preserve whitespace and wrap */
+            overflow-x: auto; /* Allow horizontal scrolling for large matrices */
+        }
+        .error-message {
+            color: #ef4444; /* Red for errors */
+            background-color: #fee2e2; /* Light red background */
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 16px;
+            border: 1px solid #fca5a5;
+        }
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .calculator-container {
+                margin: 10px;
+                border-radius: 12px;
+            }
+            .tab-button {
+                padding: 12px 16px;
+                font-size: 0.9rem;
+            }
+            .tab-content {
+                padding: 16px;
+            }
+            .matrix-input-grid input {
+                width: 45px; /* Smaller inputs on mobile */
+                height: 32px;
+                font-size: 0.9rem;
+            }
+            /* Adjust grid for operations on small screens to prevent overflow */
+            .operations-grid {
+                grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); /* Auto-fit columns, min 80px width */
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 antialiased">
+    <div class="calculator-container">
+        <!-- Tab Navigation -->
+        <div class="flex border-b border-gray-200">
+            <button class="tab-button active" onclick="openTab(event, 'matrix-operations')">Matrix Operations</button>
+            <button class="tab-button" onclick="openTab(event, 'determinant-calc')">Determinant Calculator</button>
+        </div>
+
+        <!-- Matrix Operations Tab Content -->
+        <div id="matrix-operations" class="tab-content active">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Matrix A Input -->
+                <div class="p-6 bg-white rounded-lg shadow-sm border border-gray-200">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Matrix A</h3>
+                    <div class="flex items-center space-x-4 mb-4">
+                        <div>
+                            <label for="matrixA-rows" class="block text-sm font-medium text-gray-700">Rows:</label>
+                            <input type="number" id="matrixA-rows" value="2" min="1" max="10" class="mt-1 block w-20 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" onchange="createMatrixInput('matrixA', 'matrixA-rows', 'matrixA-cols')">
+                        </div>
+                        <div>
+                            <label for="matrixA-cols" class="block text-sm font-medium text-gray-700">Columns:</label>
+                            <input type="number" id="matrixA-cols" value="2" min="1" max="10" class="mt-1 block w-20 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" onchange="createMatrixInput('matrixA', 'matrixA-rows', 'matrixA-cols')">
+                        </div>
+                    </div>
+                    <div id="matrixA-inputs" class="matrix-input-grid"></div>
+                </div>
+
+                <!-- Matrix B Input -->
+                <div class="p-6 bg-white rounded-lg shadow-sm border border-gray-200">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Matrix B</h3>
+                    <div class="flex items-center space-x-4 mb-4">
+                        <div>
+                            <label for="matrixB-rows" class="block text-sm font-medium text-gray-700">Rows:</label>
+                            <input type="number" id="matrixB-rows" value="2" min="1" max="10" class="mt-1 block w-20 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" onchange="createMatrixInput('matrixB', 'matrixB-rows', 'matrixB-cols')">
+                        </div>
+                        <div>
+                            <label for="matrixB-cols" class="block text-sm font-medium text-gray-700">Columns:</label>
+                            <input type="number" id="matrixB-cols" value="2" min="1" max="10" class="mt-1 block w-20 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" onchange="createMatrixInput('matrixB', 'matrixB-rows', 'matrixB-cols')">
+                        </div>
+                    </div>
+                    <div id="matrixB-inputs" class="matrix-input-grid"></div>
+                </div>
+            </div>
+
+            <!-- Operations -->
+            <div class="mt-8 p-6 bg-white rounded-lg shadow-sm border border-gray-200">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Operations</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 operations-grid">
+                    <button class="btn-primary" onclick="performOperation('add')">A + B</button>
+                    <button class="btn-primary" onclick="performOperation('subtract')">A - B</button>
+                    <button class="btn-primary" onclick="performOperation('multiply')">A &times; B</button>
+                    <div class="flex items-center space-x-2">
+                        <input type="number" id="scalar-input" value="2" class="w-16 rounded-md border-gray-300 shadow-sm text-center">
+                        <button class="btn-primary flex-grow" onclick="performOperation('scalarMultiply')">k &times; A</button>
+                    </div>
+                    <button class="btn-primary" onclick="performOperation('transposeA')">A<sup>T</sup></button>
+                    <button class="btn-primary" onclick="performOperation('transposeB')">B<sup>T</sup></button>
+                    <button class="btn-primary" onclick="performOperation('inverseA')">A<sup>-1</sup></button>
+                    <button class="btn-primary" onclick="performOperation('inverseB')">B<sup>-1</sup></button> <!-- Added B inverse button -->
+                </div>
+            </div>
+
+            <!-- Result Display -->
+            <div class="mt-8 p-6 bg-white rounded-lg shadow-sm border border-gray-200">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Result</h3>
+                <div id="matrix-result" class="result-display"></div>
+                <div id="matrix-error" class="error-message hidden"></div>
+            </div>
+        </div>
+
+        <!-- Determinant Calculator Tab Content -->
+        <div id="determinant-calc" class="tab-content">
+            <div class="p-6 bg-white rounded-lg shadow-sm border border-gray-200">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Matrix for Determinant</h3>
+                <div class="flex items-center space-x-4 mb-4">
+                    <div>
+                        <label for="det-matrix-size" class="block text-sm font-medium text-gray-700">Size (N x N):</label>
+                        <input type="number" id="det-matrix-size" value="3" min="1" max="5" class="mt-1 block w-24 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" onchange="createMatrixInput('det-matrix', 'det-matrix-size', 'det-matrix-size')">
+                    </div>
+                </div>
+                <div id="det-matrix-inputs" class="matrix-input-grid"></div>
+                <button class="btn-primary mt-6 w-full" onclick="calculateDeterminant()">Calculate Determinant</button>
+            </div>
+
+            <!-- Determinant Result Display -->
+            <div class="mt-8 p-6 bg-white rounded-lg shadow-sm border border-gray-200">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Result</h3>
+                <div id="det-result" class="result-display"></div>
+                <div id="det-error" class="error-message hidden"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Global Variables ---
+        // Store current matrix dimensions for dynamic input generation
+        let currentMatrixARows = 2;
+        let currentMatrixACols = 2;
+        let currentMatrixBRows = 2;
+        let currentMatrixBCols = 2;
+        let currentDetMatrixSize = 3;
+
+        // --- Utility Functions ---
+
+        /**
+         * Switches between tabs.
+         * @param {Event} evt - The click event.
+         * @param {string} tabName - The ID of the tab content to show.
+         */
+        function openTab(evt, tabName) {
+            // Get all elements with class="tab-content" and hide them
+            const tabContents = document.getElementsByClassName("tab-content");
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove("active");
+            }
+
+            // Get all elements with class="tab-button" and remove the "active" class
+            const tabButtons = document.getElementsByClassName("tab-button");
+            for (let i = 0; i < tabButtons.length; i++) {
+                tabButtons[i].classList.remove("active");
+            }
+
+            // Show the current tab, and add an "active" class to the button that opened the tab
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+
+            // Re-render matrix inputs when switching tabs to ensure they are correct
+            if (tabName === 'matrix-operations') {
+                createMatrixInput('matrixA', 'matrixA-rows', 'matrixA-cols');
+                createMatrixInput('matrixB', 'matrixB-rows', 'matrixB-cols');
+            } else if (tabName === 'determinant-calc') {
+                createMatrixInput('det-matrix', 'det-matrix-size', 'det-matrix-size');
+            }
+            clearErrors(); // Clear any previous errors when switching tabs
+        }
+
+        /**
+         * Creates or updates the input grid for a matrix.
+         * @param {string} matrixIdPrefix - 'matrixA', 'matrixB', or 'det-matrix'.
+         * @param {string} rowsInputId - ID of the rows input element.
+         * @param {string} colsInputId - ID of the columns input element.
+         */
+        function createMatrixInput(matrixIdPrefix, rowsInputId, colsInputId) {
+            const rows = parseInt(document.getElementById(rowsInputId).value);
+            const cols = parseInt(document.getElementById(colsInputId).value);
+            const container = document.getElementById(`${matrixIdPrefix}-inputs`);
+
+            // Update global dimensions
+            if (matrixIdPrefix === 'matrixA') {
+                currentMatrixARows = rows;
+                currentMatrixACols = cols;
+            } else if (matrixIdPrefix === 'matrixB') {
+                currentMatrixBRows = rows;
+                currentMatrixBCols = cols;
+            } else if (matrixIdPrefix === 'det-matrix') {
+                currentDetMatrixSize = rows; // For determinant, rows and cols are the same
+            }
+
+            // Clear existing inputs
+            container.innerHTML = '';
+            container.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.value = 0; // Default value
+                    input.classList.add('matrix-cell-input'); // Add a class for easy selection
+                    input.id = `${matrixIdPrefix}-cell-${i}-${j}`;
+                    container.appendChild(input);
+                }
+            }
+            clearErrors();
+        }
+
+        /**
+         * Reads matrix values from input fields.
+         * @param {string} matrixIdPrefix - 'matrixA', 'matrixB', or 'det-matrix'.
+         * @param {number} rows - Number of rows.
+         * @param {number} cols - Number of columns.
+         * @returns {number[][]|null} The matrix as a 2D array, or null if invalid input.
+         */
+        function getMatrixFromInputs(matrixIdPrefix, rows, cols) {
+            const matrix = [];
+            for (let i = 0; i < rows; i++) {
+                const row = [];
+                for (let j = 0; j < cols; j++) {
+                    const inputElement = document.getElementById(`${matrixIdPrefix}-cell-${i}-${j}`);
+                    if (!inputElement) {
+                        displayError('matrix-error', 'Error: Could not find all matrix input cells. Please check dimensions.');
+                        return null;
+                    }
+                    const value = parseFloat(inputElement.value);
+                    if (isNaN(value)) {
+                        displayError('matrix-error', `Invalid input at row ${i + 1}, column ${j + 1}. Please enter numbers only.`);
+                        return null;
+                    }
+                    row.push(value);
+                }
+                matrix.push(row);
+            }
+            return matrix;
+        }
+
+        /**
+         * Displays a matrix in the result area.
+         * @param {string} elementId - The ID of the div to display the result in.
+         * @param {number[][]} matrix - The matrix to display.
+         */
+        function displayMatrix(elementId, matrix) {
+            if (!matrix || matrix.length === 0) {
+                document.getElementById(elementId).textContent = "No result to display.";
+                return;
+            }
+            let output = "";
+            const maxLen = matrix.flat().reduce((max, val) => Math.max(max, String(val).length), 0);
+
+            matrix.forEach(row => {
+                output += "[ ";
+                row.forEach(val => {
+                    output += String(val).padStart(maxLen, ' ') + " ";
+                });
+                output += "]\n";
+            });
+            document.getElementById(elementId).textContent = output;
+        }
+
+        /**
+         * Displays a scalar value in the result area.
+         * @param {string} elementId - The ID of the div to display the result in.
+         * @param {number} scalar - The scalar value to display.
+         */
+        function displayScalar(elementId, scalar) {
+            document.getElementById(elementId).textContent = `Result: ${scalar}`;
+        }
+
+        /**
+         * Displays an error message.
+         * @param {string} errorElementId - The ID of the error message div.
+         * @param {string} message - The error message.
+         */
+        function displayError(errorElementId, message) {
+            const errorElement = document.getElementById(errorElementId);
+            errorElement.textContent = message;
+            errorElement.classList.remove('hidden');
+        }
+
+        /**
+         * Clears any displayed error messages.
+         */
+        function clearErrors() {
+            document.getElementById('matrix-error').classList.add('hidden');
+            document.getElementById('det-error').classList.add('hidden');
+        }
+
+        // --- Matrix Operations Logic ---
+
+        /**
+         * Performs matrix addition.
+         * @param {number[][]} A - Matrix A.
+         * @param {number[][]} B - Matrix B.
+         * @returns {number[][]|null} Resultant matrix or null if dimensions mismatch.
+         */
+        function addMatrices(A, B) {
+            if (A.length !== B.length || A[0].length !== B[0].length) {
+                displayError('matrix-error', 'Matrix addition requires matrices of the same dimensions.');
+                return null;
+            }
+            const rows = A.length;
+            const cols = A[0].length;
+            const result = Array(rows).fill(0).map(() => Array(cols).fill(0));
+
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    result[i][j] = A[i][j] + B[i][j];
+                }
+            }
+            return result;
+        }
+
+        /**
+         * Performs matrix subtraction.
+         * @param {number[][]} A - Matrix A.
+         * @param {number[][]} B - Matrix B.
+         * @returns {number[][]|null} Resultant matrix or null if dimensions mismatch.
+         */
+        function subtractMatrices(A, B) {
+            if (A.length !== B.length || A[0].length !== B[0].length) {
+                displayError('matrix-error', 'Matrix subtraction requires matrices of the same dimensions.');
+                return null;
+            }
+            const rows = A.length;
+            const cols = A[0].length;
+            const result = Array(rows).fill(0).map(() => Array(cols).fill(0));
+
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    result[i][j] = A[i][j] - B[i][j];
+                }
+            }
+            return result;
+        }
+
+        /**
+         * Performs matrix multiplication.
+         * @param {number[][]} A - Matrix A.
+         * @param {number[][]} B - Matrix B.
+         * @returns {number[][]|null} Resultant matrix or null if dimensions mismatch.
+         */
+        function multiplyMatrices(A, B) {
+            const rowsA = A.length;
+            const colsA = A[0].length;
+            const rowsB = B.length;
+            const colsB = B[0].length;
+
+            if (colsA !== rowsB) {
+                displayError('matrix-error', 'Matrix multiplication requires the number of columns in the first matrix to equal the number of rows in the second matrix.');
+                return null;
+            }
+
+            const result = Array(rowsA).fill(0).map(() => Array(colsB).fill(0));
+
+            for (let i = 0; i < rowsA; i++) {
+                for (let j = 0; j < colsB; j++) {
+                    let sum = 0;
+                    for (let k = 0; k < colsA; k++) {
+                        sum += A[i][k] * B[k][j];
+                    }
+                    result[i][j] = sum;
+                }
+            }
+            return result;
+        }
+
+        /**
+         * Performs scalar multiplication on a matrix.
+         * @param {number} scalar - The scalar value.
+         * @param {number[][]} matrix - The matrix.
+         * @returns {number[][]} The resultant matrix.
+         */
+        function scalarMultiplyMatrix(scalar, matrix) {
+            const rows = matrix.length;
+            const cols = matrix[0].length;
+            const result = Array(rows).fill(0).map(() => Array(cols).fill(0));
+
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    result[i][j] = scalar * matrix[i][j];
+                }
+            }
+            return result;
+        }
+
+        /**
+         * Transposes a matrix.
+         * @param {number[][]} matrix - The matrix to transpose.
+         * @returns {number[][]} The transposed matrix.
+         */
+        function transposeMatrix(matrix) {
+            const rows = matrix.length;
+            const cols = matrix[0].length;
+            const result = Array(cols).fill(0).map(() => Array(rows).fill(0));
+
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    result[j][i] = matrix[i][j];
+                }
+            }
+            return result;
+        }
+
+        /**
+         * Calculates the inverse of a 2x2 or 3x3 matrix.
+         * @param {number[][]} matrix - The matrix to invert.
+         * @returns {number[][]|null} The inverse matrix or null if not invertible/unsupported size.
+         */
+        function inverseMatrix(matrix) {
+            const rows = matrix.length;
+            const cols = matrix[0].length;
+
+            if (rows !== cols) {
+                displayError('matrix-error', 'Inverse can only be calculated for square matrices.');
+                return null;
+            }
+
+            const det = calculateDeterminantOfMatrix(matrix);
+            if (det === 0) {
+                displayError('matrix-error', 'Matrix is singular (determinant is zero), inverse does not exist.');
+                return null;
+            }
+
+            if (rows === 1) {
+                if (matrix[0][0] === 0) {
+                    displayError('matrix-error', 'Matrix is singular (determinant is zero), inverse does not exist.');
+                    return null;
+                }
+                return [[1 / matrix[0][0]]];
+            }
+
+            if (rows === 2) {
+                // For a 2x2 matrix [[a, b], [c, d]]
+                // Inverse is (1/det) * [[d, -b], [-c, a]]
+                const a = matrix[0][0], b = matrix[0][1];
+                const c = matrix[1][0], d = matrix[1][1];
+                return [
+                    [d / det, -b / det],
+                    [-c / det, a / det]
+                ];
+            }
+
+            if (rows === 3) {
+                // For a 3x3 matrix, use cofactor method
+                // Adjugate matrix / Determinant
+                const [
+                    [a, b, c],
+                    [d, e, f],
+                    [g, h, i]
+                ] = matrix;
+
+                const cofactorMatrix = [
+                    [e * i - f * h, -(d * i - f * g), d * h - e * g],
+                    [-(b * i - c * h), a * i - c * g, -(a * h - b * g)],
+                    [b * f - c * e, -(a * f - c * d), a * e - b * d]
+                ];
+
+                // Transpose the cofactor matrix to get the adjugate matrix
+                const adjugateMatrix = transposeMatrix(cofactorMatrix);
+
+                // Multiply adjugate by (1/det)
+                const inverse = adjugateMatrix.map(row => row.map(val => val / det));
+                return inverse;
+            }
+
+            displayError('matrix-error', 'Inverse calculation is currently supported only for 1x1, 2x2, and 3x3 matrices.');
+            return null;
+        }
+
+
+        /**
+         * Main function to perform selected matrix operation.
+         * @param {string} operationType - Type of operation ('add', 'subtract', 'multiply', 'scalarMultiply', 'transposeA', 'transposeB', 'inverseA', 'inverseB').
+         */
+        function performOperation(operationType) {
+            clearErrors();
+            document.getElementById('matrix-result').textContent = ''; // Clear previous result
+
+            const matrixA = getMatrixFromInputs('matrixA', currentMatrixARows, currentMatrixACols);
+            const matrixB = getMatrixFromInputs('matrixB', currentMatrixBRows, currentMatrixBCols);
+
+            if (matrixA === null || (['add', 'subtract', 'multiply'].includes(operationType) && matrixB === null)) {
+                return; // Error already displayed by getMatrixFromInputs
+            }
+
+            let resultMatrix = null;
+            let resultScalar = null;
+
+            try {
+                switch (operationType) {
+                    case 'add':
+                        resultMatrix = addMatrices(matrixA, matrixB);
+                        break;
+                    case 'subtract':
+                        resultMatrix = subtractMatrices(matrixA, matrixB);
+                        break;
+                    case 'multiply':
+                        resultMatrix = multiplyMatrices(matrixA, matrixB);
+                        break;
+                    case 'scalarMultiply':
+                        const scalar = parseFloat(document.getElementById('scalar-input').value);
+                        if (isNaN(scalar)) {
+                            displayError('matrix-error', 'Invalid scalar value. Please enter a number.');
+                            return;
+                        }
+                        resultMatrix = scalarMultiplyMatrix(scalar, matrixA);
+                        break;
+                    case 'transposeA':
+                        resultMatrix = transposeMatrix(matrixA);
+                        break;
+                    case 'transposeB':
+                        resultMatrix = transposeMatrix(matrixB);
+                        break;
+                    case 'inverseA':
+                        resultMatrix = inverseMatrix(matrixA);
+                        break;
+                    case 'inverseB': // Added inverse B operation
+                        resultMatrix = inverseMatrix(matrixB);
+                        break;
+                    default:
+                        displayError('matrix-error', 'Unknown operation.');
+                        return;
+                }
+
+                if (resultMatrix) {
+                    displayMatrix('matrix-result', resultMatrix);
+                } else if (resultScalar !== null) {
+                    displayScalar('matrix-result', resultScalar);
+                }
+            } catch (e) {
+                displayError('matrix-error', `An unexpected error occurred: ${e.message}`);
+                console.error(e);
+            }
+        }
+
+        // --- Determinant Calculation Logic ---
+
+        /**
+         * Calculates the determinant of a matrix using cofactor expansion.
+         * This function is recursive.
+         * @param {number[][]} matrix - The square matrix.
+         * @returns {number} The determinant.
+         */
+        function calculateDeterminantOfMatrix(matrix) {
+            const n = matrix.length;
+
+            if (n === 1) {
+                return matrix[0][0];
+            }
+            if (n === 2) {
+                return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
+            }
+
+            let det = 0;
+            for (let j = 0; j < n; j++) {
+                // Create submatrix (minor)
+                const minor = [];
+                for (let r = 1; r < n; r++) { // Start from second row
+                    const minorRow = [];
+                    for (let c = 0; c < n; c++) {
+                        if (c !== j) { // Exclude column j
+                            minorRow.push(matrix[r][c]);
+                        }
+                    }
+                    minor.push(minorRow);
+                }
+                // Add/subtract (based on position) current element * determinant of minor
+                det += (j % 2 === 0 ? 1 : -1) * matrix[0][j] * calculateDeterminantOfMatrix(minor);
+            }
+            return det;
+        }
+
+        /**
+         * Initiates the determinant calculation from the UI.
+         */
+        function calculateDeterminant() {
+            clearErrors();
+            document.getElementById('det-result').textContent = ''; // Clear previous result
+
+            const size = parseInt(document.getElementById('det-matrix-size').value);
+            if (isNaN(size) || size < 1) {
+                displayError('det-error', 'Matrix size must be a positive integer.');
+                return;
+            }
+
+            const matrix = getMatrixFromInputs('det-matrix', size, size);
+            if (matrix === null) {
+                return; // Error already displayed by getMatrixFromInputs
+            }
+
+            if (matrix.length !== matrix[0].length) {
+                displayError('det-error', 'Determinant can only be calculated for square matrices.');
+                return;
+            }
+
+            try {
+                const det = calculateDeterminantOfMatrix(matrix);
+                displayScalar('det-result', det);
+            } catch (e) {
+                displayError('det-error', `An error occurred during determinant calculation: ${e.message}`);
+                console.error(e);
+            }
+        }
+
+        // --- Initial Setup ---
+        window.onload = function() {
+            // Initialize matrix inputs on page load
+            createMatrixInput('matrixA', 'matrixA-rows', 'matrixA-cols');
+            createMatrixInput('matrixB', 'matrixB-rows', 'matrixB-cols');
+            createMatrixInput('det-matrix', 'det-matrix-size', 'det-matrix-size');
+        };
+    </script>
+</body>
+</html>

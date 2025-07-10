@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Unit Converter</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles to ensure rounded corners and Inter font */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5; /* Light gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 1.5rem; /* More rounded corners */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Soft shadow */
+            padding: 2.5rem; /* Increased padding */
+            width: 100%;
+            max-width: 800px; /* Increased max width for tabs */
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem; /* Space between sections */
+        }
+        .tab-container {
+            display: flex;
+            flex-wrap: wrap; /* Allow tabs to wrap on smaller screens */
+            gap: 0.5rem; /* Space between tabs */
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #e5e7eb; /* Subtle line below tabs */
+            padding-bottom: 0.5rem;
+            justify-content: center; /* Center tabs */
+        }
+        .tab-button {
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            background-color: #e0e7ff; /* Light indigo */
+            color: #4f46e5;
+            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            white-space: nowrap; /* Prevent text wrapping in tabs */
+        }
+        .tab-button:hover {
+            background-color: #c7d2fe; /* Even lighter indigo */
+            transform: translateY(-1px);
+        }
+        .tab-button.active {
+            background-color: #6366f1; /* Indigo */
+            color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+        .tab-button.active:hover {
+            background-color: #4f46e5; /* Darker indigo */
+        }
+        .converter-content {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .input-group, .output-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .input-field, .output-field {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        input[type="number"], select {
+            flex-grow: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db; /* Light gray border */
+            border-radius: 0.75rem; /* Rounded input fields */
+            font-size: 1rem;
+            color: #374151; /* Darker text */
+            background-color: #f9fafb; /* Slightly off-white background */
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        input[type="number"]:focus, select:focus {
+            outline: none;
+            border-color: #6366f1; /* Indigo focus border */
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); /* Soft focus shadow */
+        }
+        .output-value {
+            flex-grow: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            color: #374151;
+            background-color: #e5e7eb; /* Lighter gray for output */
+            cursor: default;
+            user-select: text; /* Allow text selection */
+            min-height: 44px; /* Ensure consistent height with input/select */
+            display: flex;
+            align-items: center;
+        }
+        .control-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .control-buttons button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .control-buttons button:hover {
+            transform: translateY(-2px);
+        }
+        .control-buttons button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary {
+            background-color: #6366f1; /* Indigo */
+            color: #ffffff;
+        }
+        .btn-primary:hover {
+            background-color: #4f46e5; /* Darker indigo */
+        }
+        .btn-secondary {
+            background-color: #e0e7ff; /* Light indigo */
+            color: #4f46e5;
+        }
+        .btn-secondary:hover {
+            background-color: #c7d2fe; /* Even lighter indigo */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1.5rem;
+                gap: 1rem;
+            }
+            .tab-container {
+                justify-content: flex-start; /* Align tabs to start on smaller screens */
+            }
+            .input-field, .output-field {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.5rem;
+            }
+            .control-buttons {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+            .control-buttons button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-4">Universal Unit Converter</h1>
+
+        <!-- Tab Navigation -->
+        <div id="tabContainer" class="tab-container">
+            <!-- Tab buttons will be populated by JavaScript -->
+        </div>
+
+        <!-- Converter Content Area (dynamically loaded) -->
+        <div id="converterContent" class="converter-content">
+            <!-- Input, Output, and Control Buttons will be loaded here -->
+        </div>
+    </div>
+
+    <script>
+        // Define conversion factors relative to a base unit for each category.
+        // The base unit for each category has a factor of 1.
+        const units = {
+            length: {
+                base: 'meter',
+                meter: 1,
+                kilometer: 1000,
+                centimeter: 0.01,
+                millimeter: 0.001,
+                micrometer: 1e-6,
+                nanometer: 1e-9,
+                picometer: 1e-12,
+                inch: 0.0254,
+                foot: 0.3048,
+                yard: 0.9144,
+                mile: 1609.34,
+                furlong: 201.168,
+                chain: 20.1168,
+                rod: 5.0292,
+                'nautical mile': 1852,
+                angstrom: 1e-10,
+                'light-year': 9.461e15,
+                parsec: 3.086e16,
+                'astronomical unit': 1.496e11,
+                cubit: 0.4572, // Approximate (varies)
+                hand: 0.1016, // Approximate (4 inches)
+                'li (China)': 500,
+                'shaku (Japan)': 0.30303,
+                'chi (China)': 0.333333,
+                league: 4828.03,
+                pace: 0.762,
+                link: 0.201168,
+                ell: 1.143,
+                smoot: 1.7018,
+                step: 0.762,
+                span: 0.2286,
+                finger: 0.01905,
+                mil: 2.54e-5,
+                digit: 0.01905
+            },
+            mass: {
+                base: 'kilogram',
+                kilogram: 1,
+                gram: 0.001,
+                milligram: 1e-6,
+                tonne: 1000, // Metric ton
+                pound: 0.453592,
+                ounce: 0.0283495,
+                stone: 6.35029,
+                'ton (long)': 1016.05, // British long ton
+                'ton (short)': 907.185, // US short ton
+                grain: 0.00006479891,
+                'atomic mass unit': 1.660539e-27,
+                carat: 0.0002, // 200 mg
+                slug: 14.5939,
+                'solar mass': 1.989e30,
+                quintal: 100, // Metric quintal
+                'baht (Thailand)': 0.015, // Approximate, for gold
+                tael: 0.0378, // Approximate, varies
+                momme: 0.00375,
+                shekel: 0.0114, // Ancient, varies
+                mina: 0.57, // Ancient, varies
+                talent: 34.2, // Ancient, varies
+                picul: 60.479, // Approximate, varies
+                'dram (weight)': 0.001771845, // Apothecaries' dram
+                scruple: 0.0012959782, // Apothecaries' scruple
+                zentner: 50, // Metric zentner
+                tical: 0.015, // Approximate, varies
+                arroba: 11.502, // Spanish, varies
+                oke: 1.282 // Ottoman, varies
+            },
+            time: {
+                base: 'second',
+                second: 1,
+                minute: 60,
+                hour: 3600,
+                day: 86400,
+                week: 604800,
+                month: 2629800, // Average month (30.436875 days)
+                year: 31557600, // Average year (365.25 days)
+                decade: 315576000,
+                century: 3155760000,
+                millennium: 31557600000,
+                fortnight: 1209600,
+                lustrum: 157788000,
+                indiction: 473364000,
+                jiffy: 0.01, // Common usage, varies by field
+                shake: 1e-8, // Nuclear physics
+                'sidereal day': 86164.090530833,
+                'planck time': 5.391247e-44,
+                watch: 14400, // Nautical (4 hours)
+                'moment (medieval)': 90 // Approximate
+            },
+            temperature: {
+                // Temperature conversions are special; they are not linear multiplications.
+                // Base is Celsius.
+                base: 'celsius',
+                celsius: { toBase: (c) => c, fromBase: (c) => c },
+                fahrenheit: { toBase: (f) => (f - 32) * 5 / 9, fromBase: (c) => (c * 9 / 5) + 32 },
+                kelvin: { toBase: (k) => k - 273.15, fromBase: (c) => c + 273.15 },
+                rankine: { toBase: (r) => (r - 491.67) * 5 / 9, fromBase: (c) => (c * 9 / 5) + 491.67 },
+                reaumur: { toBase: (re) => re * 5 / 4, fromBase: (c) => c * 4 / 5 },
+                delisle: { toBase: (de) => 100 - (de * 2 / 3), fromBase: (c) => (100 - c) * 3 / 2 },
+                newton: { toBase: (n) => n * 100 / 33, fromBase: (c) => c * 33 / 100 },
+                romer: { toBase: (ro) => (ro - 7.5) * 40 / 21, fromBase: (c) => (c * 21 / 40) + 7.5 },
+                'gas mark': {
+                    // Gas Mark is not a linear temperature scale. This is an approximate mapping.
+                    // For precise conversions, a lookup table or more complex logic would be needed.
+                    toBase: (gm) => {
+                        if (gm === 1) return 140;
+                        if (gm === 2) return 150;
+                        if (gm === 3) return 160;
+                        if (gm === 4) return 180;
+                        if (gm === 5) return 190;
+                        if (gm === 6) return 200;
+                        if (gm === 7) return 220;
+                        if (gm === 8) return 230;
+                        if (gm === 9) return 240;
+                        // Simple linear interpolation for values between marks
+                        if (gm > 0 && gm < 1) return 140 * gm; // Very rough
+                        if (gm > 1 && gm < 2) return 140 + (gm - 1) * 10;
+                        if (gm > 2 && gm < 3) return 150 + (gm - 2) * 10;
+                        if (gm > 3 && gm < 4) return 160 + (gm - 3) * 20;
+                        if (gm > 4 && gm < 5) return 180 + (gm - 4) * 10;
+                        if (gm > 5 && gm < 6) return 190 + (gm - 5) * 10;
+                        if (gm > 6 && gm < 7) return 200 + (gm - 6) * 20;
+                        if (gm > 7 && gm < 8) return 220 + (gm - 7) * 10;
+                        if (gm > 8 && gm < 9) return 230 + (gm - 8) * 10;
+                        return NaN; // Handle out of range or invalid Gas Mark
+                    },
+                    fromBase: (c) => {
+                        if (c <= 140) return 1;
+                        if (c <= 150) return 2;
+                        if (c <= 160) return 3;
+                        if (c <= 180) return 4;
+                        if (c <= 190) return 5;
+                        if (c <= 200) return 6;
+                        if (c <= 220) return 7;
+                        if (c <= 230) return 8;
+                        if (c <= 240) return 9;
+                        return NaN; // Handle out of range
+                    }
+                }
+            },
+            volume: {
+                base: 'liter',
+                liter: 1,
+                milliliter: 0.001,
+                'cubic meter': 1000,
+                'cubic centimeter': 0.001,
+                'cubic millimeter': 1e-6,
+                'gallon (US liquid)': 3.78541,
+                'gallon (UK imperial)': 4.54609,
+                'pint (US liquid)': 0.473176,
+                'pint (UK imperial)': 0.568261,
+                'quart (US liquid)': 0.946353,
+                'quart (UK imperial)': 1.13652,
+                'fluid ounce (US)': 0.0295735,
+                'fluid ounce (UK imperial)': 0.0284131,
+                'barrel (US liquid)': 119.24,
+                gill: 0.118294, // US liquid gill
+                'acre-foot': 1233480,
+                'board foot': 2.35974e-3,
+                dram: 0.00369669, // US fluid dram
+                firkin: 34.0687, // Ale firkin
+                hogshead: 238.48, // US liquid hogshead
+                butt: 476.96, // US liquid butt
+                tun: 953.92, // US liquid tun
+                demijohn: 18.9271, // 5 US gallons
+                chopine: 0.473176, // US pint
+                sextarius: 0.546, // Ancient Roman
+                congius: 3.276 // Ancient Roman
+            },
+            area: {
+                base: 'square meter',
+                'square meter': 1,
+                hectare: 10000,
+                acre: 4046.86,
+                'square kilometer': 1e6,
+                'square mile': 2.58999e6,
+                'square foot': 0.092903,
+                'square inch': 0.00064516,
+                barn: 1e-28,
+                dunam: 1000,
+                arpent: 3418.89, // French, varies
+                cuerda: 3930.39, // Puerto Rico
+                tans: 991.736, // Japan
+                jerib: 2000, // Iran, varies
+                rai: 1600, // Thailand
+                manzana: 6988.96, // Central America, varies
+                'mu (China)': 666.67,
+                ground: 222.967 // India, varies
+            },
+            'electric current': {
+                base: 'ampere',
+                ampere: 1,
+                milliampere: 0.001,
+                microampere: 1e-6
+            },
+            voltage: {
+                base: 'volt',
+                volt: 1
+            },
+            resistance: {
+                base: 'ohm',
+                ohm: 1
+            },
+            'luminous intensity': {
+                base: 'candela',
+                candela: 1,
+                // Note: Lumen, Lux are related to luminous flux and illuminance, not directly intensity.
+                // Conversions here are simplified for demonstration purposes.
+                lumen: 1,
+                lux: 1,
+                'foot-candle': 10.764, // 1 foot-candle = 10.764 lux
+                nit: 1 // cd/m²
+            },
+            pressure: {
+                base: 'pascal',
+                pascal: 1,
+                atmosphere: 101325,
+                bar: 100000,
+                torr: 133.322,
+                mmHg: 133.322, // 1 mmHg = 1 Torr
+                psi: 6894.76,
+                'dyne/cm²': 0.1
+            },
+            speed: {
+                base: 'meter/second',
+                'meter/second': 1,
+                'kilometer/hour': 1 / 3.6,
+                'miles/hour': 0.44704,
+                knot: 0.514444,
+                'centimeter/second': 0.01,
+                'feet/second': 0.3048
+            },
+            acceleration: {
+                base: 'meter/second²',
+                'meter/second²': 1,
+                gal: 0.01, // Galileo (cm/s²)
+                'feet/second²': 0.3048
+            },
+            force: {
+                base: 'newton',
+                newton: 1,
+                dyne: 1e-5,
+                'pound-force': 4.44822,
+                kilopond: 9.80665, // kgf
+                kip: 4448.22,
+                sthène: 1000,
+                pond: 0.00980665, // gram-force
+                'ton-force': 9964.016 // Short ton-force
+            },
+            energy: {
+                base: 'joule',
+                joule: 1,
+                calorie: 4.184, // Thermochemical calorie
+                kilocalorie: 4184,
+                'British thermal unit': 1055.06,
+                electronvolt: 1.60218e-19,
+                erg: 1e-7,
+                'foot-pound': 1.35582, // foot-pound force
+                therm: 1.05506e8, // US therm (100,000 BTU)
+                'ton of TNT': 4.184e9,
+                quad: 1.055e18, // Quadrillion BTU
+                'tonne of oil equivalent': 41.868e9,
+                'kcal/mol': 4184 // Simplified: treating as 1 kcal for a generic 'unit'
+            },
+            power: {
+                base: 'watt',
+                watt: 1,
+                kilowatt: 1000,
+                horsepower: 745.7, // Mechanical horsepower
+                'erg/second': 1e-7,
+                'ton of refrigeration': 3516.85,
+                'BTU/h': 0.293071,
+                'diesel engine horsepower': 745.7, // Same as mechanical hp
+                'metric horsepower': 735.49875
+            },
+            magnetism: {
+                base: 'tesla',
+                tesla: 1,
+                gauss: 1e-4,
+                // Note: Weber and Maxwell are units of magnetic flux, Tesla is magnetic field strength.
+                // Conversions here are simplified for demonstration purposes.
+                weber: 1,
+                maxwell: 1e-8
+            },
+            frequency: {
+                base: 'hertz',
+                hertz: 1,
+                kilohertz: 1000,
+                megahertz: 1e6,
+                rpm: 1 / 60, // revolutions per minute
+                becquerel: 1, // radioactivity (1 disintegration per second)
+                'cycle per second': 1,
+                'revolutions per second': 1
+            },
+            'data storage': {
+                base: 'byte',
+                bit: 1 / 8,
+                byte: 1,
+                kilobyte: 1024, // Using binary (KB = 2^10 bytes)
+                megabyte: 1024 * 1024,
+                gigabyte: Math.pow(1024, 3),
+                terabyte: Math.pow(1024, 4),
+                petabyte: Math.pow(1024, 5),
+                exabyte: Math.pow(1024, 6)
+            },
+            'data transfer rate': {
+                base: 'bit/second',
+                'bit/second': 1,
+                'byte/second': 8,
+                'kilobit/second': 1000,
+                'kilobyte/second': 8 * 1024,
+                'megabit/second': 1e6,
+                'megabyte/second': 8 * Math.pow(1024, 2),
+                'gigabit/second': 1e9,
+                'gigabyte/second': 8 * Math.pow(1024, 3),
+                bps: 1, // bits per second
+                kbps: 1000, // kilobits per second
+                Mbps: 1e6, // megabits per second
+                Gbps: 1e9, // gigabits per second
+                baud: 1 // Simplified: 1 baud = 1 bit/second for basic data transfer, though technically distinct
+            },
+            concentration: {
+                base: 'mol/L',
+                'mol/L': 1,
+                percent: 0.01, // Assuming percentage as a fraction of 1
+                ppm: 1e-6, // parts per million
+                ppb: 1e-9, // parts per billion
+                ppt: 1e-12 // parts per trillion
+            },
+            density: {
+                base: 'kg/m³',
+                'kg/m³': 1,
+                'g/cm³': 1000, // 1 g/cm³ = 1000 kg/m³
+                'lb/ft³': 16.0185
+            },
+            viscosity: {
+                base: 'pascal-second',
+                poise: 0.1, // 1 P = 0.1 Pa·s
+                centipoise: 0.001, // 1 cP = 0.001 Pa·s
+                'pascal-second': 1,
+                // Note: Stokes is a unit of kinematic viscosity, while Pascal-second is dynamic viscosity.
+                // Direct conversion requires density. Simplified here for demonstration.
+                stokes: 0.0001 // kinematic viscosity (1 St = 1 cm²/s)
+            },
+            sound: { // Moved from sound intensity, now includes more general sound units
+                base: 'decibel',
+                decibel: 1,
+                bel: 10, // 1 Bel = 10 dB
+                neper: 8.68588, // 1 Neper = 8.68588 dB
+                phon: 1, // Psychoacoustic unit, simplified for demonstration, not directly convertible to dB without frequency
+                sone: 1 // Psychoacoustic unit, simplified for demonstration, not directly convertible to dB without frequency
+            },
+            radiation: {
+                base: 'gray',
+                gray: 1,
+                // Note: Sievert is equivalent dose, Gray is absorbed dose. Not directly convertible without a radiation weighting factor.
+                // Conversions here are simplified for demonstration purposes.
+                sievert: 1,
+                roentgen: 0.00933, // Approximate conversion to Gy for air
+                rad: 0.01, // 1 rad = 0.01 Gy
+                rem: 0.01, // 1 rem = 0.01 Sv
+                curie: 3.7e10, // radioactivity (Bq is preferred)
+                becquerel: 1, // radioactivity
+                rutherford: 1e6, // 1 rutherford = 1e6 Bq
+                'rep (roentgen equivalent physical)': 0.0093 // Approximate conversion to Gy
+            },
+            'angular measurement': {
+                base: 'radian',
+                degree: Math.PI / 180,
+                radian: 1,
+                revolution: 2 * Math.PI,
+                gradian: Math.PI / 200,
+                arcminute: (Math.PI / 180) / 60,
+                arcsecond: (Math.PI / 180) / 3600
+            },
+            'counting / quantity': {
+                base: 'unit', // A generic base unit for counting
+                unit: 1,
+                mole: 6.02214076e23, // Avogadro's number
+                dozen: 12,
+                gross: 144,
+                score: 20,
+                googol: 1e100
+            },
+            'fuel efficiency': {
+                base: 'kilometer/liter', // Base unit for fuel efficiency
+                'kilometer/liter': 1,
+                'miles per gallon (US)': 0.425144, // 1 MPG (US) = 0.425144 km/L
+                'miles per gallon (UK)': 0.354006, // 1 MPG (UK) = 0.354006 km/L
+                'liter/100 km': { // Special handling for L/100km as it's inverse
+                    toBase: (lpk) => 100 / lpk, // Convert L/100km to km/L
+                    fromBase: (kpl) => 100 / kpl // Convert km/L to L/100km
+                },
+                'mpg (US)': 0.425144, // Alias for miles per gallon (US)
+                'mpg (UK)': 0.354006, // Alias for miles per gallon (UK)
+                'km per liter': 1 // Alias for kilometer/liter
+            },
+            'flow rate': {
+                base: 'cubic meter/second',
+                'cubic meter/second': 1,
+                'liter/second': 0.001,
+                'gallon/minute (US)': 0.0000630902, // 1 GPM (US) = 6.30902e-5 m³/s
+                'barrel/day (US)': 0.00000184013 // 1 bbl/day (US) = 1.84013e-6 m³/s
+            },
+            torque: {
+                base: 'newton-meter',
+                'newton-meter': 1,
+                'foot-pound force': 1.35582,
+                'pound-inch force': 0.112985
+            },
+            currency: {
+                // Currency conversions are highly dynamic and require real-time API data.
+                // These are placeholders with a base of 1 for demonstration purposes only.
+                base: 'dollar ($)',
+                'bitcoin (BTC)': 1,
+                'ethereum (ETH)': 1,
+                dogecoin: 1,
+                'yen (¥)': 1,
+                'rupee (₹)': 1,
+                'euro (€)': 1,
+                'dollar ($)': 1,
+                'pound (£)': 1,
+                'won (₩)': 1,
+                dinar: 1,
+                peso: 1
+            },
+            light: { // New category for luminance/illuminance, base is nit (cd/m²)
+                base: 'nit',
+                nit: 1, // Candela per square meter
+                lambert: 3183.098, // 1 lambert = 3183.098 nit
+                stilb: 10000, // 1 stilb = 10000 nit
+                apostilb: 0.3183098, // 1 apostilb = 0.3183098 nit
+                'foot-lambert': 3.426 // 1 foot-lambert = 3.426 nit
+            },
+            miscellaneous: {
+                base: 'unit', // Generic base unit for non-standard conversions
+                unit: 1,
+                'carat (purity)': 1, // Not a unit of weight/mass, but purity. Placeholder.
+                'proof (alcohol)': 1, // Alcohol proof. Placeholder.
+                'points (typography)': 0.352778, // Desktop publishing point in mm
+                pixel: 1, // Context-dependent, treated as generic unit
+                em: 1, // Typography unit, context-dependent, treated as generic unit
+                dpi: 1, // Dots per inch, resolution, not a direct conversion unit. Placeholder.
+                ppi: 1, // Pixels per inch, resolution, not a direct conversion unit. Placeholder.
+                luxon: 1, // Hypothetical unit. Placeholder.
+                'planck length': 1.616255e-35, // Already in length, but added here for completeness
+                'planck mass': 2.176434e-8 // Already in mass, but added here for completeness
+            }
+        };
+
+        // Get DOM elements
+        const tabContainer = document.getElementById('tabContainer');
+        const converterContent = document.getElementById('converterContent');
+
+        let currentCategory = 'length'; // Default active category
+
+        /**
+         * Renders the input/output fields and control buttons for the selected category.
+         * @param {string} category The category to render.
+         */
+        function renderConverterContent(category) {
+            currentCategory = category; // Update the current active category
+
+            // Clear previous content
+            converterContent.innerHTML = '';
+
+            // Construct the HTML for the input, output, and control sections
+            const contentHtml = `
+                <!-- Input Section -->
+                <div class="input-group">
+                    <label for="inputValue" class="text-gray-700 font-medium">Input Value:</label>
+                    <div class="input-field">
+                        <input type="number" id="inputValue" placeholder="Enter value" value="1">
+                        <select id="inputUnit">
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Control Buttons -->
+                <div class="control-buttons">
+                    <button id="swapUnitsBtn" class="btn-secondary">Swap Units</button>
+                    <button id="clearBtn" class="btn-secondary">Clear</button>
+                </div>
+
+                <!-- Output Section -->
+                <div class="output-group">
+                    <label for="outputValue" class="text-gray-700 font-medium">Converted Value:</label>
+                    <div class="output-field">
+                        <div id="outputValue" class="output-value">0</div>
+                        <select id="outputUnit">
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+                    </div>
+                </div>
+            `;
+            converterContent.innerHTML = contentHtml;
+
+            // Get references to the newly created DOM elements
+            const inputValue = document.getElementById('inputValue');
+            const inputUnitSelect = document.getElementById('inputUnit');
+            const outputValueDiv = document.getElementById('outputValue');
+            const outputUnitSelect = document.getElementById('outputUnit');
+            const swapUnitsBtn = document.getElementById('swapUnitsBtn');
+            const clearBtn = document.getElementById('clearBtn');
+
+            // Populate unit dropdowns for the new category
+            populateUnits(inputUnitSelect, outputUnitSelect, currentCategory);
+
+            // Attach event listeners to the new elements
+            inputValue.addEventListener('input', convertUnits);
+            inputUnitSelect.addEventListener('change', convertUnits);
+            outputUnitSelect.addEventListener('change', convertUnits);
+            swapUnitsBtn.addEventListener('click', () => swapUnits(inputUnitSelect, outputUnitSelect));
+            clearBtn.addEventListener('click', () => clearValues(inputValue, outputValueDiv, inputUnitSelect, outputUnitSelect));
+
+            convertUnits(); // Perform initial conversion for the new tab
+        }
+
+        /**
+         * Populates the input and output unit dropdowns based on the selected category.
+         * @param {HTMLSelectElement} inputSelect The input unit select element.
+         * @param {HTMLSelectElement} outputSelect The output unit select element.
+         * @param {string} category The currently active category.
+         */
+        function populateUnits(inputSelect, outputSelect, category) {
+            const categoryUnits = units[category];
+
+            // Clear existing options
+            inputSelect.innerHTML = '';
+            outputSelect.innerHTML = '';
+
+            // Add options for each unit in the selected category
+            const unitNames = Object.keys(categoryUnits).filter(name => name !== 'base');
+            unitNames.forEach(unitName => {
+                const inputOption = document.createElement('option');
+                inputOption.value = unitName;
+                inputOption.textContent = formatUnitName(unitName);
+                inputSelect.appendChild(inputOption);
+
+                const outputOption = document.createElement('option');
+                outputOption.value = unitName;
+                outputOption.textContent = formatUnitName(unitName);
+                outputSelect.appendChild(outputOption);
+            });
+
+            // Set default selected units
+            inputSelect.value = categoryUnits.base;
+            // Set output unit to the second unit in the list, or the first if only one
+            const defaultOutputUnit = unitNames.length > 1 ? unitNames[1] : unitNames[0];
+
+            // Handle special case for 'fuel efficiency' where 'liter/100 km' might be the second unit
+            // and has a different structure. Ensure it's correctly set or default to base if only one.
+            if (category === 'fuel efficiency' && defaultOutputUnit === 'liter/100 km') {
+                if (unitNames.length > 1 && categoryUnits.base !== 'liter/100 km') {
+                     outputSelect.value = 'liter/100 km';
+                } else {
+                     outputSelect.value = categoryUnits.base;
+                }
+            } else {
+                outputSelect.value = defaultOutputUnit;
+            }
+        }
+
+        /**
+         * Formats a unit name for display (e.g., 'square meter' -> 'Square Meter').
+         * @param {string} unitName The raw unit name.
+         * @returns {string} The formatted unit name.
+         */
+        function formatUnitName(unitName) {
+            // Handle specific symbols or common abbreviations
+            const replacements = {
+                'meter/second²': 'Meter/Second²',
+                'dyne/cm²': 'Dyne/cm²',
+                'kg/m³': 'Kg/m³',
+                'g/cm³': 'G/cm³',
+                'lb/ft³': 'Lb/ft³',
+                'mol/L': 'Mol/L',
+                'kcal/mol': 'Kcal/Mol',
+                'BTU/h': 'BTU/h',
+                'liter/100 km': 'Liter/100 km',
+                'km per liter': 'Km per Liter',
+                'miles per gallon (US)': 'Miles per Gallon (US)',
+                'miles per gallon (UK)': 'Miles per Gallon (UK)',
+                'gallon/minute (US)': 'Gallon/Minute (US)',
+                'barrel/day (US)': 'Barrel/Day (US)',
+                'foot-pound force': 'Foot-Pound Force',
+                'pound-inch force': 'Pound-Inch Force',
+                'ton (long)': 'Ton (Long)',
+                'ton (short)': 'Ton (Short)',
+                'cubic meter': 'Cubic Meter',
+                'cubic centimeter': 'Cubic Centimeter',
+                'cubic millimeter': 'Cubic Millimeter',
+                'square meter': 'Square Meter',
+                'square kilometer': 'Square Kilometer',
+                'square mile': 'Square Mile',
+                'square foot': 'Square Foot',
+                'square inch': 'Square Inch',
+                'electric current': 'Electric Current',
+                'luminous intensity': 'Luminous Intensity',
+                'data storage': 'Data Storage',
+                'data transfer rate': 'Data Transfer Rate',
+                'sound intensity': 'Sound Intensity', // Old name, now just 'sound'
+                'angular measurement': 'Angular Measurement',
+                'counting / quantity': 'Counting / Quantity',
+                'fuel efficiency': 'Fuel Efficiency',
+                'flow rate': 'Flow Rate',
+                'light-year': 'Light-Year',
+                'astronomical unit': 'Astronomical Unit',
+                'atomic mass unit': 'Atomic Mass Unit',
+                'solar mass': 'Solar Mass',
+                'metric ton': 'Metric Ton',
+                'sidereal day': 'Sidereal Day',
+                'planck time': 'Planck Time',
+                'gas mark': 'Gas Mark',
+                'fluid ounce (US)': 'Fluid Ounce (US)',
+                'fluid ounce (UK imperial)': 'Fluid Ounce (UK Imperial)',
+                'gallon (US liquid)': 'Gallon (US Liquid)',
+                'gallon (UK imperial)': 'Gallon (UK Imperial)',
+                'pint (US liquid)': 'Pint (US Liquid)',
+                'pint (UK imperial)': 'Pint (UK Imperial)',
+                'quart (US liquid)': 'Quart (US Liquid)',
+                'quart (UK imperial)': 'Quart (UK Imperial)',
+                'barrel (US liquid)': 'Barrel (US Liquid)',
+                'acre-foot': 'Acre-Foot',
+                'board foot': 'Board Foot',
+                'dyne/cm²': 'Dyne/cm²',
+                'pound-force': 'Pound-Force',
+                'ton of TNT': 'Ton of TNT',
+                'tonne of oil equivalent': 'Tonne of Oil Equivalent',
+                'ton of refrigeration': 'Ton of Refrigeration',
+                'diesel engine horsepower': 'Diesel Engine Horsepower',
+                'metric horsepower': 'Metric Horsepower',
+                'cycle per second': 'Cycle per Second',
+                'revolutions per second': 'Revolutions per Second',
+                'bitcoin (BTC)': 'Bitcoin (BTC)',
+                'ethereum (ETH)': 'Ethereum (ETH)',
+                'yen (¥)': 'Yen (¥)',
+                'rupee (₹)': 'Rupee (₹)',
+                'euro (€)': 'Euro (€)',
+                'dollar ($)': 'Dollar ($)',
+                'pound (£)': 'Pound (£)',
+                'won (₩)': 'Won (₩)',
+                'rep (roentgen equivalent physical)': 'REP (Roentgen Equivalent Physical)',
+                'carat (purity)': 'Carat (Purity)',
+                'points (typography)': 'Points (Typography)',
+                'planck length': 'Planck Length',
+                'planck mass': 'Planck Mass',
+                'li (China)': 'Li (China)',
+                'shaku (Japan)': 'Shaku (Japan)',
+                'chi (China)': 'Chi (China)',
+                'dram (weight)': 'Dram (Weight)',
+                'momme': 'Momme',
+                'shekel': 'Shekel',
+                'mina': 'Mina',
+                'talent': 'Talent',
+                'picul': 'Picul',
+                'scruple': 'Scruple',
+                'zentner': 'Zentner',
+                'tical': 'Tical',
+                'arroba': 'Arroba',
+                'oke': 'Oke',
+                'fortnight': 'Fortnight',
+                'lustrum': 'Lustrum',
+                'indiction': 'Indiction',
+                'jiffy': 'Jiffy',
+                'shake': 'Shake',
+                'watch': 'Watch',
+                'moment (medieval)': 'Moment (Medieval)',
+                'delisle': 'Delisle',
+                'newton': 'Newton',
+                'romer': 'Rømer',
+                'firkin': 'Firkin',
+                'hogshead': 'Hogshead',
+                'butt': 'Butt',
+                'tun': 'Tun',
+                'demijohn': 'Demijohn',
+                'chopine': 'Chopine',
+                'sextarius': 'Sextarius',
+                'congius': 'Congius',
+                'dunam': 'Dunam',
+                'arpent': 'Arpent',
+                'cuerda': 'Cuerda',
+                'tans': 'Tans',
+                'jerib': 'Jerib',
+                'rai': 'Rai',
+                'manzana': 'Manzana',
+                'mu (China)': 'Mu (China)',
+                'ground': 'Ground',
+                'ton-force': 'Ton-Force',
+                'lambert': 'Lambert',
+                'stilb': 'Stilb',
+                'apostilb': 'Apostilb',
+                'foot-lambert': 'Foot-Lambert',
+                'proof (alcohol)': 'Proof (Alcohol)'
+            };
+            if (replacements[unitName]) {
+                return replacements[unitName];
+            }
+            return unitName.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        }
+
+        /**
+         * Performs the unit conversion based on the selected category, input value,
+         * and selected input/output units.
+         */
+        function convertUnits() {
+            const inputValue = document.getElementById('inputValue');
+            const inputUnitSelect = document.getElementById('inputUnit');
+            const outputValueDiv = document.getElementById('outputValue');
+            const outputUnitSelect = document.getElementById('outputUnit');
+
+            const value = parseFloat(inputValue.value);
+            const inputUnit = inputUnitSelect.value;
+            const outputUnit = outputUnitSelect.value;
+
+            // Handle invalid input
+            if (isNaN(value)) {
+                outputValueDiv.textContent = 'Invalid Input';
+                return;
+            }
+
+            const categoryUnits = units[currentCategory];
+
+            let convertedValue;
+
+            // Check if the conversion requires special functions (e.g., temperature, fuel efficiency for L/100km)
+            const inputUnitDefinition = categoryUnits[inputUnit];
+            const outputUnitDefinition = categoryUnits[outputUnit];
+
+            let valueInBase;
+
+            // Convert input value to the base unit
+            if (typeof inputUnitDefinition === 'object' && inputUnitDefinition.toBase) {
+                valueInBase = inputUnitDefinition.toBase(value);
+            } else {
+                valueInBase = value * inputUnitDefinition;
+            }
+
+            // Convert from base unit to the desired output unit
+            if (typeof outputUnitDefinition === 'object' && outputUnitDefinition.fromBase) {
+                convertedValue = outputUnitDefinition.fromBase(valueInBase);
+            } else {
+                convertedValue = valueInBase / outputUnitDefinition;
+            }
+
+            // Display the result, formatted to a reasonable number of decimal places
+            outputValueDiv.textContent = convertedValue.toFixed(10).replace(/\.?0+$/, ''); // Remove trailing zeros
+        }
+
+        /**
+         * Swaps the selected input and output units.
+         * @param {HTMLSelectElement} inputSelect The input unit select element.
+         * @param {HTMLSelectElement} outputSelect The output unit select element.
+         */
+        function swapUnits(inputSelect, outputSelect) {
+            const currentInputUnit = inputSelect.value;
+            const currentOutputUnit = outputSelect.value;
+
+            inputSelect.value = currentOutputUnit;
+            outputSelect.value = currentInputUnit;
+
+            convertUnits(); // Re-convert after swapping
+        }
+
+        /**
+         * Clears the input and output values.
+         * @param {HTMLInputElement} inputValueElem The input value element.
+         * @param {HTMLDivElement} outputValueElem The output value display element.
+         * @param {HTMLSelectElement} inputSelect The input unit select element.
+         * @param {HTMLSelectElement} outputSelect The output unit select element.
+         */
+        function clearValues(inputValueElem, outputValueElem, inputSelect, outputSelect) {
+            inputValueElem.value = '0';
+            outputValueElem.textContent = '0';
+            // Reset units to default for the current category
+            const categoryUnits = units[currentCategory];
+            inputSelect.value = categoryUnits.base;
+            const unitNames = Object.keys(categoryUnits).filter(name => name !== 'base');
+            const defaultOutputUnit = unitNames.length > 1 ? unitNames[1] : unitNames[0];
+
+            if (currentCategory === 'fuel efficiency' && defaultOutputUnit === 'liter/100 km') {
+                if (unitNames.length > 1 && categoryUnits.base !== 'liter/100 km') {
+                     outputSelect.value = 'liter/100 km';
+                } else {
+                     outputSelect.value = categoryUnits.base;
+                }
+            } else {
+                outputSelect.value = defaultOutputUnit;
+            }
+        }
+
+        /**
+         * Initializes the tab navigation and loads the default converter content.
+         */
+        function initializeConverter() {
+            // Populate tab buttons
+            for (const category in units) {
+                const button = document.createElement('button');
+                button.classList.add('tab-button');
+                button.textContent = formatUnitName(category); // Capitalize first letter
+                button.dataset.category = category; // Store category name in data attribute
+
+                button.addEventListener('click', () => {
+                    // Remove 'active' class from all buttons
+                    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                    // Add 'active' class to the clicked button
+                    button.classList.add('active');
+                    // Render content for the selected category
+                    renderConverterContent(category);
+                });
+                tabContainer.appendChild(button);
+            }
+
+            // Set initial active tab and load its content
+            const defaultTabButton = tabContainer.querySelector(`[data-category="${currentCategory}"]`);
+            if (defaultTabButton) {
+                defaultTabButton.classList.add('active');
+                renderConverterContent(currentCategory);
+            }
+        }
+
+        // Initial setup when the page loads
+        document.addEventListener('DOMContentLoaded', initializeConverter);
+    </script>
+</body>
+</html>

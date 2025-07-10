@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base N Converter</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top for better scrolling */
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .calculator-container {
+            background-color: #ffffff;
+            border-radius: 16px; /* More rounded corners */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Softer shadow */
+            width: 100%;
+            max-width: 500px; /* Adjusted max-width for a simpler calculator */
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+        }
+        .input-group {
+            margin-bottom: 16px;
+        }
+        .input-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #4b5563; /* Darker gray text */
+            margin-bottom: 6px;
+        }
+        .input-group input[type="text"],
+        .input-group input[type="number"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: #f9fafb;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .input-group input[type="text"]:focus,
+        .input-group input[type="number"]:focus {
+            outline: none;
+            border-color: #818cf8;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+        .btn-primary {
+            background-color: #6366f1; /* Indigo */
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+            width: 100%; /* Full width button */
+            margin-top: 16px;
+        }
+        .btn-primary:hover {
+            background-color: #4f46e5; /* Darker indigo on hover */
+            transform: translateY(-1px);
+        }
+        .btn-primary:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(99, 102, 241, 0.3);
+        }
+        .result-display {
+            background-color: #eef2ff; /* Light indigo background for result */
+            border: 1px solid #c7d2fe; /* Lighter indigo border */
+            border-radius: 12px;
+            padding: 16px;
+            min-height: 60px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            margin-top: 24px;
+            color: #3730a3; /* Darker indigo text */
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .error-message {
+            color: #ef4444; /* Red for errors */
+            background-color: #fee2e2; /* Light red background */
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 16px;
+            border: 1px solid #fca5a5;
+            display: none; /* Hidden by default */
+        }
+        .error-message.active {
+            display: block;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .calculator-container {
+                margin: 10px;
+                padding: 16px;
+                border-radius: 12px;
+            }
+            .btn-primary {
+                padding: 10px 16px;
+                font-size: 0.9rem;
+            }
+            .input-group input {
+                font-size: 0.9rem;
+                padding: 8px 10px;
+            }
+            .result-display {
+                padding: 12px;
+                min-height: 50px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 antialiased">
+    <div class="calculator-container">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Base N Converter</h2>
+
+        <div class="input-group">
+            <label for="number-input">Number to Convert:</label>
+            <input type="text" id="number-input" placeholder="Enter number (e.g., 1011 for binary)">
+        </div>
+
+        <div class="input-group">
+            <label for="from-base-input">From Base (2-36):</label>
+            <input type="number" id="from-base-input" value="2" min="2" max="36">
+        </div>
+
+        <div class="input-group">
+            <label for="to-base-input">To Base (2-36):</label>
+            <input type="number" id="to-base-input" value="10" min="2" max="36">
+        </div>
+
+        <button class="btn-primary" onclick="convertBase()">Convert</button>
+
+        <div id="result-display" class="result-display">
+            Result will appear here.
+        </div>
+
+        <div id="error-message" class="error-message"></div>
+    </div>
+
+    <script>
+        /**
+         * Displays an error message.
+         * @param {string} message - The error message.
+         */
+        function displayError(message) {
+            const errorElement = document.getElementById('error-message');
+            errorElement.textContent = message;
+            errorElement.classList.add('active');
+            document.getElementById('result-display').textContent = ''; // Clear result on error
+        }
+
+        /**
+         * Clears any displayed error messages.
+         */
+        function clearError() {
+            document.getElementById('error-message').classList.remove('active');
+            document.getElementById('error-message').textContent = '';
+        }
+
+        /**
+         * Converts a number from one base to another.
+         */
+        function convertBase() {
+            clearError();
+            document.getElementById('result-display').textContent = 'Calculating...';
+
+            const numberStr = document.getElementById('number-input').value.trim();
+            const fromBase = parseInt(document.getElementById('from-base-input').value);
+            const toBase = parseInt(document.getElementById('to-base-input').value);
+
+            // --- Input Validation ---
+            if (!numberStr) {
+                displayError('Please enter a number to convert.');
+                return;
+            }
+
+            if (isNaN(fromBase) || fromBase < 2 || fromBase > 36) {
+                displayError('Invalid "From Base". Please enter a number between 2 and 36.');
+                return;
+            }
+
+            if (isNaN(toBase) || toBase < 2 || toBase > 36) {
+                displayError('Invalid "To Base". Please enter a number between 2 and 36.');
+                return;
+            }
+
+            // Validate if the input number string contains valid digits for the 'fromBase'
+            const validChars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            for (let i = 0; i < numberStr.length; i++) {
+                const char = numberStr[i].toUpperCase();
+                const charValue = validChars.indexOf(char);
+                if (charValue === -1 || charValue >= fromBase) {
+                    displayError(`Invalid digit '${numberStr[i]}' for base ${fromBase}.`);
+                    return;
+                }
+            }
+
+            // --- Conversion Logic ---
+            try {
+                // Step 1: Convert from 'fromBase' to decimal (base 10)
+                const decimalValue = parseInt(numberStr, fromBase);
+
+                if (isNaN(decimalValue)) {
+                    displayError('Error converting number to decimal. Check input and base.');
+                    return;
+                }
+
+                // Step 2: Convert from decimal (base 10) to 'toBase'
+                const result = decimalValue.toString(toBase).toUpperCase(); // Use toUpperCase for bases > 10
+
+                document.getElementById('result-display').textContent = result;
+
+            } catch (e) {
+                displayError(`An unexpected error occurred during conversion: ${e.message}`);
+                console.error(e);
+            }
+        }
+
+        // --- Initial Setup ---
+        window.onload = function() {
+            // Set initial placeholder text
+            document.getElementById('result-display').textContent = 'Enter values and click Convert.';
+        };
+    </script>
+</body>
+</html>

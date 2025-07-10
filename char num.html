@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Characteristics Analyzer</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons (checkmarks, crosses) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Custom font for a clean look */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #e2e8f0; /* Lighter grey background */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top to give space for content */
+            min-height: 100vh; /* Full viewport height */
+            padding: 2rem; /* Padding around the main container */
+        }
+        /* Style for the main container to center and provide a card-like appearance */
+        .container {
+            background-color: #ffffff;
+            border-radius: 1.5rem; /* More rounded corners */
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15); /* Stronger, softer shadow */
+            padding: 3rem;
+            max-width: 900px; /* Max width for readability */
+            width: 100%;
+            text-align: center;
+            transition: all 0.3s ease-in-out;
+        }
+        /* Style for input fields */
+        input[type="number"] {
+            border: 2px solid #cbd5e1; /* Light border */
+            border-radius: 0.75rem; /* More rounded */
+            padding: 1rem 1.25rem;
+            font-size: 1.25rem;
+            width: 100%;
+            max-width: 350px; /* Slightly wider input */
+            margin-bottom: 1.5rem;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #4f46e5; /* Deeper purple border on focus */
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.3); /* Purple shadow on focus */
+        }
+        /* Style for buttons */
+        button {
+            background-color: #6366f1; /* Purple background */
+            color: white;
+            padding: 1rem 2.5rem;
+            border-radius: 0.75rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out, box-shadow 0.2s ease-in-out;
+            border: none; /* Remove default button border */
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3); /* Soft shadow for button */
+        }
+        button:hover {
+            background-color: #4f46e5; /* Darker purple on hover */
+            transform: translateY(-3px); /* More pronounced lift effect */
+            box-shadow: 0 6px 15px rgba(99, 102, 241, 0.4);
+        }
+        button:active {
+            transform: translateY(0); /* Press effect */
+            box-shadow: 0 2px 5px rgba(99, 102, 241, 0.2);
+        }
+        /* Style for results section */
+        #results {
+            margin-top: 3rem;
+            text-align: left;
+            border-top: 1px solid #e2e8f0; /* Separator line */
+            padding-top: 3rem;
+        }
+        /* Removed .characteristic-category h3 styling as titles are removed */
+        .characteristic-category {
+            margin-bottom: 2.5rem;
+            background-color: #f8fafc; /* Very light background for categories */
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        .characteristic-item {
+            display: flex;
+            align-items: flex-start; /* Align to start to allow text to wrap down */
+            flex-wrap: wrap; /* Allow items to wrap within the flex container */
+            margin-bottom: 0.75rem;
+            font-size: 1.1rem;
+            color: #374151; /* Dark grey text for descriptions */
+            background-color: #ffffff;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .characteristic-item:hover {
+            background-color: #f3f4f6; /* Subtle hover effect */
+        }
+        .characteristic-item .icon {
+            font-size: 1.2rem;
+            margin-right: 0.75rem;
+            width: 24px; /* Fixed width for icons */
+            text-align: center;
+            flex-shrink: 0; /* Prevent icon from shrinking */
+        }
+        .characteristic-item .icon.fa-check-circle {
+            color: #10b981; /* Green for true */
+        }
+        .characteristic-item .icon.fa-times-circle {
+            color: #ef4444; /* Red for false */
+        }
+        .characteristic-item strong {
+            color: #1f2937; /* Even darker for names */
+            min-width: 120px; /* Reduced min-width for better wrapping */
+            flex-shrink: 0; /* Prevent strong from shrinking */
+            font-weight: 600;
+            margin-right: 0.5rem; /* Add some space between name and description */
+        }
+        .characteristic-item span {
+            flex-grow: 1;
+            word-break: break-word; /* Ensure long words break to prevent overflow */
+            overflow-wrap: break-word; /* Modern equivalent */
+        }
+        .note {
+            background-color: #fef3c7; /* Light yellow background */
+            border-left: 5px solid #fbbf24; /* Amber border */
+            padding: 1.5rem;
+            margin-top: 3rem;
+            border-radius: 1rem;
+            color: #92400e; /* Dark orange text */
+            font-size: 1rem;
+            line-height: 1.6;
+            text-align: left;
+            word-break: break-word; /* Added for explicit word breaking */
+            overflow-wrap: break-word; /* Modern equivalent for word breaking */
+        }
+        .error-message {
+            color: #ef4444; /* Red for error messages */
+            font-weight: 700;
+            margin-top: 1.5rem;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-5xl font-extrabold text-gray-900 mb-6 leading-tight">Number Characteristics Analyzer</h1>
+        <p class="text-xl text-gray-600 mb-10">Discover the fascinating properties of any number!</p>
+
+        <div class="flex flex-col items-center">
+            <input type="number" id="numberInput" placeholder="Enter a number (e.g., 7, 28, -5.5)">
+            <button onclick="analyzeNumber()">Analyze Number</button>
+            <div id="errorMessage" class="error-message mt-4"></div>
+        </div>
+
+        <div id="results" class="hidden">
+            <!-- Results will be dynamically inserted here -->
+        </div>
+
+        <div class="note">
+            <i class="fas fa-info-circle mr-2"></i>
+            <strong>Note:</strong>
+            This tool analyzes numerical input. It cannot distinguish between exact irrational/imaginary numbers and their decimal approximations.
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Helper function to check if a number is prime.
+         * A prime number is a natural number greater than 1 that has no positive divisors other than 1 and itself.
+         * @param {number} num - The number to check.
+         * @returns {boolean} True if the number is prime, false otherwise.
+         */
+        function isPrime(num) {
+            // Primes must be integers greater than 1
+            if (!Number.isInteger(num) || num <= 1) return false;
+            // 2 is the only even prime number
+            if (num === 2) return true;
+            // Even numbers greater than 2 are not prime
+            if (num % 2 === 0) return false;
+            // Check for divisibility from 3 up to the square root of the number, only odd numbers
+            for (let i = 3; i * i <= num; i += 2) {
+                if (num % i === 0) return false;
+            }
+            return true;
+        }
+
+        /**
+         * Helper function to check if a number is composite.
+         * A composite number is a natural number greater than 1 that is not prime.
+         * @param {number} num - The number to check.
+         * @returns {boolean} True if the number is composite, false otherwise.
+         */
+        function isComposite(num) {
+            // Composite numbers must be integers greater than 1 and not prime
+            return Number.isInteger(num) && num > 1 && !isPrime(num);
+        }
+
+        /**
+         * Helper function to check if a number is perfect.
+         * A perfect number is a positive integer that is equal to the sum of its proper positive divisors (divisors excluding the number itself).
+         * @param {number} num - The number to check.
+         * @returns {boolean} True if the number is perfect, false otherwise.
+         */
+        function isPerfect(num) {
+            // Perfect numbers must be positive integers
+            if (!Number.isInteger(num) || num <= 0) return false;
+            let sumOfDivisors = 1; // Start with 1 as every number is divisible by 1
+            // Find proper divisors up to num/2
+            for (let i = 2; i * i <= num; i++) {
+                if (num % i === 0) {
+                    sumOfDivisors += i;
+                    if (i * i !== num) { // If i*i is not num, then num/i is another divisor
+                        sumOfDivisors += num / i;
+                    }
+                }
+            }
+            return sumOfDivisors === num;
+        }
+
+        /**
+         * Helper function to get all positive factors of a number.
+         * @param {number} num - The number to find factors for.
+         * @returns {Array<number>} An array of positive factors.
+         */
+        function getFactors(num) {
+            if (!Number.isInteger(num) || num === 0) return [];
+            num = Math.abs(num); // Factors are usually positive
+            const factors = new Set();
+            for (let i = 1; i * i <= num; i++) {
+                if (num % i === 0) {
+                    factors.add(i);
+                    factors.add(num / i);
+                }
+            }
+            return Array.from(factors).sort((a, b) => a - b);
+        }
+
+        /**
+         * Main function to analyze the input number and display its characteristics.
+         */
+        function analyzeNumber() {
+            const numberInput = document.getElementById('numberInput');
+            const resultsDiv = document.getElementById('results');
+            const errorMessageDiv = document.getElementById('errorMessage');
+            const inputVal = numberInput.value.trim();
+
+            errorMessageDiv.textContent = ''; // Clear previous errors
+            resultsDiv.innerHTML = ''; // Clear previous results
+            resultsDiv.classList.add('hidden'); // Hide results until valid input
+
+            // Input validation
+            if (inputVal === '') {
+                errorMessageDiv.textContent = 'Please enter a number.';
+                return;
+            }
+
+            const num = Number(inputVal);
+
+            if (isNaN(num)) {
+                errorMessageDiv.textContent = 'Invalid input. Please enter a valid number.';
+                return;
+            }
+
+            // Show results div
+            resultsDiv.classList.remove('hidden');
+
+            // Store characteristics in a structured way
+            const characteristics = {
+                '1. Types of Numbers': [],
+                '2. Mathematical Properties of Numbers': [],
+                '3. Special Behaviors in Mathematics': [],
+                '4. Advanced Concepts': []
+            };
+
+            // Helper to add a characteristic
+            const addCharacteristic = (category, name, description, applies) => {
+                characteristics[category].push({ name, description, applies });
+            };
+
+            // --- 1. Types of Numbers ---
+            addCharacteristic('1. Types of Numbers', 'Natural Number', 'Counting numbers.', Number.isInteger(num) && num > 0);
+            addCharacteristic('1. Types of Numbers', 'Whole Number', 'Natural numbers + zero.', Number.isInteger(num) && num >= 0);
+            addCharacteristic('1. Types of Numbers', 'Integer', 'Positive & negative whole numbers, or zero.', Number.isInteger(num));
+            addCharacteristic('1. Types of Numbers', 'Rational Number', 'Can be written as a fraction.', Number.isFinite(num));
+            addCharacteristic('1. Types of Numbers', 'Irrational Number', 'Cannot be expressed as a simple fraction.', false);
+            addCharacteristic('1. Types of Numbers', 'Real Number', 'All rational and irrational numbers.', Number.isFinite(num));
+            addCharacteristic('1. Types of Numbers', 'Imaginary Number', 'Not real, used in complex math.', false);
+            addCharacteristic('1. Types of Numbers', 'Complex Number', 'Real + imaginary.', false);
+
+            // Prime/Composite/Even/Odd/Perfect/Square/Cube only apply to integers
+            if (Number.isInteger(num)) {
+                addCharacteristic('1. Types of Numbers', 'Prime Number', 'Divisible only by 1 and itself.', isPrime(num));
+                addCharacteristic('1. Types of Numbers', 'Composite Number', 'Not prime; more than two factors.', isComposite(num));
+                addCharacteristic('1. Types of Numbers', 'Even Number', 'Divisible by 2.', num % 2 === 0);
+                addCharacteristic('1. Types of Numbers', 'Odd Number', 'Not divisible by 2.', num % 2 !== 0);
+                addCharacteristic('1. Types of Numbers', 'Perfect Number', 'Sum of its proper positive divisors equals the number.', isPerfect(num));
+                addCharacteristic('1. Types of Numbers', 'Square Number', 'Can be expressed as n².', num >= 0 && Number.isInteger(Math.sqrt(num)));
+                const cbrtVal = Math.cbrt(num);
+                addCharacteristic('1. Types of Numbers', 'Cube Number', 'Can be expressed as n³.', Number.isInteger(cbrtVal) || Math.abs(cbrtVal - Math.round(cbrtVal)) < Number.EPSILON * Math.abs(cbrtVal));
+            } else { // For non-integers, these are false
+                addCharacteristic('1. Types of Numbers', 'Prime Number', 'Divisible only by 1 and itself.', false);
+                addCharacteristic('1. Types of Numbers', 'Composite Number', 'Not prime; more than two factors.', false);
+                addCharacteristic('1. Types of Numbers', 'Even Number', 'Divisible by 2.', false);
+                addCharacteristic('1. Types of Numbers', 'Odd Number', 'Not divisible by 2.', false);
+                addCharacteristic('1. Types of Numbers', 'Perfect Number', 'Sum of its proper positive divisors equals the number.', false);
+                addCharacteristic('1. Types of Numbers', 'Square Number', 'Can be expressed as n².', false);
+                addCharacteristic('1. Types of Numbers', 'Cube Number', 'Can be expressed as n³.', false);
+            }
+
+
+            // --- 2. Mathematical Properties of Numbers ---
+            addCharacteristic('2. Mathematical Properties of Numbers', 'Divisibility', 'Can be divided by another without remainder.', true);
+            addCharacteristic('2. Mathematical Properties of Numbers', 'Parity', `This number is ${Number.isInteger(num) ? (num % 2 === 0 ? 'even' : 'odd') : 'neither even nor odd'}.`, true);
+            addCharacteristic('2. Mathematical Properties of Numbers', 'Sign', `This number is ${num > 0 ? 'positive' : (num < 0 ? 'negative' : 'zero (neutral)')}.`, true);
+            addCharacteristic('2. Mathematical Properties of Numbers', 'Magnitude', `Its absolute value is ${Math.abs(num)}.`, true);
+            addCharacteristic('2. Mathematical Properties of Numbers', 'Place Value', 'Depends on position (units, tens, etc.).', Number.isFinite(num));
+            const numStringForDigits = String(num).replace('.', '').replace('-', '');
+            addCharacteristic('2. Mathematical Properties of Numbers', 'Digits', `It has ${numStringForDigits.length} individual numerals.`, Number.isFinite(num));
+            addCharacteristic('2. Mathematical Properties of Numbers', 'Base', 'Number system it belongs to (Decimal = base 10).', true);
+            const factors = getFactors(num);
+            addCharacteristic('2. Mathematical Properties of Numbers', 'Factors', `${Number.isInteger(num) && num !== 0 ? `Positive factors: ${factors.join(', ')}.` : 'Defined for integers; zero has infinite factors.'}`, Number.isInteger(num));
+            addCharacteristic('2. Mathematical Properties of Numbers', 'Multiples', 'Numbers it can divide into evenly.', true);
+            addCharacteristic('2. Mathematical Properties of Numbers', 'Reciprocal', `1 ÷ number. Its reciprocal is ${num !== 0 ? (1 / num) : 'undefined'}.`, num !== 0);
+
+            // --- 3. Special Behaviors in Mathematics ---
+            addCharacteristic('3. Special Behaviors in Mathematics', 'Additive Identity', `0 (a + 0 = a).`, true);
+            addCharacteristic('3. Special Behaviors in Mathematics', 'Multiplicative Identity', `1 (a × 1 = a).`, true);
+            addCharacteristic('3. Special Behaviors in Mathematics', 'Additive Inverse', `a + (−a) = 0. Its inverse is ${-num}.`, true);
+            addCharacteristic('3. Special Behaviors in Mathematics', 'Multiplicative Inverse', `a × (1/a) = 1 (for a ≠ 0). Its inverse is ${num !== 0 ? (1 / num) : 'undefined'}.`, num !== 0);
+            addCharacteristic('3. Special Behaviors in Mathematics', 'Commutativity', `a + b = b + a; a × b = b × a.`, true);
+            addCharacteristic('3. Special Behaviors in Mathematics', 'Associativity', `(a + b) + c = a + (b + c).`, true);
+            addCharacteristic('3. Special Behaviors in Mathematics', 'Distributivity', `a × (b + c) = ab + ac.`, true);
+
+            // --- 4. Advanced Concepts ---
+            addCharacteristic('4. Advanced Concepts', 'Transcendental Numbers', 'Not root of any polynomial.', false);
+            addCharacteristic('4. Advanced Concepts', 'Algebraic Numbers', 'Root of polynomial with rational coefficients.', true);
+            addCharacteristic('4. Advanced Concepts', 'Ordinal Numbers', 'Used for position/order.', Number.isInteger(num) && num > 0);
+            addCharacteristic('4. Advanced Concepts', 'Cardinal Numbers', 'Used for counting quantity.', Number.isInteger(num) && num > 0);
+            addCharacteristic('4. Advanced Concepts', 'Infinity (∞)', 'Concept of unbounded value.', !Number.isFinite(num));
+            addCharacteristic('4. Advanced Concepts', 'Zero (0)', 'Neutral number; not positive or negative.', num === 0);
+
+
+            // Render the results
+            let htmlOutput = '';
+            // Instead of iterating through categories, just collect all applicable items
+            let allApplicableItems = [];
+            for (const category in characteristics) {
+                allApplicableItems = allApplicableItems.concat(characteristics[category].filter(item => item.applies));
+            }
+
+            if (allApplicableItems.length > 0) {
+                // Create a single container for all applicable items
+                htmlOutput += `<div class="characteristic-category">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">`;
+                allApplicableItems.forEach(item => {
+                    htmlOutput += `
+                        <div class="characteristic-item">
+                            <span class="icon"><i class="fas fa-check-circle text-green-500"></i></span>
+                            <strong>${item.name}:</strong> <span>${item.description}</span>
+                        </div>
+                    `;
+                });
+                htmlOutput += `</div></div>`;
+            } else {
+                htmlOutput = `<p class="text-lg text-gray-600 mt-8">No specific characteristics found for this input based on the defined categories.</p>`;
+            }
+            resultsDiv.innerHTML = htmlOutput;
+        }
+    </script>
+</body>
+</html>

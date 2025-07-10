@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Tools (Tabbed)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for Inter font and general layout */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+            color: #374151; /* Dark gray text */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 1rem;
+            width: 100%;
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 0.75rem; /* rounded-lg */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .input-field {
+            padding: 0.75rem;
+            border-radius: 0.5rem; /* rounded-md */
+            border: 1px solid #d1d5db; /* border-gray-300 */
+            width: 100%;
+            box-sizing: border-box; /* Ensures padding doesn't increase width */
+        }
+        .btn {
+            background-color: #3b82f6; /* blue-500 */
+            color: #ffffff;
+            font-weight: 700; /* font-bold */
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem; /* rounded-md */
+            transition: background-color 0.2s ease-in-out;
+            cursor: pointer;
+            width: 100%;
+        }
+        .btn:hover {
+            background-color: #2563eb; /* blue-600 */
+        }
+        .error-message {
+            color: #ef4444; /* red-500 */
+            margin-top: 0.5rem;
+            font-size: 0.875rem; /* text-sm */
+        }
+        /* Specific styles for Pascal's Triangle output */
+        #pascalOutput div {
+            display: flex;
+            margin-bottom: 0.25rem;
+        }
+        #pascalOutput span {
+            display: inline-block;
+            min-width: 3rem; /* Small min-width for compact display */
+            text-align: center;
+            padding: 0.25rem 0.5rem;
+            margin: 0 0.25rem;
+            background-color: #eff6ff; /* blue-50 */
+            border-radius: 0.25rem; /* rounded */
+            white-space: nowrap; /* Prevent wrapping */
+            overflow: hidden; /* Hide overflow */
+            text-overflow: ellipsis; /* Show ellipsis for truncated text */
+            cursor: pointer; /* Indicate clickability */
+            position: relative; /* For tooltip positioning */
+        }
+
+        /* Styles for the click-to-reveal pop-up */
+        .full-number-popup {
+            position: absolute;
+            background-color: #334155; /* Slate-700 */
+            color: #ffffff;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem; /* rounded-md */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            z-index: 100; /* Ensure it's on top */
+            white-space: nowrap;
+            font-size: 0.875rem; /* text-sm */
+            transform: translateY(-100%) translateY(-0.5rem); /* Position above and add slight gap */
+            opacity: 0;
+            transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+            pointer-events: none; /* Allow clicks to pass through if not active */
+        }
+        .full-number-popup.active {
+            opacity: 1;
+            transform: translateY(-100%) translateY(-0.75rem); /* Slight "fly out" effect */
+            pointer-events: auto; /* Enable interaction when active */
+        }
+
+
+        /* Tab specific styles */
+        .tabs {
+            display: flex;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #e5e7eb; /* border-gray-200 */
+        }
+        .tab-button {
+            flex: 1;
+            padding: 0.75rem 1.5rem;
+            text-align: center;
+            font-weight: 600; /* font-semibold */
+            cursor: pointer;
+            border-top-left-radius: 0.5rem;
+            border-top-right-radius: 0.5rem;
+            color: #6b7280; /* gray-500 */
+            background-color: #e5e7eb; /* gray-200 */
+            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+        }
+        .tab-button.active {
+            background-color: #ffffff;
+            color: #3b82f6; /* blue-500 */
+            border-bottom: 2px solid #3b82f6; /* blue-500 */
+            margin-bottom: -2px; /* Overlap border */
+        }
+        .tab-button:hover:not(.active) {
+            background-color: #d1d5db; /* gray-300 */
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1 class="text-3xl font-bold text-center mb-6 text-blue-700">Math Tools</h1>
+
+            <div class="tabs">
+                <button class="tab-button active" data-tab="binomial">Binomial Expander</button>
+                <button class="tab-button" data-tab="pascal">Pascal's Triangle</button>
+            </div>
+
+            <!-- Binomial Expander Tab Content -->
+            <div id="binomial" class="tab-content active">
+                <h2 class="text-2xl font-bold text-center mb-6 text-blue-700">Binomial Expansion Expander</h2>
+                <div class="mb-4">
+                    <label for="termA" class="block text-sm font-medium text-gray-700 mb-1">Term 'a' (e.g., x, 2y):</label>
+                    <input type="text" id="termA" class="input-field" placeholder="e.g., x or 2y" value="x">
+                </div>
+                <div class="mb-4">
+                    <label for="termB" class="block text-sm font-medium text-gray-700 mb-1">Term 'b' (e.g., y, -3):</label>
+                    <input type="text" id="termB" class="input-field" placeholder="e.g., y or -3" value="y">
+                </div>
+                <div class="mb-6">
+                    <label for="exponentN" class="block text-sm font-medium text-gray-700 mb-1">Exponent 'n' (integer):</label>
+                    <input type="number" id="exponentN" class="input-field" placeholder="e.g., 3" value="3" min="0">
+                    <p id="exponentNError" class="error-message hidden">Please enter a non-negative integer for 'n'.</p>
+                </div>
+                <button id="expandBtn" class="btn mb-6">Expand Binomial</button>
+                <div>
+                    <h3 class="text-lg font-semibold mb-2 text-gray-800">Result:</h3>
+                    <div id="binomialOutput" class="p-4 bg-gray-50 border border-gray-200 rounded-md overflow-x-auto text-gray-900 text-lg">
+                        <!-- Expansion result will be displayed here -->
+                        (x + y)<sup>3</sup> = x<sup>3</sup> + 3x<sup>2</sup>y + 3xy<sup>2</sup> + y<sup>3</sup>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pascal's Triangle Tab Content -->
+            <div id="pascal" class="tab-content">
+                <h2 class="text-2xl font-bold text-center mb-6 text-blue-700">Pascal's Triangle Creator</h2>
+                <div class="mb-6">
+                    <label for="numRows" class="block text-sm font-medium text-gray-700 mb-1">Number of Rows (integer):</label>
+                    <input type="number" id="numRows" class="input-field" placeholder="e.g., 5" value="5" min="1">
+                    <p id="numRowsError" class="error-message hidden">Please enter a positive integer for rows.</p>
+                </div>
+                <button id="generatePascalBtn" class="btn mb-6">Generate Pascal's Triangle</button>
+                <div>
+                    <h3 class="text-lg font-semibold mb-2 text-gray-800">Result:</h3>
+                    <div id="pascalOutput" class="p-4 bg-gray-50 border border-gray-200 rounded-md text-gray-900 overflow-y-auto overflow-x-auto max-h-96">
+                        <!-- Pascal's Triangle will be displayed here -->
+                        <div class="flex mb-1"><span>1</span></div>
+                        <div class="flex mb-1"><span>1</span><span>1</span></div>
+                        <div class="flex mb-1"><span>1</span><span>2</span><span>1</span></div>
+                        <div class="flex mb-1"><span>1</span><span>3</span><span>3</span><span>1</span></div>
+                        <div class="flex mb-1"><span>1</span><span>4</span><span>6</span><span>4</span><span>1</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variable to keep track of the currently active pop-up
+        let activePopup = null;
+
+        // Function to dismiss any active pop-up
+        function dismissActivePopup() {
+            if (activePopup) {
+                activePopup.remove();
+                activePopup = null;
+            }
+        }
+
+        // Add a global click listener to dismiss pop-ups when clicking outside
+        document.addEventListener('click', (event) => {
+            if (activePopup && !activePopup.contains(event.target) && !event.target.closest('#pascalOutput span')) {
+                dismissActivePopup();
+            }
+        });
+
+        // --- Tab Switching Logic ---
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabId = button.dataset.tab;
+
+                // Dismiss any active pop-up when switching tabs
+                dismissActivePopup();
+
+                // Deactivate all buttons and hide all content
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+
+                // Activate the clicked button and show its content
+                button.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+
+                // Trigger initial calculations for the newly active tab
+                if (tabId === 'binomial') {
+                    expandBinomial();
+                } else if (tabId === 'pascal') {
+                    generatePascalsTriangle();
+                }
+            });
+        });
+
+        // --- Binomial Expansion Logic ---
+        const termAInput = document.getElementById('termA');
+        const termBInput = document.getElementById('termB');
+        const exponentNInput = document.getElementById('exponentN');
+        const expandBtn = document.getElementById('expandBtn');
+        const binomialOutput = document.getElementById('binomialOutput');
+        const exponentNError = document.getElementById('exponentNError');
+
+        /**
+         * Calculates the binomial coefficient C(n, k).
+         * @param {number} n - The total number of items.
+         * @param {number} k - The number of items to choose.
+         * @returns {number} The binomial coefficient.
+         */
+        function combinations(n, k) {
+            if (k < 0 || k > n) {
+                return 0;
+            }
+            if (k === 0 || k === n) {
+                return 1;
+            }
+            if (k > n / 2) {
+                k = n - k;
+            }
+            let res = 1;
+            for (let i = 1; i <= k; i++) {
+                res = res * (n - i + 1) / i;
+            }
+            return Math.round(res); // Round to handle potential floating point inaccuracies
+        }
+
+        /**
+         * Helper to parse a term string into its numerical coefficient and variable part.
+         * Examples: "x" -> {num: 1, var: "x"}, "2y" -> {num: 2, var: "y"}, "-3z" -> {num: -3, var: "z"}, "5" -> {num: 5, var: ""}
+         * @param {string} termString - The input term (e.g., "2x", "-y", "5").
+         * @returns {{num: number, var: string}} An object containing the numerical coefficient and variable part.
+         */
+        function parseTerm(termString) {
+            // Regex to capture optional sign, optional digits, and optional variable part
+            const match = termString.match(/^(-?\d*)?([a-zA-Z].*)?$/);
+            let numPart = 1;
+            let varPart = '';
+
+            if (match) {
+                const coeffStr = match[1]; // e.g., "2", "-", "", "-3"
+                const varStr = match[2];   // e.g., "x", "y", "z"
+
+                if (coeffStr === '-') {
+                    numPart = -1;
+                } else if (coeffStr === '') {
+                    numPart = 1; // Case for "x" or "y" (coefficient is implicitly 1)
+                } else if (coeffStr) {
+                    numPart = parseInt(coeffStr);
+                }
+
+                if (varStr) {
+                    varPart = varStr;
+                }
+            }
+            return { num: numPart, var: varPart };
+        }
+
+        /**
+         * Expands a binomial expression (a+b)^n.
+         */
+        function expandBinomial() {
+            const a = termAInput.value.trim();
+            const b = termBInput.value.trim();
+            const n = parseInt(exponentNInput.value);
+
+            // Input validation for exponent N (only non-negative check remains)
+            if (isNaN(n) || n < 0) {
+                exponentNError.textContent = `Please enter a non-negative integer for 'n'.`;
+                exponentNError.classList.remove('hidden');
+                binomialOutput.innerHTML = '';
+                return;
+            } else {
+                exponentNError.classList.add('hidden');
+            }
+
+            if (!a || !b) {
+                binomialOutput.innerHTML = '<p class="text-red-500">Please enter values for both terms \'a\' and \'b\'.</p>';
+                return;
+            }
+
+            const parsedA = parseTerm(a);
+            const parsedB = parseTerm(b);
+
+            let expansionTerms = []; // Array to hold string representations of each term
+
+            for (let k = 0; k <= n; k++) {
+                const binomialCoeff = combinations(n, k);
+
+                // Calculate the numerical part of a^(n-k)
+                const numAPower = Math.pow(parsedA.num, n - k);
+                // Calculate the numerical part of b^k
+                const numBPower = Math.pow(parsedB.num, k);
+
+                // Calculate the total numerical coefficient for this term
+                let currentTermCoeff = binomialCoeff * numAPower * numBPower;
+
+                if (currentTermCoeff === 0) {
+                    continue; // Skip terms with a zero coefficient
+                }
+
+                // Construct the variable part of a^(n-k)
+                let varAString = '';
+                // Only include variable if it exists AND its exponent is greater than 0
+                if (parsedA.var && (n - k) > 0) {
+                    varAString = parsedA.var;
+                    if (n - k > 1) {
+                        varAString += `<sup>${n - k}</sup>`;
+                    }
+                }
+
+                // Construct the variable part of b^k
+                let varBString = '';
+                // Only include variable if it exists AND its exponent is greater than 0
+                if (parsedB.var && k > 0) {
+                    varBString = parsedB.var;
+                    if (k > 1) {
+                        varBString += `<sup>${k}</sup>`;
+                    }
+                }
+
+                let termString = '';
+
+                // Determine the coefficient string to display
+                let displayCoeff = '';
+                if (currentTermCoeff === 1 && (varAString || varBString)) {
+                    // If coefficient is 1 and there are variables, don't show "1"
+                    displayCoeff = '';
+                } else if (currentTermCoeff === -1 && (varAString || varBString)) {
+                    // If coefficient is -1 and there are variables, show "-"
+                    displayCoeff = '-';
+                } else {
+                    displayCoeff = currentTermCoeff.toString();
+                }
+
+                // Assemble the full term string (e.g., "4x^2", "12xy", "-9y^2")
+                termString = `${displayCoeff}${varAString}${varBString}`;
+
+                // Handle the sign for joining terms
+                let prefix = '';
+                if (expansionTerms.length === 0) { // First term
+                    prefix = ''; // No prefix for the very first term
+                } else { // Subsequent terms
+                    if (currentTermCoeff < 0) {
+                        prefix = ' - '; // Use ' - ' for negative terms
+                        // If the termString already starts with '-', remove it as prefix already handles it
+                        if (termString.startsWith('-')) {
+                            termString = termString.substring(1);
+                        }
+                    } else {
+                        prefix = ' + '; // Use ' + ' for positive terms
+                    }
+                }
+                expansionTerms.push(`${prefix}${termString}`);
+            }
+
+            let finalExpansion = expansionTerms.join('').trim();
+
+            // Clean up any leading " + " if the first term was positive
+            if (finalExpansion.startsWith('+ ')) {
+                finalExpansion = finalExpansion.substring(2);
+            }
+            if (finalExpansion.startsWith(' ')) { // Catch any leftover leading space
+                finalExpansion = finalExpansion.substring(1);
+            }
+
+            // If the expansion results in an empty string (e.g., n=0 and a or b is empty), show 1
+            if (finalExpansion === '' && n === 0) {
+                finalExpansion = '1';
+            } else if (finalExpansion === '') {
+                finalExpansion = '0'; // Should not happen for n>0 with valid a, b
+            }
+
+
+            binomialOutput.innerHTML = `(${a} + ${b})<sup>${n}</sup> = ${finalExpansion}`;
+        }
+
+        // Attach event listener
+        expandBtn.addEventListener('click', expandBinomial);
+
+        // --- Pascal's Triangle Logic ---
+        const numRowsInput = document.getElementById('numRows');
+        const generatePascalBtn = document.getElementById('generatePascalBtn');
+        const pascalOutput = document.getElementById('pascalOutput');
+        const numRowsError = document.getElementById('numRowsError');
+
+        /**
+         * Generates Pascal's Triangle up to the specified number of rows.
+         */
+        function generatePascalsTriangle() {
+            const numRows = parseInt(numRowsInput.value);
+
+            // Input validation for number of rows (only positive check remains)
+            if (isNaN(numRows) || numRows <= 0) {
+                numRowsError.textContent = `Please enter a positive integer for rows.`;
+                numRowsError.classList.remove('hidden');
+                pascalOutput.innerHTML = '';
+                return;
+            } else {
+                numRowsError.classList.add('hidden');
+            }
+
+            let triangle = [];
+            for (let i = 0; i < numRows; i++) {
+                let row = [];
+                for (let j = 0; j <= i; j++) {
+                    if (j === 0 || j === i) {
+                        row.push(1);
+                    } else {
+                        // Sum of two numbers directly above in the previous row
+                        row.push(triangle[i - 1][j - 1] + triangle[i - 1][j]);
+                    }
+                }
+                triangle.push(row);
+            }
+
+            // Display the triangle
+            pascalOutput.innerHTML = ''; // Clear previous content
+            triangle.forEach(row => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'flex mb-1';
+                row.forEach(num => {
+                    const span = document.createElement('span');
+                    const numStr = num.toString();
+
+                    // Store the full number in a data attribute
+                    span.dataset.fullNumber = numStr;
+
+                    // If number is too long, truncate it for display
+                    if (numStr.length > 8) { // Adjust this threshold as needed
+                        span.textContent = numStr.substring(0, 8) + '...';
+                    } else {
+                        span.textContent = numStr;
+                    }
+                    span.className = 'inline-block min-w-12 text-center py-1 px-2 mx-1 bg-blue-50 rounded';
+
+                    // Add click listener to show/hide the full number pop-up
+                    span.addEventListener('click', (event) => {
+                        event.stopPropagation(); // Prevent global click listener from immediately dismissing
+
+                        // If this span's pop-up is already active, dismiss it
+                        if (activePopup && activePopup.dataset.ownerId === span.id) {
+                            dismissActivePopup();
+                            return;
+                        }
+
+                        // Dismiss any other active pop-up
+                        dismissActivePopup();
+
+                        // Create the pop-up element
+                        const popup = document.createElement('div');
+                        popup.classList.add('full-number-popup');
+                        popup.textContent = span.dataset.fullNumber; // Use the full number
+                        popup.dataset.ownerId = span.id; // Link popup to its owner span
+
+                        // Append to body to ensure it's not clipped by parent overflows
+                        document.body.appendChild(popup);
+                        activePopup = popup;
+
+                        // Position the pop-up relative to the clicked span
+                        const spanRect = span.getBoundingClientRect();
+                        const bodyRect = document.body.getBoundingClientRect();
+
+                        // Calculate position relative to the viewport
+                        popup.style.left = `${spanRect.left + spanRect.width / 2 - popup.offsetWidth / 2}px`;
+                        popup.style.top = `${spanRect.top}px`; // Will be adjusted by transform translateY
+
+                        // Activate the transition
+                        setTimeout(() => {
+                            popup.classList.add('active');
+                        }, 10); // Small delay to allow initial positioning before transition
+                    });
+
+                    rowDiv.appendChild(span);
+                });
+                pascalOutput.appendChild(rowDiv);
+            });
+        }
+
+        // Attach event listener
+        generatePascalBtn.addEventListener('click', generatePascalsTriangle);
+
+        // Initial load: Ensure the correct tab is active and its content is generated
+        document.addEventListener('DOMContentLoaded', () => {
+            // Manually trigger click on the first tab to initialize its content
+            document.querySelector('.tab-button.active').click();
+        });
+    </script>
+</body>
+</html>

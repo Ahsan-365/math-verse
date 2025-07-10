@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scientific Calculator</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f2f5;
+            margin: 0;
+            color: #333;
+        }
+
+        .calculator-container {
+            background-color: #fff;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            padding: 20px;
+            width: 350px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .display {
+            background-color: #222;
+            border-radius: 10px;
+            padding: 15px;
+            color: #fff;
+            text-align: right;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .history-display {
+            font-size: 0.8em;
+            color: #aaa;
+            min-height: 1.2em;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .input-display {
+            font-size: 1.5em;
+            min-height: 1.5em;
+            overflow-x: auto;
+            white-space: nowrap;
+            padding-right: 20px;
+            box-sizing: border-box;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .input-display::-webkit-scrollbar {
+            display: none;
+        }
+
+        .output-display {
+            font-size: 2.5em;
+            min-height: 1.2em;
+            font-weight: bold;
+            color: #0f0;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .output-display.error-message {
+            color: #f00;
+        }
+
+        .mode-indicator {
+            position: absolute;
+            top: 10px;
+            left: 15px;
+            font-size: 0.7em;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 3px 6px;
+            border-radius: 5px;
+            color: #bbb;
+        }
+
+        .history-indicator {
+            position: absolute;
+            bottom: 10px;
+            left: 15px;
+            font-size: 0.7em;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 3px 6px;
+            border-radius: 5px;
+            color: #bbb;
+            display: none;
+        }
+
+        .display-scroll-indicator {
+            position: absolute;
+            top: 50%;
+            right: 5px;
+            transform: translateY(-50%);
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.3);
+            display: none;
+        }
+
+        .buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+
+        .calculator-button {
+            background-color: #eee;
+            border: none;
+            border-radius: 8px;
+            padding: 15px 0;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .calculator-button:hover {
+            background-color: #e0e0e0;
+        }
+
+        .calculator-button.button-press {
+            transform: scale(0.95);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-func {
+            background-color: #d6f2ff;
+            color: #007bff;
+        }
+
+        .btn-func:hover {
+            background-color: #c0eaff;
+        }
+
+        .btn-num {
+            background-color: #f7f7f7;
+        }
+
+        .btn-num:hover {
+            background-color: #ebebeb;
+        }
+
+        .btn-equals {
+            background-color: #4CAF50;
+            color: white;
+            grid-column: span 1;
+        }
+
+        .btn-equals:hover {
+            background-color: #45a049;
+        }
+
+        .calculator-button#shiftButton.active-shift {
+            background-color: #007bff;
+            color: white;
+        }
+        .calculator-button#shiftButton.active-shift:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator-container">
+        <div class="display">
+            <div class="display-scroll-indicator"></div>
+            <div id="historyDisplay" class="history-display"></div>
+            <div id="inputDisplay" class="input-display">0</div>
+            <div id="outputDisplay" class="output-display">0</div>
+            <div class="mode-indicator" id="modeIndicator">DEG</div>
+            <div class="history-indicator" id="calculationHistoryIndicator">Hist</div>
+        </div>
+
+        <div class="buttons-grid">
+            <button class="calculator-button btn-func" data-value="shift" id="shiftButton">Shift</button>
+            <button class="calculator-button btn-func" data-value="pi">π</button>
+            <button class="calculator-button btn-func" data-value="e">e</button>
+            <button class="calculator-button btn-func" data-value="(">(</button>
+            <button class="calculator-button btn-func" data-value=")">)</button>
+
+            <button class="calculator-button btn-func" data-value="x_squared">x²</button>
+            <button class="calculator-button btn-func" data-value="one_over_x">X⁻¹</button>
+            <button class="calculator-button btn-func" data-value="abs">|x|</button>
+            <button class="calculator-button btn-func" data-value="AC">AC</button>
+            <button class="calculator-button btn-func" data-value="DEL">DEL</button>
+
+            <button class="calculator-button btn-func" data-value="sqrt">√</button>
+            <button class="calculator-button btn-func" data-value="cbrt">³√</button>
+            <button class="calculator-button btn-func" data-value="ln">ln</button>
+            <button class="calculator-button btn-func" data-value="log">log</button>
+            <button class="calculator-button btn-num" data-value="÷">÷</button>
+
+            <button class="calculator-button btn-func" data-value="^">X^Y</button>
+            <button class="calculator-button btn-func" data-value="sin">sin</button>
+            <button class="calculator-button btn-func" data-value="cos">cos</button>
+            <button class="calculator-button btn-func" data-value="tan">tan</button>
+            <button class="calculator-button btn-num" data-value="×">×</button>
+
+            <button class="calculator-button btn-func" data-value="fact">n!</button>
+            <button class="calculator-button btn-num" data-value="7">7</button>
+            <button class="calculator-button btn-num" data-value="8">8</button>
+            <button class="calculator-button btn-num" data-value="9">9</button>
+            <button class="calculator-button btn-num" data-value="-">-</button>
+
+            <button class="calculator-button btn-func" data-value="DEG_RAD">DEG</button>
+            <button class="calculator-button btn-num" data-value="4">4</button>
+            <button class="calculator-button btn-num" data-value="5">5</button>
+            <button class="calculator-button btn-num" data-value="6">6</button>
+            <button class="calculator-button btn-num" data-value="+">+</button>
+
+            <button class="calculator-button btn-func" data-value="toggle_sign">+/-</button>
+            <button class="calculator-button btn-num" data-value="1">1</button>
+            <button class="calculator-button btn-num" data-value="2">2</button>
+            <button class="calculator-button btn-num" data-value="3">3</button>
+            <button class="calculator-button btn-num" data-value="%">%</button>
+
+            <button class="calculator-button btn-func" data-value="frac_dec">F<->D</button>
+            <button class="calculator-button btn-num" data-value="ANS">ANS</button>
+            <button class="calculator-button btn-num" data-value="0">0</button>
+            <button class="calculator-button btn-num" data-value=".">.</button>
+            <button class="calculator-button btn-equals" data-value="=">=</button>
+        </div>
+    </div>
+
+    <script>
+        console.log("Script loaded and starting...");
+
+        // DOM elements
+        const inputDisplay = document.getElementById('inputDisplay');
+        const outputDisplay = document.getElementById('outputDisplay');
+        const historyDisplay = document.getElementById('historyDisplay');
+        const modeIndicator = document.getElementById('modeIndicator');
+        const calculationHistoryIndicator = document.getElementById('calculationHistoryIndicator');
+        const shiftButton = document.getElementById('shiftButton');
+
+        // Calculator state variables
+        let currentExpression = '';
+        let outputValue = '0';
+        let isDegreeMode = true;
+        let isShiftActive = false;
+        let lastAnswer = 0;
+        let expectingNewInput = false;
+        let calculationHistory = [];
+        let currentOutputAsFraction = null; // Stores fraction string if in fraction mode
+
+        // Mapping for secondary functions
+        const secondaryFunctionsMap = {
+            'sin': { secondary: 'asin', text: 'sin⁻¹' },
+            'cos': { secondary: 'acos', text: 'cos⁻¹' },
+            'tan': { secondary: 'atan', text: 'tan⁻¹' },
+            'log': { secondary: 'ten_pow_x', text: '10ˣ' },
+            'ln': { secondary: 'e_pow_x', text: 'eˣ' },
+            'cbrt': { secondary: 'x_cubed', text: 'X³' }
+        };
+
+        // Helper function for factorial calculation
+        function factorial(n) {
+            if (n < 0 || !Number.isInteger(n)) return NaN;
+            if (n === 0) return 1;
+            let res = 1;
+            for (let i = 2; i <= n; i++) {
+                res *= i;
+            }
+            return res;
+        }
+
+        // Helper functions for degree/radian conversion
+        function degToRad(degrees) { return degrees * (Math.PI / 180); }
+        function radToDeg(radians) { return radians * (180 / Math.PI); }
+
+        // Function to convert decimal to fraction
+        function decimalToFraction(decimal, tolerance = 0.0001) {
+            if (Math.abs(decimal) < tolerance) return '0';
+            let sign = decimal < 0 ? '-' : '';
+            decimal = Math.abs(decimal);
+            let integerPart = Math.floor(decimal);
+            let fractional = decimal - integerPart;
+
+            // Check for common fractions
+            const commonFractions = [
+                [0.25, '1/4'], [0.5, '1/2'], [0.75, '3/4'],
+                [0.333, '1/3'], [0.666, '2/3'], [0.2, '1/5'], [0.4, '2/5'], [0.6, '3/5'], [0.8, '4/5'],
+                [0.166, '1/6'], [0.833, '5/6'],
+                [0.125, '1/8'], [0.375, '3/8'], [0.625, '5/8'], [0.875, '7/8'],
+                [0.1, '1/10'], [0.3, '3/10'], [0.7, '7/10'], [0.9, '9/10']
+            ];
+            for (let [value, fraction] of commonFractions) {
+                if (Math.abs(fractional - value) < tolerance) {
+                    if (integerPart === 0) {
+                        return sign + fraction;
+                    } else {
+                        return sign + integerPart + ' ' + fraction;
+                    }
+                }
+            }
+
+            // Use continued fractions for others
+            let n = 1, d = 1;
+            let maxIterations = 100;
+            let current = n / d;
+            let bestError = Math.abs(current - fractional);
+            let bestN = n, bestD = d;
+            for (d = 1; d <= maxIterations; d++) {
+                n = Math.round(fractional * d);
+                current = n / d;
+                let error = Math.abs(current - fractional);
+                if (error < bestError) {
+                    bestError = error;
+                    bestN = n;
+                    bestD = d;
+                }
+                if (error < tolerance) break;
+            }
+
+            if (bestN === 0) {
+                if (integerPart === 0) return '0';
+                return sign + integerPart.toString();
+            }
+
+            // Simplify the fraction
+            let gcd = function(a, b) {
+                return b ? gcd(b, a % b) : a;
+            };
+            let divisor = gcd(bestN, bestD);
+            bestN /= divisor;
+            bestD /= divisor;
+
+            if (integerPart === 0) {
+                return sign + bestN + '/' + bestD;
+            } else {
+                return sign + integerPart + ' ' + bestN + '/' + bestD;
+            }
+        }
+
+        // Extended math functions
+        window.MathExt = {
+            sin: (val) => isDegreeMode ? Math.sin(degToRad(val)) : Math.sin(val),
+            cos: (val) => isDegreeMode ? Math.cos(degToRad(val)) : Math.cos(val),
+            tan: (val) => {
+                const angle = isDegreeMode ? degToRad(val) : val;
+                if (Math.abs(Math.cos(angle)) < 1e-10) return NaN;
+                return Math.tan(angle);
+            },
+            asin: (val) => {
+                if (val < -1 || val > 1) return NaN;
+                return isDegreeMode ? radToDeg(Math.asin(val)) : Math.asin(val);
+            },
+            acos: (val) => {
+                if (val < -1 || val > 1) return NaN;
+                return isDegreeMode ? radToDeg(Math.acos(val)) : Math.acos(val);
+            },
+            atan: (val) => isDegreeMode ? radToDeg(Math.atan(val)) : Math.atan(val),
+            log: Math.log10,
+            ln: Math.log,
+            sqrt: Math.sqrt,
+            cbrt: Math.cbrt,
+            x_cubed: (val) => Math.pow(val, 3),
+            ten_pow_x: (val) => Math.pow(10, val),
+            e_pow_x: (val) => Math.exp(val),
+            factorial: factorial,
+            abs: Math.abs
+        };
+
+        // Updates the calculator display
+        function updateDisplay() {
+            inputDisplay.textContent = currentExpression || '0';
+            
+            let displayOutput = outputValue;
+            if (currentOutputAsFraction) {
+                displayOutput = currentOutputAsFraction;
+            } else if (!isNaN(parseFloat(outputValue)) && isFinite(parseFloat(outputValue))) {
+                const num = parseFloat(outputValue);
+                if (Math.abs(num) > 1e10 || (Math.abs(num) < 1e-10 && num !== 0)) {
+                    displayOutput = num.toExponential(6).replace('e+', 'E').replace('e-', 'E-');
+                }
+            }
+            outputDisplay.textContent = displayOutput;
+
+            modeIndicator.textContent = isDegreeMode ? 'DEG' : 'RAD';
+
+            if (calculationHistory.length > 0) {
+                historyDisplay.textContent = calculationHistory.slice(-3).join('; ');
+                calculationHistoryIndicator.style.display = 'flex';
+            } else {
+                historyDisplay.textContent = '';
+                calculationHistoryIndicator.style.display = 'none';
+            }
+            
+            const scrollIndicator = document.querySelector('.display-scroll-indicator');
+            if (scrollIndicator) {
+                const showScrollIndicator = inputDisplay.scrollWidth > inputDisplay.clientWidth;
+                scrollIndicator.style.display = showScrollIndicator ? 'block' : 'none';
+            }
+        }
+
+        // Clears all input, output, and resets state
+        function clearAll() {
+            currentExpression = '';
+            outputValue = '0';
+            expectingNewInput = false;
+            currentOutputAsFraction = null;
+            outputDisplay.classList.remove('error-message');
+            updateDisplay();
+        }
+
+        // Deletes the last character
+        function deleteLast() {
+            if (outputDisplay.classList.contains('error-message') || expectingNewInput) { 
+                clearAll();
+            } else if (currentExpression.length > 0) {
+                currentExpression = currentExpression.slice(0, -1);
+            }
+            if (currentExpression === '') {
+                outputValue = '0';
+            }
+            currentOutputAsFraction = null;
+            updateDisplay();
+        }
+
+        // Toggles between Degree and Radian mode
+        function toggleDegRad() {
+            isDegreeMode = !isDegreeMode;
+            updateDisplay();
+        }
+
+        // Toggles the Shift (secondary function) mode
+        function toggleShift() {
+            isShiftActive = !isShiftActive;
+            if (shiftButton) {
+                shiftButton.classList.toggle('active-shift', isShiftActive);
+            }
+            
+            document.querySelectorAll('.calculator-button').forEach(button => {
+                const primaryValue = button.dataset.originalValue || button.dataset.value;
+                const secondaryInfo = secondaryFunctionsMap[primaryValue];
+
+                if (secondaryInfo) {
+                    if (isShiftActive) {
+                        if (!button.dataset.originalValue) {
+                            button.dataset.originalValue = button.dataset.value;
+                            button.dataset.originalText = button.textContent;
+                        }
+                        button.dataset.value = secondaryInfo.secondary;
+                        button.textContent = secondaryInfo.text;
+                    } else {
+                        if (button.dataset.originalValue) {
+                            button.dataset.value = button.dataset.originalValue;
+                            button.textContent = button.dataset.originalText;
+                        }
+                    }
+                }
+            });
+        }
+
+        // Toggles between fraction and decimal display
+        function toggleFractionDecimal() {
+            if (outputDisplay.classList.contains('error-message')) return;
+            
+            try {
+                const num = parseFloat(outputValue);
+                if (isNaN(num)) return;
+                
+                if (currentOutputAsFraction) {
+                    currentOutputAsFraction = null;
+                } else {
+                    currentOutputAsFraction = decimalToFraction(num);
+                }
+                updateDisplay();
+            } catch (e) {
+                console.error('Fraction conversion error:', e);
+                outputDisplay.classList.add('error-message');
+                outputValue = 'Conversion Error';
+                updateDisplay();
+            }
+        }
+
+        // Main function to evaluate the expression
+        function evaluateExpression() {
+            if (!currentExpression) {
+                outputValue = '0';
+                updateDisplay();
+                return;
+            }
+            
+            calculationHistory.push(currentExpression);
+            if (calculationHistory.length > 5) calculationHistory.shift();
+            
+            let processedExpr = currentExpression;
+
+            // Pre-processing for evaluation
+            processedExpr = processedExpr.replace(/\bpi\b/g, 'Math.PI');
+            processedExpr = processedExpr.replace(/\be\b/g, 'Math.E');
+            processedExpr = processedExpr.replace(/\bANS\b/g, `(${lastAnswer})`);
+            
+            // FIXED: Corrected implicit multiplication regex to not break consecutive digits
+            const implicitMultiplicationRegex = /(\d+(?:\.\d+)?|Math\.PI|Math\.E|\))(?=\s*(\(|\b(sin|cos|tan|asin|acos|atan|log|ln|sqrt|cbrt|ten_pow_x|e_pow_x|abs|pi|e)\b))/g;
+            processedExpr = processedExpr.replace(implicitMultiplicationRegex, '$1*');
+
+            // Convert functions to window.MathExt calls
+            const functionsToMap = ['sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'log', 'ln', 'sqrt', 'cbrt', 'ten_pow_x', 'e_pow_x', 'abs', 'x_cubed'];
+            functionsToMap.forEach(func => {
+                processedExpr = processedExpr.replace(new RegExp(`\\b${func}\\(`, 'g'), `window.MathExt.${func}(`);
+            });
+
+            // Replace symbols
+            processedExpr = processedExpr
+                .replace(/×/g, '*')
+                .replace(/÷/g, '/');
+
+            // Handle percentages
+            const percentageRegex = /(\d+(?:\.\d*)?|\([^()]+\))(\s*%)/g;
+            processedExpr = processedExpr.replace(percentageRegex, '(($1)/100)');
+            
+            // Handle factorial
+            const factorialRegex = /(\d+(?:\.\d*)?|\([^()]+\)|[a-zA-Z_]+\([^()]*\))(\s*\!)/g;
+            processedExpr = processedExpr.replace(factorialRegex, 'window.MathExt.factorial($1)');
+
+            // Convert power notations
+            const baseForPowerRegex = '((?:\\d+(?:\\.\\d*)?|Math\\.PI|Math\\.E|ANS|\\([^()]+\\)))';
+            const exponentRegex = '((?:\\d+(?:\\.\\d*)?|Math\\.PI|Math\\.E|ANS|\\([^()]+\\)))';
+            const powerPattern = new RegExp(`${baseForPowerRegex}\\s*\\^\\s*${exponentRegex}`, 'g');
+            processedExpr = processedExpr.replace(powerPattern, 'Math.pow($1,$2)');
+            
+            // Handle parentheses balance
+            let openParenCount = (processedExpr.match(/\(/g) || []).length;
+            let closeParenCount = (processedExpr.match(/\)/g) || []).length;
+            if (openParenCount > closeParenCount) {
+                processedExpr += ')'.repeat(openParenCount - closeParenCount);
+            } else if (closeParenCount > openParenCount) {
+                outputDisplay.classList.add('error-message');
+                outputValue = 'Paren Error';
+                updateDisplay();
+                return;
+            }
+
+            // Execution
+            console.log('Processed Expression:', processedExpr);
+
+            try {
+                const result = Function(`"use strict"; return (${processedExpr});`)();
+                
+                if (!isFinite(result)) {
+                    throw new Error('Math Error');
+                }
+                
+                outputDisplay.classList.remove('error-message');
+                outputValue = result.toString();
+                lastAnswer = result;
+                currentExpression = outputValue;
+                currentOutputAsFraction = null; // Reset fraction display
+            } catch (error) {
+                outputDisplay.classList.add('error-message');
+                console.error('Evaluation error:', error);
+                
+                if (error instanceof SyntaxError) {
+                    outputValue = 'Syntax Error';
+                } else if (error.message.includes('factorial')) {
+                    outputValue = 'Factorial Error';
+                } else if (error.message === 'Math Error') {
+                    outputValue = 'Math Error';
+                } else {
+                    outputValue = 'Error';
+                }
+            }
+            
+            expectingNewInput = true;
+            updateDisplay();
+        }
+
+        // Initialize calculator and attach event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOM fully loaded. Attaching event listeners.");
+            const buttons = document.querySelectorAll('.calculator-button');
+
+            if (buttons.length === 0) {
+                console.error("No calculator buttons found!");
+                return;
+            }
+
+            buttons.forEach(button => {
+                button.addEventListener('click', () => {
+                    button.classList.add('button-press');
+                    setTimeout(() => button.classList.remove('button-press'), 150);
+                    
+                    const value = button.dataset.value;
+                    
+                    const isStartingNewInput = (
+                        expectingNewInput &&
+                        !['+', '-', '×', '÷', '^', '%', 'ANS', 'toggle_sign', 'one_over_x', 'fact',
+                          'x_squared', 'sqrt', 'cbrt', 'frac_dec', 'sin', 'cos', 'tan', 'log', 'ln', 
+                          'asin', 'acos', 'atan', 'ten_pow_x', 'e_pow_x', 'abs', '(', 'x_cubed'].includes(value)
+                    );
+
+                    if (outputDisplay.classList.contains('error-message') || isStartingNewInput) {
+                        clearAll();
+                    }
+                    
+                    const lastChar = currentExpression.slice(-1);
+                    const isLastCharANumberOrConstant = /\d/.test(lastChar) || ['π', 'e', ')', '!'].includes(lastChar);
+                    const isLastCharAnOperator = ['+', '-', '×', '÷', '^'].includes(lastChar);
+
+                    if (!isNaN(value) || value === '.') {
+                        // Check for multiple decimals in current number
+                        const lastNumberMatch = currentExpression.match(/(\d+\.?\d*)$/);
+                        if (value === '.' && lastNumberMatch && lastNumberMatch[0].includes('.')) {
+                             return;
+                        }
+                        
+                        if (currentExpression === '0' || (expectingNewInput && !currentExpression.endsWith(')'))) {
+                            // Starting new input
+                            currentExpression = value === '.' ? '0.' : value;
+                        } else if (isLastCharANumberOrConstant) {
+                            // For consecutive digits, just append without multiplication
+                            currentExpression += value;
+                        } else {
+                            currentExpression += value;
+                        }
+                        expectingNewInput = false;
+                        outputDisplay.classList.remove('error-message');
+                        currentOutputAsFraction = null;
+                    } 
+                    else if (['+', '-', '×', '÷', '^'].includes(value)) {
+                        if (isLastCharAnOperator && currentExpression.length > 0) {
+                            currentExpression = currentExpression.slice(0, -1) + value;
+                        } else if (currentExpression === '' && value !== '-') {
+                            currentExpression = '0' + value;
+                        } else {
+                            currentExpression += value;
+                        }
+                        expectingNewInput = false;
+                        currentOutputAsFraction = null;
+                    } 
+                    else if (['sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'log', 'ln', 'sqrt', 'cbrt', 'ten_pow_x', 'e_pow_x', 'abs', 'x_cubed'].includes(value)) {
+                        if (currentExpression === '0' || expectingNewInput) {
+                            currentExpression = value + '(';
+                        } else if (isLastCharANumberOrConstant) {
+                            currentExpression += '*' + value + '(';
+                        } else {
+                            currentExpression += value + '(';
+                        }
+                        expectingNewInput = false;
+                        currentOutputAsFraction = null;
+                    } 
+                    else if (['pi', 'e'].includes(value)) {
+                        if (currentExpression === '0' || expectingNewInput) {
+                            currentExpression = value;
+                        } else if (isLastCharANumberOrConstant) {
+                            currentExpression += '*' + value;
+                        } else {
+                            currentExpression += value;
+                        }
+                        expectingNewInput = false;
+                        currentOutputAsFraction = null;
+                    } 
+                    else if (value === '(') {
+                        if (currentExpression === '0' && !expectingNewInput) {
+                            currentExpression = '(';
+                        } else if (isLastCharANumberOrConstant) {
+                            currentExpression += '*(';
+                        } else {
+                            currentExpression += '(';
+                        }
+                        expectingNewInput = false;
+                        currentOutputAsFraction = null;
+                    }
+                    else if (value === ')') {
+                        if (currentExpression.length > 0 && !isLastCharAnOperator && lastChar !== '(') {
+                            currentExpression += value;
+                        }
+                        expectingNewInput = false;
+                        currentOutputAsFraction = null;
+                    } 
+                    else if (value === 'AC') {
+                        clearAll();
+                    } 
+                    else if (value === 'DEL') {
+                        deleteLast();
+                    } 
+                    else if (value === 'DEG_RAD') {
+                        toggleDegRad();
+                    } 
+                    else if (value === 'shift') {
+                        toggleShift();
+                    } 
+                    else if (value === '=') {
+                        evaluateExpression();
+                    } 
+                    else if (value === 'ANS') {
+                        if (currentExpression === '0' || expectingNewInput) {
+                            currentExpression = `ANS`;
+                        } else if (isLastCharANumberOrConstant) {
+                            currentExpression += `*ANS`;
+                        } else {
+                            currentExpression += `ANS`;
+                        }
+                        expectingNewInput = false;
+                        currentOutputAsFraction = null;
+                    } 
+                    else if (value === '%') {
+                        const lastPartMatch = currentExpression.match(/(\d+\.?\d*|\([^()]+\))$/); 
+                        if (lastPartMatch) {
+                            currentExpression = currentExpression.slice(0, -lastPartMatch[0].length) + `(${lastPartMatch[0]}%`;
+                        } else {
+                            currentExpression += '%';
+                        }
+                        expectingNewInput = false;
+                        currentOutputAsFraction = null;
+                    } 
+                    else if (value === 'fact') {
+                        if (isLastCharANumberOrConstant) {
+                            currentExpression += '!';
+                        }
+                        expectingNewInput = false;
+                        currentOutputAsFraction = null;
+                    } 
+                    else if (value === 'x_squared') {
+                        if (currentExpression === '0' || expectingNewInput) {
+                            let num = parseFloat(outputValue);
+                            if (!isNaN(num)) {
+                                outputValue = (Math.pow(num, 2)).toString();
+                                currentExpression = outputValue;
+                                expectingNewInput = true;
+                            } else {
+                                outputValue = 'Error'; 
+                            }
+                        } else {
+                            const lastPartMatch = currentExpression.match(/(\d+\.?\d*|\([^()]*?\)|[a-zA-Z]+\([\s\S]*?\))$/); 
+                            if (lastPartMatch) {
+                                currentExpression = currentExpression.slice(0, -lastPartMatch[0].length) + `(${lastPartMatch[0]})^2`;
+                            } else { 
+                                currentExpression += `^2`;
+                            }
+                        }
+                        expectingNewInput = false;
+                        currentOutputAsFraction = null;
+                    }
+                    else if (value === 'one_over_x') {
+                        if (currentExpression === '0' || expectingNewInput) {
+                            let num = parseFloat(outputValue);
+                            if (!isNaN(num) && num !== 0) {
+                                outputValue = (1 / num).toString();
+                                currentExpression = outputValue;
+                                expectingNewInput = true;
+                            } else {
+                                outputValue = 'Error: Div by 0'; 
+                            }
+                        } else {
+                            const lastPartMatch = currentExpression.match(/(\d+\.?\d*|\([^()]*?\)|[a-zA-Z]+\([\s\S]*?\))$/);
+                            if (lastPartMatch) {
+                                currentExpression = currentExpression.slice(0, -lastPartMatch[0].length) + `(1/(${lastPartMatch[0]}))`;
+                            } else {
+                                currentExpression += '1/('; 
+                            }
+                        }
+                        expectingNewInput = false;
+                        currentOutputAsFraction = null;
+                    }
+                    else if (value === 'frac_dec') {
+                        toggleFractionDecimal();
+                    }
+                    else if (value === 'toggle_sign') {
+                        if (expectingNewInput || currentExpression === '0') {
+                            let num = parseFloat(outputValue);
+                            if (!isNaN(num)) {
+                                outputValue = (num * -1).toString();
+                                currentExpression = outputValue;
+                                expectingNewInput = true;
+                            }
+                        } else {
+                            const lastPartMatch = currentExpression.match(/(\d+\.?\d*|\([^()]+\)|[a-zA-Z]+\([\s\S]*?\))$/);
+                            if (lastPartMatch) {
+                                const matchedPart = lastPartMatch[0];
+                                if (!isNaN(parseFloat(matchedPart))) {
+                                    currentExpression = currentExpression.slice(0, -matchedPart.length) + `(${-parseFloat(matchedPart)})`;
+                                } else {
+                                    currentExpression = currentExpression.slice(0, -matchedPart.length) + `(-${matchedPart})`;
+                                }
+                            } else if (currentExpression.length === 0 || isLastCharAnOperator || lastChar === '(') {
+                                currentExpression += '-';
+                            } else {
+                                currentExpression = `(-${currentExpression})`;
+                            }
+                        }
+                        expectingNewInput = false;
+                        currentOutputAsFraction = null;
+                    }
+                    
+                    updateDisplay();
+                });
+            });
+            
+            updateDisplay();
+            
+            // Add keyboard support
+            document.addEventListener('keydown', (e) => {
+                const key = e.key;
+                let button = null;
+                
+                if (key === 'Enter') { button = document.querySelector('.calculator-button[data-value="="]'); }
+                else if (key === 'Escape') { button = document.querySelector('.calculator-button[data-value="AC"]'); }
+                else if (key === 'Backspace') { button = document.querySelector('.calculator-button[data-value="DEL"]'); }
+                else if (key === '*') { button = document.querySelector('.calculator-button[data-value="×"]'); }
+                else if (key === '/') { button = document.querySelector('.calculator-button[data-value="÷"]'); }
+                else if (key === '^') { button = document.querySelector('.calculator-button[data-value="^"]'); }
+                else if (key === '%') { button = document.querySelector('.calculator-button[data-value="%"]'); }
+                else if (key === '!') { button = document.querySelector('.calculator-button[data-value="fact"]'); }
+                else if (key === '.') { button = document.querySelector('.calculator-button[data-value="."]'); }
+                else if (key === '(' || (e.shiftKey && key === '9')) { button = document.querySelector('.calculator-button[data-value="("]'); }
+                else if (key === ')' || (e.shiftKey && key === '0')) { button = document.querySelector('.calculator-button[data-value=")"]'); }
+                else if (key === '|') { button = document.querySelector('.calculator-button[data-value="abs"]'); }
+                else if (/[0-9]/.test(key)) {
+                    button = document.querySelector(`.calculator-button[data-value="${key}"]`);
+                }
+                else if (key === '+') {
+                    button = document.querySelector(`.calculator-button[data-value="+"]`);
+                }
+                else if (key === '-') {
+                    button = document.querySelector(`.calculator-button[data-value="-"]`);
+                }
+                else if (key.toLowerCase() === 'p') { button = document.querySelector('.calculator-button[data-value="pi"]'); }
+                else if (key.toLowerCase() === 'e' && !e.shiftKey) { button = document.querySelector('.calculator-button[data-value="e"]'); }
+                else if (key.toLowerCase() === 's') { button = document.querySelector('.calculator-button[data-value="sin"]'); }
+                else if (key.toLowerCase() === 'c') { button = document.querySelector('.calculator-button[data-value="cos"]'); }
+                else if (key.toLowerCase() === 't') { button = document.querySelector('.calculator-button[data-value="tan"]'); }
+                else if (key.toLowerCase() === 'g') { button = document.querySelector('.calculator-button[data-value="log"]'); }
+                else if (key.toLowerCase() === 'l') { button = document.querySelector('.calculator-button[data-value="ln"]'); }
+                else if (key.toLowerCase() === 'q') { button = document.querySelector('.calculator-button[data-value="sqrt"]'); }
+                else if (key.toLowerCase() === 'f') { button = document.querySelector('.calculator-button[data-value="frac_dec"]'); }
+                else if (key === '_') { button = document.querySelector('.calculator-button[data-value="toggle_sign"]'); }
+
+                if (button) {
+                    button.click();
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

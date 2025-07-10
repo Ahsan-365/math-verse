@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prime Number Identifier</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom font for a better look */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-r from-blue-500 to-purple-600 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md text-center">
+        <h1 class="text-4xl font-extrabold text-gray-800 mb-6">Prime Number Identifier</h1>
+
+        <div class="mb-6">
+            <label for="numberInput" class="block text-gray-700 text-lg font-semibold mb-2">Enter a number:</label>
+            <input
+                type="number"
+                id="numberInput"
+                placeholder="e.g., 17"
+                class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
+            >
+        </div>
+
+        <button
+            id="checkButton"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 text-xl shadow-lg"
+        >
+            Check
+        </button>
+
+        <div id="result" class="mt-8 p-4 bg-gray-100 rounded-lg text-gray-800 text-2xl font-bold min-h-[60px] flex items-center justify-center break-words">
+            <!-- Result will be displayed here -->
+            Enter a number above to check if it's prime.
+        </div>
+    </div>
+
+    <script>
+        // Get references to the HTML elements
+        const numberInput = document.getElementById('numberInput');
+        const checkButton = document.getElementById('checkButton');
+        const resultDiv = document.getElementById('result');
+
+        /**
+         * Checks if a given number is a prime number.
+         * A prime number is a natural number greater than 1 that has no positive divisors other than 1 and itself.
+         * @param {number} num - The number to check.
+         * @returns {boolean} - True if the number is prime, false otherwise.
+         */
+        function isPrime(num) {
+            // Numbers less than or equal to 1 are not prime
+            if (num <= 1) {
+                return false;
+            }
+            // 2 is the only even prime number
+            if (num === 2) {
+                return true;
+            }
+            // Even numbers greater than 2 are not prime
+            if (num % 2 === 0) {
+                return false;
+            }
+            // Check for divisibility from 3 up to the square root of the number,
+            // incrementing by 2 (only odd numbers)
+            for (let i = 3; i * i <= num; i += 2) {
+                if (num % i === 0) {
+                    return false; // Found a divisor, so it's not prime
+                }
+            }
+            return true; // No divisors found, so it's prime
+        }
+
+        /**
+         * Handles the click event of the check button.
+         * Retrieves the number from the input, validates it, and displays the primality result.
+         */
+        checkButton.addEventListener('click', () => {
+            const number = parseInt(numberInput.value); // Get the number from the input field
+
+            // Validate if the input is a valid number
+            if (isNaN(number) || numberInput.value.trim() === '') {
+                resultDiv.textContent = "Please enter a valid number.";
+                resultDiv.classList.remove('text-green-600', 'text-red-600');
+                resultDiv.classList.add('text-gray-800');
+                return;
+            }
+
+            // Check if the number is prime using the isPrime function
+            if (isPrime(number)) {
+                resultDiv.textContent = `${number} is a prime number! 🎉`;
+                resultDiv.classList.remove('text-red-600', 'text-gray-800');
+                resultDiv.classList.add('text-green-600');
+            } else {
+                resultDiv.textContent = `${number} is NOT a prime number. 😔`;
+                resultDiv.classList.remove('text-green-600', 'text-gray-800');
+                resultDiv.classList.add('text-red-600');
+            }
+        });
+
+        // Optional: Allow checking by pressing Enter key in the input field
+        numberInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                checkButton.click(); // Simulate a click on the button
+            }
+        });
+    </script>
+</body>
+</html>

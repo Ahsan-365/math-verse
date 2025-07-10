@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boolean Algebra & Logic Gate Visualizer</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for better aesthetics and responsiveness */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5; /* Light gray background */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top to prevent overflow on smaller screens */
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 800px; /* Adjusted max-width for a single section */
+            width: 100%;
+            display: flex; /* Use flex for single column layout */
+            flex-direction: column;
+            gap: 30px;
+        }
+        .section {
+            background-color: #f9fafb; /* Lighter background for sections */
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .section h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #333;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .input-group label {
+            font-weight: 600;
+            color: #555;
+        }
+        .input-group select {
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            font-size: 1rem;
+            color: #333;
+            background-color: #ffffff;
+            transition: border-color 0.2s;
+        }
+        .input-group select:focus {
+            outline: none;
+            border-color: #6366f1; /* Tailwind indigo-500 */
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+        .btn {
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%; /* Full width button */
+        }
+        .btn-primary {
+            background-color: #6366f1; /* Tailwind indigo-500 */
+            color: #ffffff;
+        }
+        .btn-primary:hover {
+            background-color: #4f46e5; /* Tailwind indigo-600 */
+            transform: translateY(-1px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        .output-display {
+            background-color: #e2e8f0; /* Tailwind slate-200 */
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #1a202c; /* Dark text */
+            text-align: center;
+            min-height: 50px; /* Ensure consistent height */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            word-break: break-all; /* Break long binary strings */
+        }
+        .boolean-inputs {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap; /* Allow inputs to wrap on smaller screens */
+        }
+        .boolean-input-toggle {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #6366f1;
+        }
+        input:focus + .slider {
+            box-shadow: 0 0 1px #6366f1;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Canvas styling */
+        #logicGateCanvas {
+            background-color: #ffffff;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            margin-top: 15px;
+            width: 100%; /* Make canvas responsive */
+            height: 200px; /* Fixed height for drawing area */
+            display: block;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            .section {
+                padding: 20px;
+            }
+            .section h2 {
+                font-size: 1.5rem;
+            }
+            .btn {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+            .output-display {
+                font-size: 1rem;
+                min-height: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Boolean Algebra & Logic Gate Visualizer Section -->
+        <div class="section">
+            <h2>Boolean Algebra & Logic Gate Visualizer</h2>
+            <div class="input-group">
+                <label for="gateTypeSelect">Select Logic Gate:</label>
+                <select id="gateTypeSelect" onchange="evaluateAndVisualize()">
+                    <option value="AND">AND Gate (A, B)</option>
+                    <option value="OR">OR Gate (A, B)</option>
+                    <option value="XOR">XOR Gate (A, B)</option>
+                    <option value="NOT A">NOT Gate (on A)</option>
+                    <option value="NOT B">NOT Gate (on B)</option>
+                    <option value="NOT C">NOT Gate (on C)</option>
+                    <option value="NAND">NAND Gate (A, B)</option>
+                    <option value="NOR">NOR Gate (A, B)</option>
+                    <option value="XNOR">XNOR Gate (A, B)</option>
+                </select>
+            </div>
+
+            <div class="boolean-inputs">
+                <div class="boolean-input-toggle">
+                    <label for="inputA">Input A:</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="inputA" onchange="evaluateAndVisualize()">
+                        <span class="slider"></span>
+                    </label>
+                    <span id="valueA">0</span>
+                </div>
+                <div class="boolean-input-toggle">
+                    <label for="inputB">Input B:</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="inputB" onchange="evaluateAndVisualize()">
+                        <span class="slider"></span>
+                    </label>
+                    <span id="valueB">0</span>
+                </div>
+                <div class="boolean-input-toggle">
+                    <label for="inputC">Input C:</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="inputC" onchange="evaluateAndVisualize()">
+                        <span class="slider"></span>
+                    </label>
+                    <span id="valueC">0</span>
+                </div>
+            </div>
+
+            <!-- The button is still useful for explicit re-evaluation, though dropdown also triggers it -->
+            <button class="btn btn-primary" onclick="evaluateAndVisualize()">Evaluate & Visualize</button>
+
+            <div class="input-group">
+                <label>Result:</label>
+                <div id="expressionResult" class="output-display"></div>
+            </div>
+            <div class="input-group">
+                <label>Logic Gate Visualization:</label>
+                <canvas id="logicGateCanvas" width="700" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('logicGateCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Define colors for high (1) and low (0) signals
+        const HIGH_COLOR = '#4CAF50'; // Green
+        const LOW_COLOR = '#F44336';  // Red
+        const DEFAULT_COLOR = '#333'; // Default line color
+        const GATE_FILL_COLOR = '#E0E7FF'; // Light blue fill for gates
+
+        /**
+         * Updates the displayed input values (A, B, C) and triggers evaluation.
+         */
+        function updateInputsDisplay() {
+            document.getElementById('valueA').textContent = document.getElementById('inputA').checked ? 1 : 0;
+            document.getElementById('valueB').textContent = document.getElementById('inputB').checked ? 1 : 0;
+            document.getElementById('valueC').textContent = document.getElementById('inputC').checked ? 1 : 0;
+        }
+
+        /**
+         * Clears the canvas.
+         */
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        /**
+         * Draws an input line with its label and current value.
+         * @param {number} x - X coordinate of the line start.
+         * @param {number} y - Y coordinate of the line.
+         * @param {boolean} value - The boolean value (true/false).
+         * @param {string} label - The input label (e.g., 'A').
+         */
+        function drawInput(x, y, value, label) {
+            ctx.strokeStyle = value ? HIGH_COLOR : LOW_COLOR;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + 30, y); // Line segment
+            ctx.stroke();
+
+            ctx.fillStyle = DEFAULT_COLOR;
+            ctx.font = '14px Inter';
+            ctx.textAlign = 'right';
+            ctx.fillText(label + ' (' + (value ? '1' : '0') + ')', x - 5, y + 5);
+        }
+
+        /**
+         * Draws an output line with its label and current value.
+         * @param {number} x - X coordinate of the line start.
+         * @param {number} y - Y coordinate of the line.
+         * @param {boolean} value - The boolean value (true/false).
+         */
+        function drawOutput(x, y, value) {
+            ctx.strokeStyle = value ? HIGH_COLOR : LOW_COLOR;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + 30, y); // Line segment
+            ctx.stroke();
+
+            ctx.fillStyle = DEFAULT_COLOR;
+            ctx.font = '14px Inter';
+            ctx.textAlign = 'left';
+            ctx.fillText('Output (' + (value ? '1' : '0') + ')', x + 35, y + 5);
+        }
+
+        /**
+         * Draws an AND gate.
+         * @param {number} x - X coordinate of the gate's left edge.
+         * @param {number} y - Y coordinate of the gate's center.
+         * @param {boolean} inputAValue - Value of input A.
+         * @param {boolean} inputBValue - Value of input B.
+         * @param {boolean} outputValue - Value of the output.
+         */
+        function drawANDGate(x, y, inputAValue, inputBValue, outputValue) {
+            const gateWidth = 80;
+            const gateHeight = 60;
+            const gateY = y - gateHeight / 2;
+
+            // Body
+            ctx.beginPath();
+            ctx.moveTo(x, gateY);
+            ctx.lineTo(x, gateY + gateHeight);
+            ctx.lineTo(x + gateWidth / 2, gateY + gateHeight);
+            ctx.arc(x + gateWidth / 2, y, gateHeight / 2, Math.PI / 2, -Math.PI / 2, true);
+            ctx.closePath();
+            ctx.fillStyle = GATE_FILL_COLOR;
+            ctx.fill();
+            ctx.strokeStyle = DEFAULT_COLOR;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Label
+            ctx.fillStyle = DEFAULT_COLOR;
+            ctx.font = 'bold 16px Inter';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('AND', x + gateWidth / 2, y);
+
+            // Inputs
+            drawInput(x - 30, gateY + gateHeight * 0.25, inputAValue, 'A');
+            drawInput(x - 30, gateY + gateHeight * 0.75, inputBValue, 'B');
+
+            // Output
+            drawOutput(x + gateWidth, y, outputValue);
+        }
+
+        /**
+         * Draws an OR gate.
+         * @param {number} x - X coordinate of the gate's left edge.
+         * @param {number} y - Y coordinate of the gate's center.
+         * @param {boolean} inputAValue - Value of input A.
+         * @param {boolean} inputBValue - Value of input B.
+         * @param {boolean} outputValue - Value of the output.
+         */
+        function drawORGate(x, y, inputAValue, inputBValue, outputValue) {
+            const gateWidth = 80;
+            const gateHeight = 60;
+            const gateY = y - gateHeight / 2;
+
+            ctx.beginPath();
+            // Curved left side
+            ctx.moveTo(x, gateY);
+            ctx.bezierCurveTo(x + 20, gateY, x + 20, gateY + gateHeight, x, gateY + gateHeight);
+            // Curved right side (main body)
+            ctx.bezierCurveTo(x + gateWidth + 20, gateY + gateHeight, x + gateWidth + 20, gateY, x, gateY);
+            ctx.closePath();
+            ctx.fillStyle = GATE_FILL_COLOR;
+            ctx.fill();
+            ctx.strokeStyle = DEFAULT_COLOR;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Label
+            ctx.fillStyle = DEFAULT_COLOR;
+            ctx.font = 'bold 16px Inter';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('OR', x + gateWidth / 2, y);
+
+            // Inputs
+            drawInput(x - 30, gateY + gateHeight * 0.25, inputAValue, 'A');
+            drawInput(x - 30, gateY + gateHeight * 0.75, inputBValue, 'B');
+
+            // Output
+            drawOutput(x + gateWidth + 20, y, outputValue); // Adjust output position
+        }
+
+        /**
+         * Draws a NOT gate.
+         * @param {number} x - X coordinate of the gate's left edge.
+         * @param {number} y - Y coordinate of the gate's center.
+         * @param {boolean} inputValue - Value of the input.
+         * @param {boolean} outputValue - Value of the output.
+         * @param {string} inputLabel - Label for the input (e.g., 'A').
+         */
+        function drawNOTGate(x, y, inputValue, outputValue, inputLabel = 'A') {
+            const gateWidth = 60;
+            const gateHeight = 40;
+            const gateY = y - gateHeight / 2;
+
+            // Triangle body
+            ctx.beginPath();
+            ctx.moveTo(x, gateY);
+            ctx.lineTo(x + gateWidth, y);
+            ctx.lineTo(x, gateY + gateHeight);
+            ctx.closePath();
+            ctx.fillStyle = GATE_FILL_COLOR;
+            ctx.fill();
+            ctx.strokeStyle = DEFAULT_COLOR;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Inversion circle
+            ctx.beginPath();
+            ctx.arc(x + gateWidth + 5, y, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = DEFAULT_COLOR;
+            ctx.fill();
+            ctx.strokeStyle = DEFAULT_COLOR;
+            ctx.stroke();
+
+            // Label
+            ctx.fillStyle = DEFAULT_COLOR;
+            ctx.font = 'bold 16px Inter';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('NOT', x + gateWidth / 2, y);
+
+            // Input
+            drawInput(x - 30, y, inputValue, inputLabel);
+
+            // Output
+            drawOutput(x + gateWidth + 10, y, outputValue); // Adjust output position
+        }
+
+        /**
+         * Draws an XOR gate.
+         * @param {number} x - X coordinate of the gate's left edge.
+         * @param {number} y - Y coordinate of the gate's center.
+         * @param {boolean} inputAValue - Value of input A.
+         * @param {boolean} inputBValue - Value of input B.
+         * @param {boolean} outputValue - Value of the output.
+         */
+        function drawXORGate(x, y, inputAValue, inputBValue, outputValue) {
+            const gateWidth = 80;
+            const gateHeight = 60;
+            const gateY = y - gateHeight / 2;
+
+            // Outer curved left side (for XOR)
+            ctx.beginPath();
+            ctx.moveTo(x - 10, gateY);
+            ctx.bezierCurveTo(x + 10, gateY, x + 10, gateY + gateHeight, x - 10, gateY + gateHeight);
+            ctx.strokeStyle = DEFAULT_COLOR;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Inner OR gate shape
+            ctx.beginPath();
+            ctx.moveTo(x, gateY);
+            ctx.bezierCurveTo(x + 20, gateY, x + 20, gateY + gateHeight, x, gateY + gateHeight);
+            ctx.bezierCurveTo(x + gateWidth + 20, gateY + gateHeight, x + gateWidth + 20, gateY, x, gateY);
+            ctx.closePath();
+            ctx.fillStyle = GATE_FILL_COLOR;
+            ctx.fill();
+            ctx.strokeStyle = DEFAULT_COLOR;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Label
+            ctx.fillStyle = DEFAULT_COLOR;
+            ctx.font = 'bold 16px Inter';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('XOR', x + gateWidth / 2, y);
+
+            // Inputs
+            drawInput(x - 40, gateY + gateHeight * 0.25, inputAValue, 'A');
+            drawInput(x - 40, gateY + gateHeight * 0.75, inputBValue, 'B');
+
+            // Output
+            drawOutput(x + gateWidth + 20, y, outputValue);
+        }
+
+        /**
+         * Draws a NAND gate (AND with inversion circle).
+         * @param {number} x - X coordinate of the gate's left edge.
+         * @param {number} y - Y coordinate of the gate's center.
+         * @param {boolean} inputAValue - Value of input A.
+         * @param {boolean} inputBValue - Value of input B.
+         * @param {boolean} outputValue - Value of the output.
+         */
+        function drawNANDGate(x, y, inputAValue, inputBValue, outputValue) {
+            const gateWidth = 80;
+            const gateHeight = 60;
+            const gateY = y - gateHeight / 2;
+
+            // Body (AND shape)
+            ctx.beginPath();
+            ctx.moveTo(x, gateY);
+            ctx.lineTo(x, gateY + gateHeight);
+            ctx.lineTo(x + gateWidth / 2, gateY + gateHeight);
+            ctx.arc(x + gateWidth / 2, y, gateHeight / 2, Math.PI / 2, -Math.PI / 2, true);
+            ctx.closePath();
+            ctx.fillStyle = GATE_FILL_COLOR;
+            ctx.fill();
+            ctx.strokeStyle = DEFAULT_COLOR;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Inversion circle
+            ctx.beginPath();
+            ctx.arc(x + gateWidth + 5, y, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = DEFAULT_COLOR;
+            ctx.fill();
+            ctx.strokeStyle = DEFAULT_COLOR;
+            ctx.stroke();
+
+            // Label
+            ctx.fillStyle = DEFAULT_COLOR;
+            ctx.font = 'bold 16px Inter';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('NAND', x + gateWidth / 2, y);
+
+            // Inputs
+            drawInput(x - 30, gateY + gateHeight * 0.25, inputAValue, 'A');
+            drawInput(x - 30, gateY + gateHeight * 0.75, inputBValue, 'B');
+
+            // Output
+            drawOutput(x + gateWidth + 10, y, outputValue); // Adjust output position
+        }
+
+        /**
+         * Draws a NOR gate (OR with inversion circle).
+         * @param {number} x - X coordinate of the gate's left edge.
+         * @param {number} y - Y coordinate of the gate's center.
+         * @param {boolean} inputAValue - Value of input A.
+         * @param {boolean} inputBValue - Value of input B.
+         * @param {boolean} outputValue - Value of the output.
+         */
+        function drawNORGate(x, y, inputAValue, inputBValue, outputValue) {
+            const gateWidth = 80;
+            const gateHeight = 60;
+            const gateY = y - gateHeight / 2;
+
+            ctx.beginPath();
+            // Curved left side
+            ctx.moveTo(x, gateY);
+            ctx.bezierCurveTo(x + 20, gateY, x + 20, gateY + gateHeight, x, gateY + gateHeight);
+            // Curved right side
+            ctx.bezierCurveTo(x + gateWidth + 20, gateY + gateHeight, x + gateWidth + 20, gateY, x, gateY);
+            ctx.closePath();
+            ctx.fillStyle = GATE_FILL_COLOR;
+            ctx.fill();
+            ctx.strokeStyle = DEFAULT_COLOR;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Inversion circle
+            ctx.beginPath();
+            ctx.arc(x + gateWidth + 5, y, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = DEFAULT_COLOR;
+            ctx.fill();
+            ctx.strokeStyle = DEFAULT_COLOR;
+            ctx.stroke();
+
+            // Label
+            ctx.fillStyle = DEFAULT_COLOR;
+            ctx.font = 'bold 16px Inter';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('NOR', x + gateWidth / 2, y);
+
+            // Inputs
+            drawInput(x - 30, gateY + gateHeight * 0.25, inputAValue, 'A');
+            drawInput(x - 30, gateY + gateHeight * 0.75, inputBValue, 'B');
+
+            // Output
+            drawOutput(x + gateWidth + 10, y, outputValue); // Adjust output position
+        }
+
+        /**
+         * Draws an XNOR gate (XOR with inversion circle).
+         * @param {number} x - X coordinate of the gate's left edge.
+         * @param {number} y - Y coordinate of the gate's center.
+         * @param {boolean} inputAValue - Value of input A.
+         * @param {boolean} inputBValue - Value of input B.
+         * @param {boolean} outputValue - Value of the output.
+         */
+        function drawXNORGate(x, y, inputAValue, inputBValue, outputValue) {
+            const gateWidth = 80;
+            const gateHeight = 60;
+            const gateY = y - gateHeight / 2;
+
+            // Outer curved left side (for XOR)
+            ctx.beginPath();
+            ctx.moveTo(x - 10, gateY);
+            ctx.bezierCurveTo(x + 10, gateY, x + 10, gateY + gateHeight, x - 10, gateY + gateHeight);
+            ctx.strokeStyle = DEFAULT_COLOR;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Inner OR gate shape
+            ctx.beginPath();
+            ctx.moveTo(x, gateY);
+            ctx.bezierCurveTo(x + 20, gateY, x + 20, gateY + gateHeight, x, gateY + gateHeight);
+            ctx.bezierCurveTo(x + gateWidth + 20, gateY + gateHeight, x + gateWidth + 20, gateY, x, gateY);
+            ctx.closePath();
+            ctx.fillStyle = GATE_FILL_COLOR;
+            ctx.fill();
+            ctx.strokeStyle = DEFAULT_COLOR;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Inversion circle
+            ctx.beginPath();
+            ctx.arc(x + gateWidth + 5, y, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = DEFAULT_COLOR;
+            ctx.fill();
+            ctx.strokeStyle = DEFAULT_COLOR;
+            ctx.stroke();
+
+            // Label
+            ctx.fillStyle = DEFAULT_COLOR;
+            ctx.font = 'bold 16px Inter';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('XNOR', x + gateWidth / 2, y);
+
+            // Inputs
+            drawInput(x - 40, gateY + gateHeight * 0.25, inputAValue, 'A');
+            drawInput(x - 40, gateY + gateHeight * 0.75, inputBValue, 'B');
+
+            // Output
+            drawOutput(x + gateWidth + 10, y, outputValue);
+        }
+
+
+        /**
+         * Evaluates the boolean result based on selected gate and inputs, then visualizes.
+         */
+        function evaluateAndVisualize() {
+            updateInputsDisplay(); // Update display values first
+            clearCanvas(); // Clear previous drawing
+
+            const gateTypeSelect = document.getElementById('gateTypeSelect');
+            const selectedGateType = gateTypeSelect.value;
+            const resultDisplay = document.getElementById('expressionResult');
+
+            const inputs = {
+                A: document.getElementById('inputA').checked,
+                B: document.getElementById('inputB').checked,
+                C: document.getElementById('inputC').checked
+            };
+
+            let result;
+
+            // Calculate the result based on the selected gate type
+            switch (selectedGateType) {
+                case 'AND':
+                    result = inputs.A && inputs.B;
+                    break;
+                case 'OR':
+                    result = inputs.A || inputs.B;
+                    break;
+                case 'XOR':
+                    result = inputs.A !== inputs.B;
+                    break;
+                case 'NOT A':
+                    result = !inputs.A;
+                    break;
+                case 'NOT B':
+                    result = !inputs.B;
+                    break;
+                case 'NOT C':
+                    result = !inputs.C;
+                    break;
+                case 'NAND':
+                    result = !(inputs.A && inputs.B);
+                    break;
+                case 'NOR':
+                    result = !(inputs.A || inputs.B);
+                    break;
+                case 'XNOR':
+                    result = (inputs.A === inputs.B);
+                    break;
+                default:
+                    resultDisplay.textContent = 'Please select a logic gate.';
+                    clearCanvas();
+                    return;
+            }
+
+            resultDisplay.textContent = result ? '1 (True)' : '0 (False)';
+            resultDisplay.style.color = ''; // Reset color
+
+            // --- Logic Gate Drawing ---
+            const centerX = canvas.width / 2 - 50; // Center X for gate body
+            const centerY = canvas.height / 2;    // Center Y for gate body
+
+            // Draw the selected gate
+            switch (selectedGateType) {
+                case 'AND':
+                    drawANDGate(centerX, centerY, inputs.A, inputs.B, result);
+                    break;
+                case 'OR':
+                    drawORGate(centerX, centerY, inputs.A, inputs.B, result);
+                    break;
+                case 'XOR':
+                    drawXORGate(centerX, centerY, inputs.A, inputs.B, result);
+                    break;
+                case 'NOT A':
+                    drawNOTGate(centerX, centerY, inputs.A, result, 'A');
+                    break;
+                case 'NOT B':
+                    drawNOTGate(centerX, centerY, inputs.B, result, 'B');
+                    break;
+                case 'NOT C':
+                    drawNOTGate(centerX, centerY, inputs.C, result, 'C');
+                    break;
+                case 'NAND':
+                    drawNANDGate(centerX, centerY, inputs.A, inputs.B, result);
+                    break;
+                case 'NOR':
+                    drawNORGate(centerX, centerY, inputs.A, inputs.B, result);
+                    break;
+                case 'XNOR':
+                    drawXNORGate(centerX, centerY, inputs.A, inputs.B, result);
+                    break;
+                default:
+                    // This case should ideally not be reached if dropdown options are handled
+                    ctx.fillStyle = DEFAULT_COLOR;
+                    ctx.font = '14px Inter';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('Select a gate from the dropdown to visualize.', canvas.width / 2, canvas.height / 2);
+            }
+        }
+
+        // Initial setup on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set canvas display size to match its internal resolution for crisp drawing
+            canvas.style.width = '100%';
+            canvas.style.height = '200px';
+            canvas.width = canvas.offsetWidth; // Set internal resolution to match display size
+            canvas.height = canvas.offsetHeight;
+
+            updateInputsDisplay();
+            // Set a default gate and evaluate
+            document.getElementById('gateTypeSelect').value = 'AND';
+            evaluateAndVisualize();
+
+            // Add event listener for window resize to adjust canvas
+            window.addEventListener('resize', () => {
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+                evaluateAndVisualize(); // Redraw on resize
+            });
+        });
+    </script>
+</body>
+</html>

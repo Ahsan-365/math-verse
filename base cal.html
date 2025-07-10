@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base N Calculator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top for better scrolling */
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .calculator-container {
+            background-color: #ffffff;
+            border-radius: 16px; /* More rounded corners */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Softer shadow */
+            width: 100%;
+            max-width: 450px; /* Increased max-width to better fit 6 columns */
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+        }
+        .display-area {
+            background-color: #eef2ff; /* Light indigo background for result */
+            border: 1px solid #c7d2fe; /* Lighter indigo border */
+            border-radius: 12px;
+            padding: 16px;
+            min-height: 80px; /* Taller display */
+            font-family: monospace;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            margin-bottom: 20px;
+            color: #3730a3; /* Darker indigo text */
+            font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end; /* Align text to the right */
+            justify-content: center;
+            text-align: right;
+            font-size: 2rem; /* Larger font for result */
+            word-break: break-all; /* Break long words */
+        }
+        .display-subtext {
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr); /* 6 columns for calculator buttons */
+            gap: 8px; /* Slightly smaller gap between buttons for 6 columns */
+            margin-top: 20px;
+        }
+        .calc-button {
+            background-color: #f3f4f6; /* Light gray button background */
+            color: #374151; /* Dark gray text */
+            padding: 14px 0; /* Adjusted padding for 6 columns */
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1.1rem; /* Adjusted font size for 6 columns */
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none; /* Prevent text selection */
+        }
+        .calc-button.operator {
+            background-color: #e0e7ff; /* Light indigo for operators */
+            color: #4f46e5; /* Indigo text */
+        }
+        .calc-button.equals {
+            background-color: #6366f1; /* Indigo for equals */
+            color: white;
+        }
+        .calc-button.clear {
+            background-color: #fca5a5; /* Light red for clear */
+            color: #b91c1c; /* Darker red text */
+        }
+        .calc-button:hover {
+            background-color: #e5e7eb; /* Slightly darker gray on hover */
+            transform: translateY(-1px);
+        }
+        .calc-button.operator:hover {
+            background-color: #c7d2fe;
+        }
+        .calc-button.equals:hover {
+            background-color: #4f46e5;
+        }
+        .calc-button.clear:hover {
+            background-color: #f87171;
+        }
+        .calc-button:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .error-message {
+            color: #ef4444; /* Red for errors */
+            background-color: #fee2e2; /* Light red background */
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 16px;
+            border: 1px solid #fca5a5;
+            display: none; /* Hidden by default */
+            font-size: 0.9rem;
+        }
+        .error-message.active {
+            display: block;
+        }
+        .base-select-group {
+            margin-bottom: 20px;
+        }
+        .base-select-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #4b5563;
+            margin-bottom: 8px;
+        }
+        .base-select-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: #f9fafb;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .base-select-group select:focus {
+            outline: none;
+            border-color: #818cf8;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .calculator-container {
+                margin: 10px;
+                padding: 16px;
+                border-radius: 12px;
+                max-width: 100%; /* Allow full width on small screens */
+            }
+            .display-area {
+                min-height: 70px;
+                font-size: 1.6rem; /* Slightly smaller font for very small screens */
+                padding: 12px;
+            }
+            .calc-button {
+                padding: 10px 0; /* Even smaller padding on mobile */
+                font-size: 0.9rem; /* Smaller font on mobile */
+            }
+            .base-select-group select {
+                font-size: 0.9rem;
+                padding: 8px 10px;
+            }
+            /* Adjust grid for very small screens if 6 columns are too tight */
+            @media (max-width: 480px) {
+                .button-grid {
+                    grid-template-columns: repeat(4, 1fr); /* Switch to 4 columns on very small screens */
+                    gap: 6px; /* Smaller gap */
+                }
+                .calc-button.col-span-2 {
+                    grid-column: span 2; /* Maintain span for AC and 0 */
+                }
+                /* Re-adjust the layout for the first row to fit 4 columns */
+                .first-row-4-col {
+                    grid-template-columns: repeat(4, 1fr);
+                }
+                .first-row-4-col .calc-button.col-span-2 {
+                    grid-column: span 2;
+                }
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 antialiased">
+    <div class="calculator-container">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Base N Calculator</h2>
+
+        <div class="base-select-group">
+            <label for="current-base-select">Current Base:</label>
+            <select id="current-base-select" onchange="changeBase()">
+                <!-- Options for bases 2 to 36 will be dynamically generated here by JS -->
+            </select>
+        </div>
+
+        <div class="display-area">
+            <div id="display-subtext" class="display-subtext"></div>
+            <div id="result-display">0</div>
+        </div>
+
+        <div class="button-grid" id="main-button-grid">
+            <!-- All calculator buttons will be dynamically generated and managed by JS -->
+        </div>
+
+        <div id="error-message" class="error-message"></div>
+    </div>
+
+    <script>
+        // --- Calculator State Variables ---
+        let currentInput = '0'; // The number currently being entered by the user
+        let firstOperand = null; // The first number in an operation (in decimal)
+        let operator = null; // The selected operator (+, -, *, /)
+        let waitingForSecondOperand = false; // True if the next digit should start a new number
+        let currentBase = 10; // The currently selected base for input and output
+        let displaySubtext = ''; // To show the ongoing operation (e.g., "10 +")
+
+        // Map to store references to all digit and operator button elements
+        const buttonElements = new Map();
+
+        // --- Utility Functions ---
+
+        /**
+         * Displays an error message.
+         * @param {string} message - The error message.
+         */
+        function displayError(message) {
+            const errorElement = document.getElementById('error-message');
+            errorElement.textContent = message;
+            errorElement.classList.add('active');
+            document.getElementById('result-display').textContent = 'Error!'; // Indicate error in main display
+            document.getElementById('display-subtext').textContent = ''; // Clear subtext
+        }
+
+        /**
+         * Clears any displayed error messages.
+         */
+        function clearError() {
+            document.getElementById('error-message').classList.remove('active');
+            document.getElementById('error-message').textContent = '';
+        }
+
+        /**
+         * Updates the main display and subtext.
+         */
+        function updateDisplay() {
+            clearError();
+            document.getElementById('result-display').textContent = currentInput;
+            document.getElementById('display-subtext').textContent = displaySubtext;
+        }
+
+        /**
+         * Validates if a digit/character is valid for the current base.
+         * @param {string} char - The character to validate.
+         * @returns {boolean} True if valid, false otherwise.
+         */
+        function isValidDigitForCurrentBase(char) {
+            // Decimal point is always considered valid for input purposes
+            if (char === '.') return true;
+
+            const validChars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const charValue = validChars.indexOf(char.toUpperCase());
+            return charValue !== -1 && charValue < currentBase;
+        }
+
+        /**
+         * Converts a number string from the current base to decimal.
+         * Handles potential floating point numbers.
+         * @param {string} numStr - The number string in current base.
+         * @returns {number} The decimal value.
+         */
+        function convertToDecimal(numStr) {
+            if (numStr.includes('.')) {
+                const parts = numStr.split('.');
+                const integerPart = parseInt(parts[0], currentBase);
+                let fractionalPart = 0;
+                for (let i = 0; i < parts[1].length; i++) {
+                    const digitValue = parseInt(parts[1][i], currentBase);
+                    fractionalPart += digitValue * Math.pow(currentBase, -(i + 1));
+                }
+                return integerPart + fractionalPart;
+            } else {
+                return parseInt(numStr, currentBase);
+            }
+        }
+
+        /**
+         * Converts a decimal number to a string in the current base.
+         * Handles floating point precision.
+         * @param {number} decimalNum - The decimal number.
+         * @returns {string} The number string in current base.
+         */
+        function convertFromDecimal(decimalNum) {
+            // Use toFixed for precision to avoid floating point issues, then convert
+            // Max 10 decimal places for display
+            const precision = 10;
+            const fixedNum = decimalNum.toFixed(precision);
+
+            const parts = fixedNum.split('.');
+            let integerPart = parseInt(parts[0], 10);
+            let fractionalPartStr = '';
+
+            if (parts.length > 1 && parseFloat(parts[1]) > 0) {
+                let fractionalDecimal = parseFloat('0.' + parts[1]);
+                for (let i = 0; i < precision; i++) {
+                    fractionalDecimal *= currentBase;
+                    const digit = Math.floor(fractionalDecimal);
+                    fractionalPartStr += digit.toString(currentBase).toUpperCase();
+                    fractionalDecimal -= digit;
+                    if (fractionalDecimal === 0) break; // Stop if no more fractional part
+                }
+            }
+
+            let result = integerPart.toString(currentBase).toUpperCase();
+            if (fractionalPartStr) {
+                // Remove trailing zeros from fractional part
+                fractionalPartStr = fractionalPartStr.replace(/0+$/, '');
+                if (fractionalPartStr) { // Only add decimal if there's a non-zero fractional part
+                    result += '.' + fractionalPartStr;
+                }
+            }
+            return result;
+        }
+
+        // --- Calculator Logic ---
+
+        /**
+         * Handles digit button clicks.
+         * @param {string} digit - The digit pressed (0-9, A-F, or '.').
+         */
+        function handleDigit(digit) {
+            clearError();
+
+            if (digit === '.') {
+                if (currentInput.includes('.')) {
+                    return; // Already has a decimal point
+                }
+                if (waitingForSecondOperand) {
+                    currentInput = '0.';
+                    waitingForSecondOperand = false;
+                } else {
+                    currentInput += '.';
+                }
+            } else {
+                if (waitingForSecondOperand) {
+                    currentInput = digit;
+                    waitingForSecondOperand = false;
+                } else {
+                    currentInput = currentInput === '0' ? digit : currentInput + digit;
+                }
+            }
+            updateDisplay();
+        }
+
+        /**
+         * Handles operator button clicks.
+         * @param {string} nextOperator - The operator pressed (+, -, *, /).
+         */
+        function handleOperator(nextOperator) {
+            clearError();
+
+            const inputValue = convertToDecimal(currentInput);
+
+            if (firstOperand === null && !isNaN(inputValue)) {
+                firstOperand = inputValue;
+            } else if (operator) {
+                const result = performCalculation(firstOperand, operator, inputValue);
+                if (result === null) return; // Error occurred during calculation
+                firstOperand = result;
+                currentInput = convertFromDecimal(result); // Update current input with result
+            }
+
+            waitingForSecondOperand = true;
+            operator = nextOperator;
+            displaySubtext = `${convertFromDecimal(firstOperand)} ${getOperatorSymbol(operator)}`;
+            updateDisplay();
+        }
+
+        /**
+         * Performs the actual arithmetic calculation.
+         * @param {number} num1 - First operand (decimal).
+         * @param {string} op - Operator string.
+         * @param {number} num2 - Second operand (decimal).
+         * @returns {number|null} Calculation result in decimal, or null if error.
+         */
+        function performCalculation(num1, op, num2) {
+            switch (op) {
+                case 'add':
+                    return num1 + num2;
+                case 'subtract':
+                    return num1 - num2;
+                case 'multiply':
+                    return num1 * num2;
+                case 'divide':
+                    if (num2 === 0) {
+                        displayError('Cannot divide by zero.');
+                        return null;
+                    }
+                    return num1 / num2;
+                default:
+                    return null;
+            }
+        }
+
+        /**
+         * Gets the symbol for an operator.
+         * @param {string} op - Operator string.
+         * @returns {string} Operator symbol.
+         */
+        function getOperatorSymbol(op) {
+            switch (op) {
+                case 'add': return '+';
+                case 'subtract': return '-';
+                case 'multiply': return '*';
+                case 'divide': return '/';
+                default: return '';
+            }
+        }
+
+        /**
+         * Handles the equals button click.
+         */
+        function calculate() {
+            clearError();
+
+            if (firstOperand === null || operator === null) {
+                updateDisplay();
+                return;
+            }
+
+            const secondOperand = convertToDecimal(currentInput);
+            const result = performCalculation(firstOperand, operator, secondOperand);
+
+            if (result === null) return; // Error already displayed
+
+            currentInput = convertFromDecimal(result);
+            firstOperand = null;
+            operator = null;
+            waitingForSecondOperand = false;
+            displaySubtext = ''; // Clear subtext after calculation
+            updateDisplay();
+        }
+
+        /**
+         * Clears the calculator state.
+         */
+        function clearCalculator() {
+            currentInput = '0';
+            firstOperand = null;
+            operator = null;
+            waitingForSecondOperand = false;
+            displaySubtext = '';
+            updateDisplay();
+            clearError();
+        }
+
+        /**
+         * Handles base selection change.
+         */
+        function changeBase() {
+            const newBase = parseInt(document.getElementById('current-base-select').value);
+            if (isNaN(newBase) || newBase < 2 || newBase > 36) {
+                displayError('Invalid base selected. Please choose a base between 2 and 36.');
+                document.getElementById('current-base-select').value = currentBase; // Revert
+                return;
+            }
+            currentBase = newBase;
+            clearCalculator(); // Reset calculator when base changes
+            renderCalculatorButtons(); // Re-render buttons based on new base
+        }
+
+        /**
+         * Defines the layout and properties of all calculator buttons.
+         * This array dictates the order and visibility of buttons.
+         */
+        const buttonLayout = [
+            { id: 'AC', text: 'AC', type: 'clear', handler: 'clearCalculator', class: 'col-span-2' },
+            { id: '/', text: '/', type: 'operator', handler: 'handleOperator', param: 'divide' },
+            { id: '+', text: '+', type: 'operator', handler: 'handleOperator', param: 'add' },
+            { id: '-', text: '-', type: 'operator', handler: 'handleOperator', param: 'subtract' },
+            { id: '*', text: '*', type: 'operator', handler: 'handleOperator', param: 'multiply' },
+            { id: '=', text: '=', type: 'equals', handler: 'calculate' },
+
+            // Digits 7, 8, 9, A, B, C
+            { id: '7', text: '7', type: 'digit', handler: 'handleDigit' },
+            { id: '8', text: '8', type: 'digit', handler: 'handleDigit' },
+            { id: '9', text: '9', type: 'digit', handler: 'handleDigit' },
+            { id: 'A', text: 'A', type: 'digit', handler: 'handleDigit' },
+            { id: 'B', text: 'B', type: 'digit', handler: 'handleDigit' },
+            { id: 'C', text: 'C', type: 'digit', handler: 'handleDigit' },
+
+            // Digits 4, 5, 6, D, E, F
+            { id: '4', text: '4', type: 'digit', handler: 'handleDigit' },
+            { id: '5', text: '5', type: 'digit', handler: 'handleDigit' },
+            { id: '6', text: '6', type: 'digit', handler: 'handleDigit' },
+            { id: 'D', text: 'D', type: 'digit', handler: 'handleDigit' },
+            { id: 'E', text: 'E', type: 'digit', handler: 'handleDigit' },
+            { id: 'F', text: 'F', type: 'digit', handler: 'handleDigit' },
+
+            // Digits 1, 2, 3, G, H, I
+            { id: '1', text: '1', type: 'digit', handler: 'handleDigit' },
+            { id: '2', text: '2', type: 'digit', handler: 'handleDigit' },
+            { id: '3', text: '3', type: 'digit', handler: 'handleDigit' },
+            { id: 'G', text: 'G', type: 'digit', handler: 'handleDigit' },
+            { id: 'H', text: 'H', type: 'digit', handler: 'handleDigit' },
+            { id: 'I', text: 'I', type: 'digit', handler: 'handleDigit' },
+
+            // 0 (span 2), ., J, K, L
+            { id: '0', text: '0', type: 'digit', handler: 'handleDigit', class: 'col-span-2' },
+            { id: '.', text: '.', type: 'digit', handler: 'handleDigit' },
+            { id: 'J', text: 'J', type: 'digit', handler: 'handleDigit' },
+            { id: 'K', text: 'K', type: 'digit', handler: 'handleDigit' },
+            { id: 'L', text: 'L', type: 'digit', handler: 'handleDigit' },
+            { id: 'M', text: 'M', type: 'digit', handler: 'handleDigit' },
+
+            // N, O, P, Q, R, S
+            { id: 'N', text: 'N', type: 'digit', handler: 'handleDigit' },
+            { id: 'O', text: 'O', type: 'digit', handler: 'handleDigit' },
+            { id: 'P', text: 'P', type: 'digit', handler: 'handleDigit' },
+            { id: 'Q', text: 'Q', type: 'digit', handler: 'handleDigit' },
+            { id: 'R', text: 'R', type: 'digit', handler: 'handleDigit' },
+            { id: 'S', text: 'S', type: 'digit', handler: 'handleDigit' },
+
+            // T, U, V, W, X, Y
+            { id: 'T', text: 'T', type: 'digit', handler: 'handleDigit' },
+            { id: 'U', text: 'U', type: 'digit', handler: 'handleDigit' },
+            { id: 'V', text: 'V', type: 'digit', handler: 'handleDigit' },
+            { id: 'W', text: 'W', type: 'digit', handler: 'handleDigit' },
+            { id: 'X', text: 'X', type: 'digit', handler: 'handleDigit' },
+            { id: 'Y', text: 'Y', type: 'digit', handler: 'handleDigit' },
+
+            // Z (last digit)
+            { id: 'Z', text: 'Z', type: 'digit', handler: 'handleDigit' },
+        ];
+
+
+        /**
+         * Helper function to create a button element.
+         * @param {object} buttonData - Object containing button properties.
+         * @returns {HTMLButtonElement} The created button element.
+         */
+        function createButtonElement(buttonData) {
+            const button = document.createElement('button');
+            let classes = 'calc-button';
+            if (buttonData.type) classes += ` ${buttonData.type}`;
+            if (buttonData.class) classes += ` ${buttonData.class}`;
+            button.className = classes;
+            button.textContent = buttonData.text;
+
+            // Assign handler based on handler name and optional parameter
+            if (buttonData.handler === 'clearCalculator') {
+                button.onclick = clearCalculator;
+            } else if (buttonData.handler === 'handleOperator') {
+                button.onclick = () => handleOperator(buttonData.param);
+            } else if (buttonData.handler === 'handleDigit') {
+                button.onclick = () => handleDigit(buttonData.text);
+            } else if (buttonData.handler === 'calculate') {
+                button.onclick = calculate;
+            }
+            return button;
+        }
+
+        /**
+         * Creates and stores all possible calculator buttons.
+         * This function is called only once on initial load.
+         */
+        function createAndStoreAllButtons() {
+            buttonLayout.forEach(buttonData => {
+                const button = createButtonElement(buttonData);
+                buttonElements.set(buttonData.id, button);
+            });
+        }
+
+        /**
+         * Renders the calculator buttons based on the current base.
+         * This function is called on base change and initial load.
+         */
+        function renderCalculatorButtons() {
+            const mainButtonGrid = document.getElementById('main-button-grid');
+            mainButtonGrid.innerHTML = ''; // Clear all existing buttons
+
+            // Add a class to the grid for responsive adjustments on very small screens
+            // This allows specific layout changes for the first row if needed
+            if (window.innerWidth <= 480) { // Example breakpoint for very small screens
+                mainButtonGrid.classList.add('first-row-4-col');
+            } else {
+                mainButtonGrid.classList.remove('first-row-4-col');
+            }
+
+
+            buttonLayout.forEach(buttonData => {
+                // Determine if the button should be shown
+                let shouldShow = true;
+                if (buttonData.type === 'digit') {
+                    shouldShow = isValidDigitForCurrentBase(buttonData.text);
+                }
+
+                if (shouldShow) {
+                    // Get the button from our map (it's already created)
+                    const button = buttonElements.get(buttonData.id);
+                    if (button) {
+                        button.style.display = 'flex'; // Ensure it's visible
+                        mainButtonGrid.appendChild(button);
+                    }
+                } else {
+                    // If the button is not valid for the current base, hide it
+                    const button = buttonElements.get(buttonData.id);
+                    if (button) {
+                        button.style.display = 'none';
+                    }
+                }
+            });
+        }
+
+        /**
+         * Dynamically generates options for bases 2 to 36 in the select dropdown.
+         */
+        function populateBaseSelect() {
+            const selectElement = document.getElementById('current-base-select');
+            selectElement.innerHTML = ''; // Clear all for full dynamic control
+
+            for (let i = 2; i <= 36; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                if (i === 2) option.textContent = 'Binary (2)';
+                else if (i === 8) option.textContent = 'Octal (8)';
+                else if (i === 10) option.textContent = 'Decimal (10)';
+                else if (i === 16) option.textContent = 'Hexadecimal (16)';
+                else option.textContent = `Base ${i}`;
+
+                if (i === currentBase) {
+                    option.selected = true;
+                }
+                selectElement.appendChild(option);
+            }
+        }
+
+        // --- Initial Setup ---
+        // Call createAndStoreAllButtons before window.onload to ensure functions are defined
+        createAndStoreAllButtons();
+
+        window.onload = function() {
+            // Set initial base from select box (or default to 10 if not found)
+            currentBase = parseInt(document.getElementById('current-base-select').value || '10');
+
+            populateBaseSelect(); // Ensure all base options are present
+            renderCalculatorButtons(); // Render buttons for the initial base
+            updateDisplay(); // Set initial display text
+
+            // Add a resize listener to re-render buttons if layout changes for responsiveness
+            window.addEventListener('resize', renderCalculatorButtons);
+        };
+    </script>
+</body>
+</html>

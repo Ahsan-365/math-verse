@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Venn Diagram Calculator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for the canvas and overall layout */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top to prevent content from being too centered on large screens */
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 1rem; /* Rounded corners */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 2.5rem;
+            max-width: 1200px; /* Increased max-width for more content */
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        @media (min-width: 768px) {
+            .container {
+                flex-direction: row;
+                gap: 3rem;
+            }
+        }
+        .input-section, .output-section {
+            flex: 1;
+        }
+        canvas {
+            border: 1px solid #e2e8f0;
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            display: block; /* Remove extra space below canvas */
+            width: 100%; /* Make canvas responsive */
+            height: auto; /* Maintain aspect ratio */
+            max-width: 500px; /* Increased max width for 3-set diagram */
+            max-height: 500px; /* Increased max height for 3-set diagram */
+            margin: 0 auto; /* Center the canvas */
+        }
+        input[type="text"] {
+            border: 1px solid #cbd5e0;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            width: 100%;
+            font-size: 1rem;
+            transition: border-color 0.2s ease-in-out;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #3b82f6; /* Blue-500 */
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); /* Blue-500 with opacity */
+        }
+        .result-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            min-height: 40px;
+            font-size: 0.95rem;
+            color: #475569; /* Slate-600 */
+            word-wrap: break-word; /* Allow long text to wrap */
+        }
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b; /* Slate-900 */
+            margin-bottom: 1.5rem;
+        }
+        .add-set-button {
+            background-color: #2563eb; /* Blue-600 */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            cursor: pointer;
+            border: none;
+        }
+        .add-set-button:hover {
+            background-color: #1d4ed8; /* Blue-700 */
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="container">
+        <!-- Input Section -->
+        <div class="input-section">
+            <h2 class="section-title">Define Your Sets</h2>
+            <div class="mb-4">
+                <label for="setUInput" class="block text-sm font-medium text-gray-700 mb-2">Universal Set U (comma-separated):</label>
+                <input type="text" id="setUInput" placeholder="e.g., 1, 2, 3, 4, 5, 6, 7, 8, 9, 10" class="focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <div class="mb-4">
+                <label for="setAInput" class="block text-sm font-medium text-gray-700 mb-2">Set A (comma-separated):</label>
+                <input type="text" id="setAInput" placeholder="e.g., 1, 2, 3, 4" class="focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <div class="mb-6">
+                <label for="setBInput" class="block text-sm font-medium text-gray-700 mb-2">Set B (comma-separated):</label>
+                <input type="text" id="setBInput" placeholder="e.g., 3, 4, 5, 6" class="focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <!-- Set C and subsequent sets will be added dynamically -->
+            <div id="dynamicSetInputs" class="space-y-4 mb-6"></div>
+
+            <button id="addSetButton" class="add-set-button mb-8">Add Another Set</button>
+
+            <h2 class="section-title mt-8">Calculated Results</h2>
+            <div id="resultsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Results will be dynamically inserted here -->
+            </div>
+
+            <h2 class="section-title mt-8">All Sets Summary</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Union of All Entered Sets:</label>
+                    <div id="unionAllEnteredResult" class="result-box"></div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Intersection of All Entered Sets:</label>
+                    <div id="intersectionAllEnteredResult" class="result-box"></div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Complement of (Union of All Entered Sets) relative to U:</label>
+                    <div id="complementAllUnionResult" class="result-box"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visualizer Section -->
+        <div class="output-section">
+            <h2 class="section-title">Venn Diagram Visualization</h2>
+            <canvas id="vennCanvas" width="500" height="500" class="mb-4"></canvas>
+            <div class="text-sm text-gray-600 text-center">
+                <p>Circles represent Sets A, B, and C. The rectangle represents the Universal Set U.</p>
+                <p class="font-bold text-red-600">Note: Visualization is limited to the first three sets (A, B, C).</p>
+                <p>All calculated results on the left reflect all entered sets.</p>
+                <p>Elements are placed in their respective regions.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get DOM elements
+        const setUInput = document.getElementById('setUInput');
+        const setAInput = document.getElementById('setAInput');
+        const setBInput = document.getElementById('setBInput');
+        const dynamicSetInputsContainer = document.getElementById('dynamicSetInputs');
+        const addSetButton = document.getElementById('addSetButton');
+        const resultsContainer = document.getElementById('resultsContainer');
+
+        const unionAllEnteredResult = document.getElementById('unionAllEnteredResult');
+        const intersectionAllEnteredResult = document.getElementById('intersectionAllEnteredResult');
+        const complementAllUnionResult = document.getElementById('complementAllUnionResult');
+
+        const vennCanvas = document.getElementById('vennCanvas');
+        const ctx = vennCanvas.getContext('2d');
+
+        let nextSetIndex = 67; // ASCII for 'C'
+
+        // Function to parse input string into a Set
+        function parseInput(inputString) {
+            if (!inputString) {
+                return new Set();
+            }
+            // Split by comma, trim whitespace, filter out empty strings, and convert to Set
+            return new Set(inputString.split(',').map(item => item.trim()).filter(item => item !== ''));
+        }
+
+        // --- Set Operations ---
+
+        // Union of multiple sets
+        function union(...sets) {
+            const _union = new Set();
+            for (const set of sets) {
+                for (const elem of set) {
+                    _union.add(elem);
+                }
+            }
+            return _union;
+        }
+
+        // Intersection of multiple sets
+        function intersection(...sets) {
+            if (sets.length === 0) return new Set();
+            let _intersection = new Set(sets[0]);
+            for (let i = 1; i < sets.length; i++) {
+                const currentIntersection = new Set();
+                for (const elem of _intersection) {
+                    if (sets[i].has(elem)) {
+                        currentIntersection.add(elem);
+                    }
+                }
+                _intersection = currentIntersection;
+            }
+            return _intersection;
+        }
+
+        // Difference of two sets (A \ B)
+        function difference(setA, setB) {
+            const _difference = new Set(setA);
+            for (const elem of setB) {
+                _difference.delete(elem);
+            }
+            return _difference;
+        }
+
+        // Helper function to draw text in a region
+        function drawElementsInRegion(elements, x, y, maxWidth) {
+            const text = Array.from(elements).join(', ');
+            const words = text.split(', ');
+            let line = '';
+            const lineHeight = 15;
+            let currentY = y;
+            ctx.font = '12px Arial';
+            ctx.fillStyle = '#000';
+            ctx.textAlign = 'center';
+
+            for (let i = 0; i < words.length; i++) {
+                const testLine = line + words[i] + (i === words.length - 1 ? '' : ', ');
+                const metrics = ctx.measureText(testLine);
+                const testWidth = metrics.width;
+
+                if (testWidth > maxWidth && i > 0) {
+                    ctx.fillText(line.trim(), x, currentY);
+                    line = words[i] + (i === words.length - 1 ? '' : ', ');
+                    currentY += lineHeight;
+                } else {
+                    line = testLine;
+                }
+            }
+            ctx.fillText(line.trim(), x, currentY);
+        }
+
+        // --- Venn Diagram Drawing (Conditional 2 or 3 Sets + Universal) ---
+        function drawVennDiagram(setU, setA, setB, setC) {
+            ctx.clearRect(0, 0, vennCanvas.width, vennCanvas.height); // Clear canvas
+
+            const canvasWidth = vennCanvas.width;
+            const canvasHeight = vennCanvas.height;
+            const centerX = canvasWidth / 2;
+            const centerY = canvasHeight / 2;
+            const textMaxWidth = 80;
+
+            // Draw Universal Set Rectangle
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(10, 10, canvasWidth - 20, canvasHeight - 20);
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(10, 10, canvasWidth - 20, canvasHeight - 20);
+            ctx.fillStyle = '#1e293b';
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('U', canvasWidth - 30, 30);
+
+            // Check if Set C has elements or if any dynamic sets are present for 3-set visualization
+            const hasC = setC && setC.size > 0;
+            const dynamicSetsPresent = dynamicSetInputsContainer.children.length > 0;
+
+            if (!hasC && !dynamicSetsPresent) {
+                // Draw 2-set Venn Diagram (A and B only)
+                const radius = 120;
+                const overlap = 60;
+                const circleAX = centerX - radius + overlap / 2;
+                const circleBX = centerX + radius - overlap / 2;
+                const circleY = centerY;
+
+                const colorA = 'rgba(255, 99, 132, 0.5)';
+                const colorB = 'rgba(54, 162, 235, 0.5)';
+
+                // Draw Circle A
+                ctx.beginPath();
+                ctx.arc(circleAX, circleY, radius, 0, Math.PI * 2);
+                ctx.fillStyle = colorA;
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(255, 99, 132, 1)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.closePath();
+
+                // Draw Circle B
+                ctx.beginPath();
+                ctx.arc(circleBX, circleY, radius, 0, Math.PI * 2);
+                ctx.fillStyle = colorB;
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(54, 162, 235, 1)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.closePath();
+
+                // Add labels
+                ctx.fillStyle = '#1e293b';
+                ctx.font = 'bold 20px Arial';
+                ctx.fillText('A', circleAX - radius - 20, circleY);
+                ctx.fillText('B', circleBX + radius + 20, circleY);
+
+                // Calculate regions for 2 sets
+                const unionAB = union(setA, setB);
+                const aOnly = difference(setA, setB);
+                const bOnly = difference(setB, setA);
+                const aIntersectB = intersection(setA, setB);
+                const uOutsideAB = difference(setU, unionAB);
+
+                // Display elements
+                drawElementsInRegion(aOnly, circleAX - radius / 2, circleY - 30, textMaxWidth);
+                drawElementsInRegion(bOnly, circleBX + radius / 2, circleY - 30, textMaxWidth);
+                drawElementsInRegion(aIntersectB, centerX, centerY - 30, textMaxWidth);
+                drawElementsInRegion(uOutsideAB, canvasWidth - 60, canvasHeight - 60, textMaxWidth);
+
+            } else {
+                // Draw 3-set Venn Diagram (A, B, C)
+                const radius = 100;
+                const overlap = 50;
+                const offsetY = 50;
+
+                const circleAX = centerX - radius + overlap;
+                const circleAY = centerY - offsetY;
+
+                const circleBX = centerX + radius - overlap;
+                const circleBY = centerY - offsetY;
+
+                const circleCX = centerX;
+                const circleCY = centerY + offsetY;
+
+                const colorA = 'rgba(255, 99, 132, 0.4)';
+                const colorB = 'rgba(54, 162, 235, 0.4)';
+                const colorC = 'rgba(75, 192, 192, 0.4)';
+
+                // Draw circles
+                ctx.beginPath(); ctx.arc(circleAX, circleAY, radius, 0, Math.PI * 2); ctx.fillStyle = colorA; ctx.fill(); ctx.strokeStyle = 'rgba(255, 99, 132, 1)'; ctx.lineWidth = 2; ctx.stroke(); ctx.closePath();
+                ctx.beginPath(); ctx.arc(circleBX, circleBY, radius, 0, Math.PI * 2); ctx.fillStyle = colorB; ctx.fill(); ctx.strokeStyle = 'rgba(54, 162, 235, 1)'; ctx.lineWidth = 2; ctx.stroke(); ctx.closePath();
+                ctx.beginPath(); ctx.arc(circleCX, circleCY, radius, 0, Math.PI * 2); ctx.fillStyle = colorC; ctx.fill(); ctx.strokeStyle = 'rgba(75, 192, 192, 1)'; ctx.lineWidth = 2; ctx.stroke(); ctx.closePath();
+
+                // Add labels for sets
+                ctx.fillStyle = '#1e293b';
+                ctx.font = 'bold 20px Arial';
+                ctx.fillText('A', circleAX - radius - 15, circleAY - radius + 20);
+                ctx.fillText('B', circleBX + radius + 15, circleBY - radius + 20);
+                ctx.fillText('C', circleCX, circleCY + radius + 25);
+
+                // Calculate elements for each region
+                const unionABC = union(setA, setB, setC);
+                const aOnly = difference(setA, union(setB, setC));
+                const bOnly = difference(setB, union(setA, setC));
+                const cOnly = difference(setC, union(setA, setB));
+
+                const aIntersectB = intersection(setA, setB);
+                const aIntersectC = intersection(setA, setC);
+                const bIntersectC = intersection(setB, setC);
+
+                const aAndBOnly = difference(aIntersectB, setC);
+                const aAndCOnly = difference(aIntersectC, setB);
+                const bAndCOnly = difference(bIntersectC, setA);
+
+                const aAndBAndC = intersection(aIntersectB, setC); // A ∩ B ∩ C
+
+                const uOutsideABC = difference(setU, unionABC);
+
+                // Display elements in their respective regions
+                drawElementsInRegion(aOnly, circleAX - radius / 2 - 20, circleAY - radius / 2, textMaxWidth);
+                drawElementsInRegion(bOnly, circleBX + radius / 2 + 20, circleBY - radius / 2, textMaxWidth);
+                drawElementsInRegion(cOnly, circleCX, circleCY + radius / 2 + 20, textMaxWidth);
+
+                drawElementsInRegion(aAndBOnly, centerX, centerY - offsetY - 30, textMaxWidth);
+                drawElementsInRegion(aAndCOnly, centerX - 50, centerY + 10, textMaxWidth);
+                drawElementsInRegion(bAndCOnly, centerX + 50, centerY + 10, textMaxWidth);
+
+                drawElementsInRegion(aAndBAndC, centerX, centerY - 10, textMaxWidth);
+
+                drawElementsInRegion(uOutsideABC, canvasWidth - 60, canvasHeight - 60, textMaxWidth);
+            }
+        }
+
+        // Function to update results and diagram
+        function updateVennDiagram() {
+            const setU = parseInput(setUInput.value);
+            const setA = parseInput(setAInput.value);
+            const setB = parseInput(setBInput.value);
+            let setC = new Set(); // Initialize setC as empty by default
+            const setCInput = document.getElementById('setCInput'); // Check if C input exists
+
+            if (setCInput) {
+                setC = parseInput(setCInput.value);
+            }
+
+            // Collect all active sets for overall calculations
+            const allActiveSets = [setA, setB];
+            if (setCInput) { // Only add C if its input field exists
+                allActiveSets.push(setC);
+            }
+
+            const dynamicInputs = dynamicSetInputsContainer.querySelectorAll('input[type="text"]');
+            for (const input of dynamicInputs) {
+                allActiveSets.push(parseInput(input.value));
+            }
+
+            // Dynamically update the "Calculated Results" section
+            resultsContainer.innerHTML = ''; // Clear previous results
+
+            const hasC = setC && setC.size > 0 || dynamicSetInputsContainer.children.length > 0;
+
+            if (!hasC) {
+                // Display 2-set specific results
+                const unionAB = union(setA, setB);
+                const diffAB = difference(setA, setB);
+                const diffBA = difference(setB, setA);
+                const intersectionAB = intersection(setA, setB);
+                const uOutsideAB = difference(setU, unionAB);
+
+                resultsContainer.innerHTML += `
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">A ∪ B (Union):</label>
+                        <div class="result-box">{ ${Array.from(unionAB).join(', ')} }</div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">A ∩ B (Intersection):</label>
+                        <div class="result-box">{ ${Array.from(intersectionAB).join(', ')} }</div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">A \\ B (Difference A - B):</label>
+                        <div class="result-box">{ ${Array.from(diffAB).join(', ')} }</div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">B \\ A (Difference B - A):</label>
+                        <div class="result-box">{ ${Array.from(diffBA).join(', ')} }</div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">U outside (A ∪ B):</label>
+                        <div class="result-box">{ ${Array.from(uOutsideAB).join(', ')} }</div>
+                    </div>
+                `;
+            } else {
+                // Display 3-set specific results (even if C is empty, but the input exists)
+                const unionABC = union(setA, setB, setC);
+                const aOnly = difference(setA, union(setB, setC));
+                const bOnly = difference(setB, union(setA, setC));
+                const cOnly = difference(setC, union(setA, setB));
+
+                const aIntersectB = intersection(setA, setB);
+                const aIntersectC = intersection(setA, setC);
+                const bIntersectC = intersection(setB, setC);
+
+                const aAndBOnly = difference(aIntersectB, setC);
+                const aAndCOnly = difference(aIntersectC, setB);
+                const bAndCOnly = difference(bIntersectC, setA);
+
+                const aAndBAndC = intersection(aIntersectB, setC); // A ∩ B ∩ C
+
+                const uOutsideABC = difference(setU, unionABC);
+
+                resultsContainer.innerHTML += `
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">A only:</label>
+                        <div class="result-box">{ ${Array.from(aOnly).join(', ')} }</div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">B only:</label>
+                        <div class="result-box">{ ${Array.from(bOnly).join(', ')} }</div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">C only:</label>
+                        <div class="result-box">{ ${Array.from(cOnly).join(', ')} }</div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">A ∩ B (only):</label>
+                        <div class="result-box">{ ${Array.from(aAndBOnly).join(', ')} }</div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">A ∩ C (only):</label>
+                        <div class="result-box">{ ${Array.from(aAndCOnly).join(', ')} }</div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">B ∩ C (only):</label>
+                        <div class="result-box">{ ${Array.from(bAndCOnly).join(', ')} }</div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">A ∩ B ∩ C:</label>
+                        <div class="result-box">{ ${Array.from(aAndBAndC).join(', ')} }</div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">U outside (A ∪ B ∪ C):</label>
+                        <div class="result-box">{ ${Array.from(uOutsideABC).join(', ')} }</div>
+                    </div>
+                `;
+            }
+
+            // Calculate and display "All Sets Summary"
+            const unionAllEntered = union(...allActiveSets);
+            const intersectionAllEntered = intersection(...allActiveSets);
+            const complementAllUnion = difference(setU, unionAllEntered);
+
+            unionAllEnteredResult.textContent = `{ ${Array.from(unionAllEntered).join(', ')} }`;
+            intersectionAllEnteredResult.textContent = `{ ${Array.from(intersectionAllEntered).join(', ')} }`;
+            complementAllUnionResult.textContent = `{ ${Array.from(complementAllUnion).join(', ')} }`;
+
+            // Draw diagram using only the first three sets (A, B, C)
+            drawVennDiagram(setU, setA, setB, setC);
+        }
+
+        // Add a new set input field
+        addSetButton.addEventListener('click', () => {
+            const setId = String.fromCharCode(nextSetIndex++);
+            const newDiv = document.createElement('div');
+            newDiv.className = 'mb-4';
+            newDiv.innerHTML = `
+                <label for="set${setId}Input" class="block text-sm font-medium text-gray-700 mb-2">Set ${setId} (comma-separated):</label>
+                <input type="text" id="set${setId}Input" placeholder="e.g., elements for Set ${setId}" class="focus:ring-blue-500 focus:border-blue-500">
+            `;
+            dynamicSetInputsContainer.appendChild(newDiv);
+
+            // Add event listener to the new input field
+            const newInput = document.getElementById(`set${setId}Input`);
+            newInput.addEventListener('input', updateVennDiagram);
+
+            updateVennDiagram(); // Update calculations after adding a new set
+        });
+
+        // Add event listeners for initial input changes
+        setUInput.addEventListener('input', updateVennDiagram);
+        setAInput.addEventListener('input', updateVennDiagram);
+        setBInput.addEventListener('input', updateVennDiagram);
+
+        // Initial update on page load
+        window.onload = updateVennDiagram;
+    </script>
+</body>
+</html>
