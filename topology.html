@@ -1,0 +1,336 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Topology - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-btn {
+            padding: .55rem 1rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .8rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(168, 85, 247, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(168, 85, 247, 0.25);
+            color: white;
+            border-color: #a855f7;
+            box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
+        }
+
+        .t-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            font-family: monospace;
+            width: 100%;
+        }
+
+        .t-input:focus {
+            border-color: #c084fc;
+            outline: none;
+        }
+
+        .val-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            border-radius: .75rem;
+            padding: .75rem;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-violet-600 pb-2">
+            <i class="fas fa-infinity text-purple-400"></i> Topology Explorer
+        </h2>
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-purple-500/30">
+            <button class="tab-btn active" onclick="switchTab('euler',this)">Euler Characteristic</button>
+            <button class="tab-btn" onclick="switchTab('surfaces',this)">Surfaces & Manifolds</button>
+            <button class="tab-btn" onclick="switchTab('mobius',this)">Möbius Strip</button>
+            <button class="tab-btn" onclick="switchTab('knots',this)">Knot Theory</button>
+        </div>
+
+        <!-- Euler Characteristic -->
+        <div id="tab-euler" class="tab-content flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-purple-500/30 flex flex-col gap-4">
+                <h3 class="text-purple-300 font-bold text-xl">Euler Characteristic χ = V − E + F</h3>
+                <div class="grid grid-cols-3 gap-3">
+                    <div><label class="text-xs text-gray-400">Vertices V</label><input type="number" id="euV"
+                            class="t-input" value="8" min="0" oninput="calcEuler()"></div>
+                    <div><label class="text-xs text-gray-400">Edges E</label><input type="number" id="euE"
+                            class="t-input" value="12" min="0" oninput="calcEuler()"></div>
+                    <div><label class="text-xs text-gray-400">Faces F</label><input type="number" id="euF"
+                            class="t-input" value="6" min="0" oninput="calcEuler()"></div>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button class="btn text-xs bg-purple-900 hover:bg-purple-800"
+                        onclick="setEuler(8,12,6)">Cube</button>
+                    <button class="btn text-xs bg-purple-900 hover:bg-purple-800"
+                        onclick="setEuler(4,6,4)">Tetrahedron</button>
+                    <button class="btn text-xs bg-purple-900 hover:bg-purple-800"
+                        onclick="setEuler(6,12,8)">Octahedron</button>
+                    <button class="btn text-xs bg-purple-900 hover:bg-purple-800"
+                        onclick="setEuler(12,30,20)">Icosahedron</button>
+                    <button class="btn text-xs bg-purple-900 hover:bg-purple-800"
+                        onclick="setEuler(20,30,12)">Dodecahedron</button>
+                    <button class="btn text-xs bg-purple-900 hover:bg-purple-800" onclick="setEuler(0,0,1)">Sphere
+                        (face)</button>
+                    <button class="btn text-xs bg-purple-900 hover:bg-purple-800" onclick="setEuler(1,1,0)">Torus
+                        edge</button>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="val-card"><span class="text-xs text-gray-500 block">χ = V−E+F</span><span id="euChi"
+                            class="text-3xl font-mono text-purple-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Surface</span><span id="euSurface"
+                            class="text-lg font-mono text-purple-200 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Genus g</span><span id="euGenus"
+                            class="text-xl font-mono text-purple-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Betti numbers</span><span
+                            id="euBetti" class="text-sm font-mono text-purple-200">—</span></div>
+                </div>
+                <div class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300">
+                    <div class="text-purple-300 font-bold mb-2">Euler's Formula for Polyhedra</div>
+                    For any convex polyhedron: χ = V − E + F = <b class="text-purple-300">2</b><br>
+                    For a surface of genus g (g handles): χ = <b class="text-purple-300">2 − 2g</b><br>
+                    Sphere: χ=2 (g=0) | Torus: χ=0 (g=1) | Double-torus: χ=−2 (g=2)
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm border-collapse">
+                        <tr class="bg-gray-900">
+                            <th class="px-3 py-1 text-purple-400 border border-gray-700">Shape</th>
+                            <th class="px-3 py-1 text-purple-400 border border-gray-700">V</th>
+                            <th class="px-3 py-1 text-purple-400 border border-gray-700">E</th>
+                            <th class="px-3 py-1 text-purple-400 border border-gray-700">F</th>
+                            <th class="px-3 py-1 text-purple-400 border border-gray-700">χ</th>
+                        </tr>
+                        <tr class="border-t border-gray-800">
+                            <td class="px-3 py-1 border border-gray-700 text-purple-200">Tetrahedron</td>
+                            <td class="px-3 py-1 border border-gray-700 text-center">4</td>
+                            <td class="px-3 py-1 border border-gray-700 text-center">6</td>
+                            <td class="px-3 py-1 border border-gray-700 text-center">4</td>
+                            <td class="px-3 py-1 border border-gray-700 text-center text-green-400 font-bold">2</td>
+                        </tr>
+                        <tr class="border-t border-gray-800">
+                            <td class="px-3 py-1 border border-gray-700 text-purple-200">Cube</td>
+                            <td class="px-3 py-1 border border-gray-700 text-center">8</td>
+                            <td class="px-3 py-1 border border-gray-700 text-center">12</td>
+                            <td class="px-3 py-1 border border-gray-700 text-center">6</td>
+                            <td class="px-3 py-1 border border-gray-700 text-center text-green-400 font-bold">2</td>
+                        </tr>
+                        <tr class="border-t border-gray-800">
+                            <td class="px-3 py-1 border border-gray-700 text-purple-200">Octahedron</td>
+                            <td class="px-3 py-1 border border-gray-700 text-center">6</td>
+                            <td class="px-3 py-1 border border-gray-700 text-center">12</td>
+                            <td class="px-3 py-1 border border-gray-700 text-center">8</td>
+                            <td class="px-3 py-1 border border-gray-700 text-center text-green-400 font-bold">2</td>
+                        </tr>
+                        <tr class="border-t border-gray-800">
+                            <td class="px-3 py-1 border border-gray-700 text-purple-200">Torus</td>
+                            <td class="px-3 py-1 border border-gray-700 text-center">1</td>
+                            <td class="px-3 py-1 border border-gray-700 text-center">2</td>
+                            <td class="px-3 py-1 border border-gray-700 text-center">1</td>
+                            <td class="px-3 py-1 border border-gray-700 text-center text-amber-400 font-bold">0</td>
+                        </tr>
+                        <tr class="border-t border-gray-800">
+                            <td class="px-3 py-1 border border-gray-700 text-purple-200">Klein Bottle</td>
+                            <td class="px-3 py-1 border border-gray-700 text-center">1</td>
+                            <td class="px-3 py-1 border border-gray-700 text-center">2</td>
+                            <td class="px-3 py-1 border border-gray-700 text-center">1</td>
+                            <td class="px-3 py-1 border border-gray-700 text-center text-amber-400 font-bold">0</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Surfaces -->
+        <div id="tab-surfaces" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-purple-500/30 flex flex-col gap-4">
+                <h3 class="text-purple-300 font-bold text-xl">Topological Surfaces & Manifolds</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="surfacesGrid"></div>
+            </div>
+        </div>
+
+        <!-- Möbius -->
+        <div id="tab-mobius" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-purple-500/30 flex flex-col gap-4">
+                <h3 class="text-purple-300 font-bold text-xl">Möbius Strip Visualizer</h3>
+                <p class="text-sm text-gray-400">A non-orientable surface with one side and one edge. Parametrized by
+                    (u,v): x=(1+v/2·cos(u/2))cos(u), y=(1+v/2·cos(u/2))sin(u), z=v/2·sin(u/2)</p>
+                <div class="flex gap-3 items-center flex-wrap">
+                    <div><label class="text-xs text-gray-400">Rotation speed</label><input type="range" id="mobSpeed"
+                            min="0" max="3" value="1" step="0.1" class="w-28"></div>
+                    <div><label class="text-xs text-gray-400">Half-twists</label><input type="number" id="mobTwists"
+                            class="t-input w-20" value="1" min="1" max="5" oninput="resetMobius()"></div>
+                    <button class="btn bg-purple-700 hover:bg-purple-600 font-bold"
+                        onclick="resetMobius()">Redraw</button>
+                </div>
+                <canvas id="mobCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:360px"></canvas>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Sides</span><span
+                            class="text-xl font-mono text-purple-300 font-bold" id="mobSides">1</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Edges</span><span
+                            class="text-xl font-mono text-purple-300 font-bold" id="mobEdges">1</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Orientable?</span><span
+                            class="text-lg font-mono text-red-400 font-bold">No</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">χ</span><span
+                            class="text-xl font-mono text-purple-300 font-bold">0</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Knots -->
+        <div id="tab-knots" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-purple-500/30 flex flex-col gap-4">
+                <h3 class="text-purple-300 font-bold text-xl">Knot Theory Visualizer</h3>
+                <div class="flex flex-wrap gap-2">
+                    <button class="btn text-sm bg-purple-900 hover:bg-purple-800" onclick="drawKnot('unknot')">Unknot
+                        0₁</button>
+                    <button class="btn text-sm bg-purple-900 hover:bg-purple-800" onclick="drawKnot('trefoil')">Trefoil
+                        3₁</button>
+                    <button class="btn text-sm bg-purple-900 hover:bg-purple-800"
+                        onclick="drawKnot('figure8')">Figure-eight 4₁</button>
+                    <button class="btn text-sm bg-purple-900 hover:bg-purple-800"
+                        onclick="drawKnot('cincquefoil')">Cinquefoil 5₁</button>
+                    <button class="btn text-sm bg-purple-900 hover:bg-purple-800" onclick="drawKnot('torus3_4')">Torus
+                        knot T(3,4)</button>
+                </div>
+                <div class="flex flex-col md:flex-row gap-4">
+                    <canvas id="knotCanvas" class="rounded-xl bg-black border border-gray-700"
+                        style="width:280px;height:280px"></canvas>
+                    <div id="knotInfo"
+                        class="bg-black/40 p-4 rounded-xl flex-1 text-sm font-mono text-gray-300 leading-loose"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); document.getElementById('tab-' + id).classList.remove('hidden'); if (id === 'mobius') setTimeout(startMobius, 50); if (id === 'surfaces') renderSurfaces(); if (id === 'knots') { const c = document.getElementById('knotCanvas'); c.width = 280; c.height = 280; drawKnot('trefoil'); } if (id === 'euler') calcEuler(); }
+
+        function setEuler(v, e, f) { document.getElementById('euV').value = v; document.getElementById('euE').value = e; document.getElementById('euF').value = f; calcEuler(); }
+        function calcEuler() {
+            let V = parseInt(document.getElementById('euV').value) || 0;
+            let E = parseInt(document.getElementById('euE').value) || 0;
+            let F = parseInt(document.getElementById('euF').value) || 0;
+            let chi = V - E + F;
+            document.getElementById('euChi').innerText = chi;
+            let surf = chi === 2 ? 'Sphere (g=0)' : chi === 0 ? 'Torus / Klein (g=1)' : chi === 1 ? 'ℝP²' : chi < 0 ? `Genus-${(2 - chi) / 2} surface` : 'Non-standard';
+            let g = chi <= 2 ? (2 - chi) / 2 : '?';
+            document.getElementById('euSurface').innerText = surf; document.getElementById('euGenus').innerText = Number.isInteger(g) && g >= 0 ? g : '—';
+            document.getElementById('euBetti').innerText = chi === 2 ? 'β₀=1,β₁=0,β₂=1' : chi === 0 ? 'β₀=1,β₁=2,β₂=1' : '—';
+        }
+
+        const surfacesData = [
+            { name: 'Sphere S²', x: '2', sides: 2, orient: 'Yes', compact: 'Yes', boundary: 'None', desc: 'The standard 2-sphere. Every point has a disk-like neighborhood.' },
+            { name: 'Torus T²', x: '0', sides: 2, orient: 'Yes', compact: 'Yes', boundary: 'None', desc: 'Sphere with 1 handle. Homeomorphic to a donut surface. Genus g=1.' },
+            { name: 'Klein Bottle K', x: '0', sides: 1, orient: 'No', compact: 'Yes', boundary: 'None', desc: 'Non-orientable closed surface. Cannot be embedded in ℝ³ without self-intersection.' },
+            { name: 'Möbius Strip M', x: '0', sides: 1, orient: 'No', compact: 'No', boundary: '1 loop', desc: 'One-sided, one-boundary surface. Obtained from rectangle by a half-twist gluing.' },
+            { name: 'Real Proj. Plane ℝP²', x: '1', sides: 1, orient: 'No', compact: 'Yes', boundary: 'None', desc: 'Sphere with opposite points identified. Non-orientable. χ=1.' },
+            { name: 'Cylinder S¹×I', x: '0', sides: 2, orient: 'Yes', compact: 'No', boundary: '2 circles', desc: 'Rectangle with two sides identified (no twist). Orientable, two boundary circles.' },
+            { name: 'Double Torus', x: '−2', sides: 2, orient: 'Yes', compact: 'Yes', boundary: 'None', desc: 'Sphere with 2 handles. Genus g=2. χ=2−2·2=−2.' },
+            { name: 'Disk D²', x: '1', sides: 2, orient: 'Yes', compact: 'Yes', boundary: '1 circle', desc: '2D closed disk. Simply connected bounded surface. χ=1 (V=1,E=0,F=1).' },
+        ];
+        function renderSurfaces() {
+            document.getElementById('surfacesGrid').innerHTML = surfacesData.map(s => `
+        <div class="bg-black/40 p-4 rounded-xl border border-purple-500/20">
+            <div class="text-purple-300 font-bold mb-1">${s.name}</div>
+            <div class="grid grid-cols-2 gap-x-3 text-xs mb-2">
+                <span class="text-gray-500">χ</span><span class="text-purple-200 font-mono">${s.x}</span>
+                <span class="text-gray-500">Sides</span><span class="text-purple-200 font-mono">${s.sides}</span>
+                <span class="text-gray-500">Orientable</span><span class="${s.orient === 'Yes' ? 'text-green-400' : 'text-red-400'} font-mono">${s.orient}</span>
+                <span class="text-gray-500">Compact</span><span class="text-purple-200 font-mono">${s.compact}</span>
+                <span class="text-gray-500">Boundary</span><span class="text-purple-200 font-mono">${s.boundary}</span>
+            </div>
+            <div class="text-xs text-gray-400 italic">${s.desc}</div>
+        </div>`).join('');
+        }
+
+        /* ---- MÖBIUS STRIP ---- */
+        let mobAngle = 0, mobAnim = null;
+        function resetMobius() { const c = document.getElementById('mobCanvas'); c.width = c.offsetWidth; c.height = 360; let tw = parseInt(document.getElementById('mobTwists').value) || 1; document.getElementById('mobSides').innerText = tw % 2 === 1 ? 1 : 2; document.getElementById('mobEdges').innerText = tw % 2 === 1 ? 1 : 2; }
+        function drawMobius(angle) {
+            const c = document.getElementById('mobCanvas'); const cx = c.getContext('2d'), W = c.width, H = 360, cx2 = W / 2, cy2 = H / 2;
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let tw = parseInt(document.getElementById('mobTwists').value) || 1;
+            let R = 100, w = 40, steps = 120, points = [];
+            for (let i = 0; i <= steps; i++) {
+                let u = 2 * Math.PI * i / steps;
+                for (let j = -1; j <= 1; j += 2) {
+                    let v = j * w / 2;
+                    let x3d = (R + v * Math.cos(tw * u / 2)) * Math.cos(u);
+                    let y3d = (R + v * Math.cos(tw * u / 2)) * Math.sin(u);
+                    let z3d = v * Math.sin(tw * u / 2);
+                    // Rotate around Y
+                    let ca = Math.cos(angle), sa = Math.sin(angle);
+                    let xr = x3d * ca + z3d * sa, yr = y3d, zr = -x3d * sa + z3d * ca;
+                    let ca2 = Math.cos(0.4), sa2 = Math.sin(0.4);
+                    let xr2 = xr, yr2 = yr * ca2 - zr * sa2, zr2 = yr * sa2 + zr * ca2;
+                    let fov = 400, scale = fov / (fov + zr2 + 150);
+                    points.push({ x: cx2 + xr2 * scale, y: cy2 + yr2 * scale, z: zr2, col: j < 0 ? '#7c3aed' : '#a855f7' });
+                }
+            }
+            // Sort by z for painter's algo and draw strips
+            for (let i = 0; i < steps; i++) {
+                let a = points[i * 2], b = points[i * 2 + 1], c2 = points[i * 2 + 2], d = points[i * 2 + 3];
+                if (!a || !b || !c2 || !d) continue;
+                let avgZ = (a.z + b.z + c2.z + d.z) / 4;
+                let t = Math.max(0, Math.min(1, (avgZ + 200) / 400);
+                cx.beginPath(); cx.moveTo(a.x, a.y); cx.lineTo(b.x, b.y); cx.lineTo(d.x, d.y); cx.lineTo(c2.x, c2.y); cx.closePath();
+                let col = i % 2 === 0 ? `hsla(280,70%,${40 + t * 30}%,0.9)` : `hsla(260,80%,${50 + t * 30}%,0.9)`;
+                cx.fillStyle = col; cx.fill(); cx.strokeStyle = 'rgba(168,85,247,0.3)'; cx.lineWidth = 0.5; cx.stroke();
+            }
+        }
+        function startMobius() { const c = document.getElementById('mobCanvas'); if (!c.width) { c.width = c.offsetWidth; c.height = 360; } resetMobius(); if (mobAnim) cancelAnimationFrame(mobAnim); function frame() { mobAngle += 0.005 * (parseFloat(document.getElementById('mobSpeed').value) || 1); drawMobius(mobAngle); mobAnim = requestAnimationFrame(frame); } frame(); }
+
+        /* ---- KNOTS ---- */
+        function drawKnot(type) {
+            const c = document.getElementById('knotCanvas'); const cx = c.getContext('2d'), W = 280, H = 280, cx2 = 140, cy2 = 140;
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            const knots = {
+                unknot: { name: 'Unknot (0₁)', x: pts_unknot(), crossings: 0, jones: '1', alex: '1', info: 'The trivial knot — a simple closed loop. Any knot that can be deformed to this is the unknot.' },
+                trefoil: { name: 'Trefoil (3₁)', x: pts_trefoil(), crossings: 3, jones: '−t⁻⁴+t⁻³+t⁻¹', alex: '−t+1−t⁻¹', info: 'Simplest non-trivial knot. 3 crossings. Chiral (left/right-handed versions are distinct). Torus knot T(2,3).' },
+                figure8: { name: 'Figure-eight (4₁)', x: pts_fig8(), crossings: 4, jones: 't²−t+1−t⁻¹+t⁻²', alex: '−t+3−t⁻¹', info: 'The only knot with 4 crossings. Amphichiral (equal to its mirror image). Second simplest knot.' },
+                cincquefoil: { name: 'Cinquefoil (5₁)', x: pts_cinq(), crossings: 5, jones: 'complex', alex: 't²−t+1−t⁻¹+t⁻²', info: 'Torus knot T(2,5). 5 crossings. Also called the (2,5)-torus knot or pentafoil.' },
+                torus3_4: { name: 'Torus knot T(3,4)', x: pts_torus34(), crossings: 8, jones: 'complex', alex: 'complex', info: 'Lies on the surface of a torus. Goes around 3 times in one direction, 4 in the other. 8 crossings.' },
+            };
+            let k = knots[type];
+            let pts = k.x;
+            // Draw with gradient color and over/under crossings
+            cx.lineWidth = 6; cx.lineCap = 'round';
+            for (let i = 0; i < pts.length; i++) { let p = pts[i], n = pts[(i + 1) % pts.length]; let t = i / pts.length; cx.strokeStyle = `hsl(${280 + t * 80},70%,60%)`; cx.beginPath(); cx.moveTo(p[0], p[1]); cx.lineTo(n[0], n[1]); cx.stroke(); }
+            // Info
+            document.getElementById('knotInfo').innerHTML = `<b class="text-purple-400">${k.name}</b><br>Crossings: <b class="text-purple-300">${k.crossings}</b><br>Jones polynomial: <span class="text-amber-300">${k.jones}</span><br>Alexander poly: <span class="text-teal-300">${k.alex}</span><br><br><span class="text-gray-400 italic">${k.info}</span>`;
+        }
+
+        function pts_unknot() { let pts = []; for (let i = 0; i < 60; i++) { let a = 2 * Math.PI * i / 60; pts.push([140 + 100 * Math.cos(a), 140 + 100 * Math.sin(a)]); } return pts; }
+        function pts_trefoil() { let pts = []; for (let i = 0; i < 120; i++) { let t = 2 * Math.PI * i / 120; let x = Math.sin(t) + 2 * Math.sin(2 * t), y = Math.cos(t) - 2 * Math.cos(2 * t); pts.push([140 + 50 * x, 140 + 50 * y]); } return pts; }
+        function pts_fig8() { let pts = []; for (let i = 0; i < 120; i++) { let t = 2 * Math.PI * i / 120; let x = (2 + Math.cos(2 * t)) * Math.cos(3 * t), y = (2 + Math.cos(2 * t)) * Math.sin(3 * t); pts.push([140 + 35 * x / 3, 140 + 35 * y / 3]); } return pts; }
+        function pts_cinq() { let pts = []; for (let i = 0; i < 120; i++) { let t = 2 * Math.PI * i / 120; let x = Math.sin(t) + 2 * Math.sin(2 * t) + 0.5 * Math.sin(3 * t), y = Math.cos(t) - 2 * Math.cos(2 * t) + 0.5 * Math.cos(3 * t); pts.push([140 + 42 * x, 140 + 42 * y]); } return pts; }
+        function pts_torus34() { let pts = []; for (let i = 0; i < 300; i++) { let t = 2 * Math.PI * i / 300; let R2 = 2, r2 = 1; let x = (R2 + r2 * Math.cos(4 * t)) * Math.cos(3 * t), y = (R2 + r2 * Math.cos(4 * t)) * Math.sin(3 * t); pts.push([140 + 50 * x / 3, 140 + 50 * y / 3]); } return pts; }
+
+        calcEuler();
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,352 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Theory - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-btn {
+            padding: .55rem 1rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .8rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(245, 158, 11, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(245, 158, 11, 0.25);
+            color: white;
+            border-color: #f59e0b;
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+        }
+
+        .g-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            font-family: monospace;
+            width: 100%;
+        }
+
+        .g-input:focus {
+            border-color: #fbbf24;
+            outline: none;
+        }
+
+        .cayley-cell {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            font-weight: bold;
+            font-family: monospace;
+            font-size: .85rem;
+            cursor: pointer;
+            transition: .15s;
+        }
+
+        .cayley-cell:hover {
+            background: rgba(245, 158, 11, 0.15) !important;
+        }
+
+        .val-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            border-radius: .75rem;
+            padding: .75rem;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-500 pb-2">
+            <i class="fas fa-shapes text-amber-400"></i> Abstract Algebra & Group Theory
+        </h2>
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-amber-500/30">
+            <button class="tab-btn active" onclick="switchTab('cayley',this)">Cayley Table</button>
+            <button class="tab-btn" onclick="switchTab('subgroups',this)">Subgroups & Cosets</button>
+            <button class="tab-btn" onclick="switchTab('symgroups',this)">Symmetry Groups</button>
+        </div>
+
+        <!-- Cayley Table -->
+        <div id="tab-cayley" class="tab-content flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-amber-500/30 flex flex-col gap-4">
+                <h3 class="text-amber-300 font-bold text-xl">Cayley Table Generator</h3>
+                <div class="flex flex-wrap gap-3 items-center">
+                    <div>
+                        <label class="text-xs text-gray-400">Group preset</label>
+                        <select id="groupPreset" class="g-input mt-1" onchange="loadPresetGroup()">
+                            <option value="Z2">â„¤â‚‚ (order 2)</option>
+                            <option value="Z3">â„¤â‚ƒ (order 3)</option>
+                            <option value="Z4">â„¤â‚„ (order 4)</option>
+                            <option value="Z5">â„¤â‚… (order 5)</option>
+                            <option value="Z6">â„¤â‚† (order 6)</option>
+                            <option value="Z8">â„¤â‚ˆ (order 8)</option>
+                            <option value="S3">Sâ‚ƒ (symmetric, order 6)</option>
+                            <option value="V4">Vâ‚„ Klein four-group</option>
+                            <option value="D4">Dâ‚„ dihedral (order 8)</option>
+                            <option value="Q8">Qâ‚ˆ quaternion group</option>
+                            <option value="A4">Aâ‚„ alternating (order 12)</option>
+                        </select>
+                    </div>
+                    <button class="btn bg-amber-700 hover:bg-amber-600 font-bold mt-4"
+                        onclick="analyzeGroup()">Analyze</button>
+                </div>
+                <div class="flex flex-col md:flex-row gap-4">
+                    <div>
+                        <div class="text-xs text-gray-500 mb-2 uppercase tracking-widest">Cayley Table (click cell to
+                            see element)</div>
+                        <div id="cayleyTableDiv" class="overflow-x-auto"></div>
+                    </div>
+                    <div class="flex flex-col gap-3 flex-1" id="groupProps"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subgroups & Cosets -->
+        <div id="tab-subgroups" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-amber-500/30 flex flex-col gap-4">
+                <h3 class="text-amber-300 font-bold text-xl">Subgroups, Cosets & Lagrange's Theorem</h3>
+                <p class="text-sm text-gray-400">Select a group from the Cayley tab first, then explore its subgroup
+                    structure.</p>
+                <button class="btn bg-amber-700 hover:bg-amber-600 font-bold w-48" onclick="findSubgroups()">Find
+                    Subgroups</button>
+                <div id="subgroupResult" class="flex flex-col gap-3 text-sm font-mono text-gray-300"></div>
+                <div class="bg-black/40 p-4 rounded-xl flex flex-col gap-2">
+                    <h4 class="text-amber-300 font-bold">Lagrange's Theorem</h4>
+                    <p class="text-gray-400 text-sm">If H is a subgroup of G, then |H| divides |G|. The number of
+                        distinct left cosets = |G|/|H| (index of H in G).</p>
+                    <div id="lagrangeResult" class="text-gray-300 font-mono text-sm"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Symmetry Groups -->
+        <div id="tab-symgroups" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-amber-500/30 flex flex-col gap-4">
+                <h3 class="text-amber-300 font-bold text-xl">Symmetry Groups of Regular Polygons (Dâ‚™)</h3>
+                <div class="flex gap-3 items-center">
+                    <label class="text-gray-400 text-sm">n-gon sides n:</label>
+                    <input type="range" id="symN" min="3" max="8" value="4" class="w-32"
+                        oninput="document.getElementById('symNval').innerText=this.value;drawSymmetry()">
+                    <span id="symNval" class="text-amber-300 font-bold">4</span>
+                </div>
+                <div class="flex flex-col md:flex-row gap-4">
+                    <canvas id="symCanvas" class="rounded-xl bg-black border border-gray-700"
+                        style="width:280px;height:280px"></canvas>
+                    <div class="flex flex-col gap-3 flex-1" id="symProps"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rings & Fields -->
+        <div id="tab-rings" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-amber-500/30 flex flex-col gap-4">
+                <h3 class="text-amber-300 font-bold text-xl">Modular Arithmetic & Finite Fields GF(p)</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div><label class="text-xs text-gray-400">Modulus n</label><input type="number" id="modn"
+                            class="g-input" value="7" min="2" max="20" oninput="runModular()"></div>
+                    <div><label class="text-xs text-gray-400">a</label><input type="number" id="moda" class="g-input"
+                            value="3" oninput="runModular()"></div>
+                    <div><label class="text-xs text-gray-400">b</label><input type="number" id="modb" class="g-input"
+                            value="5" oninput="runModular()"></div>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="val-card"><span class="text-xs text-gray-500 block">(a+b) mod n</span><span id="modAdd"
+                            class="text-2xl font-mono text-amber-300 font-bold">â€”</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">(aÂ·b) mod n</span><span id="modMul"
+                            class="text-2xl font-mono text-amber-300 font-bold">â€”</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">aâ»Â¹ mod n</span><span id="modInv"
+                            class="text-2xl font-mono text-amber-300 font-bold">â€”</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">aáµ‡ mod n</span><span id="modPow"
+                            class="text-2xl font-mono text-amber-300 font-bold">â€”</span></div>
+                </div>
+                <div class="bg-black/40 p-4 rounded-xl">
+                    <div class="text-xs text-gray-500 uppercase mb-2">Multiplication table for â„¤â‚™*</div>
+                    <div id="ringTable" class="overflow-x-auto text-xs font-mono"></div>
+                </div>
+                <div id="fieldInfo" class="text-sm text-gray-400"></div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); document.getElementById('tab-' + id).classList.remove('hidden'); if (id === 'symgroups') setTimeout(() => { const c = document.getElementById('symCanvas'); c.width = 280; c.height = 280; drawSymmetry(); }, 50); if (id === 'rings') runModular(); }
+
+        /* ---- GROUP DEFINITIONS ---- */
+        function makeZn(n) {
+            let els = Array.from({ length: n }, (_, i) => `${i}`);
+            let op = (a, b) => String((parseInt(a) + parseInt(b)) % n);
+            return { els, op, name: `â„¤${n}` };
+        }
+        function makeS3() {
+            // 6 permutations of {0,1,2}
+            const perms = [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]];
+            const labels = ['e', '(12)', '(13)', '(132)', '(123)', '(23)'];
+            const compose = (a, b) => { let ra = perms[a], rb = perms[b]; let r = rb.map(i => ra[i]); return perms.findIndex(p => p.every((v, i) => v === r[i])); }
+            let op = (a, b) => String(compose(parseInt(a), parseInt(b)));
+            return { els: labels, op: (a, b) => labels[compose(labels.indexOf(a), labels.indexOf(b))], name: 'Sâ‚ƒ' };
+        }
+        function makeV4() {
+            const mul = [[0, 1, 2, 3], [1, 0, 3, 2], [2, 3, 0, 1], [3, 2, 1, 0]];
+            const els = ['e', 'a', 'b', 'c'];
+            return { els, op: (a, b) => els[mul[els.indexOf(a)][els.indexOf(b)]], name: 'Vâ‚„' };
+        }
+        function makeD4() {
+            // Dihedral group D4 â€” 8 elements: r0,r1,r2,r3,s0,s1,s2,s3
+            const els = ['r0', 'r1', 'r2', 'r3', 's0', 's1', 's2', 's3'];
+            const mul = [[0, 1, 2, 3, 4, 5, 6, 7], [1, 2, 3, 0, 5, 6, 7, 4], [2, 3, 0, 1, 6, 7, 4, 5], [3, 0, 1, 2, 7, 4, 5, 6], [4, 7, 6, 5, 0, 3, 2, 1], [5, 4, 7, 6, 1, 0, 3, 2], [6, 5, 4, 7, 2, 1, 0, 3], [7, 6, 5, 4, 3, 2, 1, 0]];
+            return { els, op: (a, b) => els[mul[els.indexOf(a)][els.indexOf(b)]], name: 'Dâ‚„' };
+        }
+        function makeQ8() {
+            const els = ['1', '-1', 'i', '-i', 'j', '-j', 'k', '-k'];
+            const mul = [[0, 1, 2, 3, 4, 5, 6, 7], [1, 0, 3, 2, 5, 4, 7, 6], [2, 3, 1, 0, 6, 7, 5, 4], [3, 2, 0, 1, 7, 6, 4, 5], [4, 5, 7, 6, 1, 0, 2, 3], [5, 4, 6, 7, 0, 1, 3, 2], [6, 7, 4, 5, 3, 2, 1, 0], [7, 6, 5, 4, 2, 3, 0, 1]];
+            return { els, op: (a, b) => els[mul[els.indexOf(a)][els.indexOf(b)]], name: 'Qâ‚ˆ' };
+        }
+
+        let currentGroup = makeZn(4);
+
+        function loadPresetGroup() {
+            let p = document.getElementById('groupPreset').value;
+            const G = { Z2: makeZn(2), Z3: makeZn(3), Z4: makeZn(4), Z5: makeZn(5), Z6: makeZn(6), Z8: makeZn(8), S3: makeS3(), V4: makeV4(), D4: makeD4(), Q8: makeQ8() };
+            if (G[p]) { currentGroup = G[p]; }
+            else if (p === 'A4') { currentGroup = makeZn(12); currentGroup.name = 'Aâ‚„ (approx â„¤â‚â‚‚ for display)'; }
+            drawCayley(); analyzeGroup();
+        }
+
+        function drawCayley() {
+            let { els, op, name } = currentGroup; let n = els.length;
+            const colors = ['#1e3a5f', '#3b1f5e', '#1f3b2e', '#3b2e1f', '#1f2e3b', '#3b1f2e', '#2e3b1f', '#3b3b1f'];
+            let html = `<div style="display:grid;grid-template-columns:repeat(${n + 1},36px);gap:1px">`;
+            html += `<div class="cayley-cell bg-transparent"></div>`;
+            els.forEach(e => html += `<div class="cayley-cell" style="background:rgba(245,158,11,0.3);color:#fbbf24">${e}</div>`);
+            els.forEach((a, i) => {
+                html += `<div class="cayley-cell" style="background:rgba(245,158,11,0.3);color:#fbbf24">${a}</div>`;
+                els.forEach((b, j) => { let res = op(a, b); let idx = els.indexOf(res); html += `<div class="cayley-cell" style="background:${colors[idx % colors.length]};color:${idx === 0 ? '#fbbf24' : '#e2e8f0'}" title="${a}Â·${b}=${res}">${res}</div>`; });
+            });
+            html += '</div>';
+            document.getElementById('cayleyTableDiv').innerHTML = html;
+        }
+
+        function isAbelian() { let { els, op } = currentGroup; for (let a of els) for (let b of els) if (op(a, b) !== op(b, a)) return false; return true; }
+        function findOrder(el) { let { els, op } = currentGroup, e = els[0], cur = el, n = 1; while (cur !== e && n < 100) { cur = op(cur, el); n++; } return n; }
+        function isGroup() {
+            let { els, op } = currentGroup;
+            // Closure
+            for (let a of els) for (let b of els) if (!els.includes(op(a, b))) return 'Not closed!';
+            return 'âœ“ Closed';
+        }
+
+        function analyzeGroup() {
+            if (!currentGroup) return;
+            drawCayley();
+            let { els, op, name } = currentGroup; let n = els.length, e = els[0];
+            let abelian = isAbelian();
+            let orders = els.map(el => ({ el, ord: findOrder(el) }));
+            let generators = els.filter(el => findOrder(el) === n);
+            document.getElementById('groupProps').innerHTML = `
+        <div class="grid grid-cols-2 gap-3">
+            <div class="val-card"><span class="text-xs text-gray-500 block">Group</span><span class="text-xl font-mono text-amber-300 font-bold">${name}</span></div>
+            <div class="val-card"><span class="text-xs text-gray-500 block">Order |G|</span><span class="text-xl font-mono text-amber-300 font-bold">${n}</span></div>
+            <div class="val-card"><span class="text-xs text-gray-500 block">Identity</span><span class="text-xl font-mono text-amber-300 font-bold">${e}</span></div>
+            <div class="val-card"><span class="text-xs text-gray-500 block">Abelian?</span><span class="text-xl font-mono ${abelian ? 'text-green-400' : 'text-red-400'} font-bold">${abelian ? 'Yes' : 'No'}</span></div>
+        </div>
+        <div class="bg-black/40 p-3 rounded-xl">
+            <div class="text-xs text-gray-500 uppercase mb-1">Element Orders</div>
+            <div class="flex flex-wrap gap-2">${orders.map(({ el, ord }) => `<span class="bg-amber-900/40 border border-amber-500/30 px-2 py-1 rounded text-xs font-mono text-amber-200">ord(${el})=${ord}</span>`).join('')}</div>
+        </div>
+        <div class="bg-black/40 p-3 rounded-xl">
+            <div class="text-xs text-gray-500 uppercase mb-1">Generators (order = |G|)</div>
+            <div class="text-amber-200 font-mono text-sm">${generators.length ? generators.join(', ') : 'None (not cyclic)'}</div>
+        </div>`;
+        }
+
+        function findSubgroups() {
+            let { els, op } = currentGroup; let n = els.length, e = els[0];
+            let subgroups = [], found = [];
+            // Check all subsets (only feasible for small groups)
+            if (n > 16) { document.getElementById('subgroupResult').innerHTML = '<div class="text-gray-500">Group too large for brute-force subgroup search.</div>'; return; }
+            function subsets(arr) { if (!arr.length) return [[]]; let [first, ...rest] = arr; return subsets(rest).flatMap(s => [s, [first, ...s]]); }
+            let subs = subsets(els.slice(1));
+            for (let sub of subs) {
+                let H = [e, ...sub];
+                if (!H.every(a => H.every(b => H.includes(op(a, b))))) continue;
+                if (!H.every(a => H.includes(op(a === e ? e : H.find(b => op(a, b) === e) || e, a)))) continue;
+                let key = [...H].sort().join(','); if (!found.includes(key)) { found.push(key); subgroups.push(H.sort()); }
+            }
+            subgroups.sort((a, b) => a.length - b.length);
+            document.getElementById('subgroupResult').innerHTML = subgroups.map(H => `<div class="bg-black/40 p-3 rounded-xl border border-amber-500/20"><span class="text-amber-300 font-bold">|H|=${H.length}</span><span class="text-gray-500 mx-2">index=${n / H.length}</span><span class="text-gray-300 font-mono">{${H.join(', ')}}</span></div>`).join('');
+            document.getElementById('lagrangeResult').innerHTML = `|G| = ${n}. Found ${subgroups.length} subgroup(s). All orders divide ${n}: ${subgroups.map(H => H.length).join(', ')}.`;
+        }
+
+        function drawSymmetry() {
+            let n = parseInt(document.getElementById('symN').value) || 4;
+            const c = document.getElementById('symCanvas'); if (!c.width) return;
+            const cx = c.getContext('2d'), W = 280, H = 280, cx2 = W / 2, cy2 = H / 2, r = 100;
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            // Regular n-gon
+            let pts = Array.from({ length: n }, (_, i) => { let a = 2 * Math.PI * i / n - Math.PI / 2; return { x: cx2 + r * Math.cos(a), y: cy2 + r * Math.sin(a) }; });
+            cx.beginPath(); pts.forEach((p, i) => { i === 0 ? cx.moveTo(p.x, p.y) : cx.lineTo(p.x, p.y); }); cx.closePath(); cx.strokeStyle = '#f59e0b'; cx.lineWidth = 2; cx.stroke(); cx.fillStyle = 'rgba(245,158,11,0.08)'; cx.fill();
+            // Vertices
+            pts.forEach((p, i) => { cx.beginPath(); cx.arc(p.x, p.y, 5, 0, Math.PI * 2); cx.fillStyle = '#fbbf24'; cx.fill(); cx.fillStyle = 'white'; cx.font = '9px monospace'; cx.textAlign = 'center'; cx.fillText(i + 1, p.x, p.y - 9); });
+            // Symmetry axes (rotational & reflection)
+            cx.strokeStyle = 'rgba(245,158,11,0.25)'; cx.lineWidth = 1; cx.setLineDash([4, 4]);
+            for (let k = 0; k < n; k++) { let a = Math.PI * k / n - Math.PI / 2; cx.beginPath(); cx.moveTo(cx2 + r * 1.2 * Math.cos(a), cy2 + r * 1.2 * Math.sin(a)); cx.lineTo(cx2 - r * 1.2 * Math.cos(a), cy2 - r * 1.2 * Math.sin(a)); cx.stroke(); }
+            cx.setLineDash([]);
+            // Center
+            cx.beginPath(); cx.arc(cx2, cy2, 3, 0, Math.PI * 2); cx.fillStyle = '#94a3b8'; cx.fill();
+            document.getElementById('symProps').innerHTML = `
+        <div class="val-card"><span class="text-xs text-gray-500 block">Dihedral Group</span><span class="text-2xl font-mono text-amber-300 font-bold">D${n}</span></div>
+        <div class="val-card"><span class="text-xs text-gray-500 block">Order |D${n}|</span><span class="text-2xl font-mono text-amber-300 font-bold">${2 * n}</span></div>
+        <div class="val-card"><span class="text-xs text-gray-500 block">Rotations</span><span class="text-xl font-mono text-amber-200">${n} (by 360Â°/${n} each)</span></div>
+        <div class="val-card"><span class="text-xs text-gray-500 block">Reflections</span><span class="text-xl font-mono text-amber-200">${n} axes</span></div>
+        <div class="val-card"><span class="text-xs text-gray-500 block">Rotation angles</span><span class="font-mono text-sm text-amber-200">${Array.from({ length: n }, (_, i) => `${Math.round(360 * i / n)}Â°`).join(' ')}</span></div>`;
+        }
+
+        function gcd2(a, b) { while (b) { [a, b] = [b, a % b]; } return a; }
+        function modInv2(a, n2) { let [old_r, r] = [a, n2], [old_s, s] = [1, 0]; while (r) { let q = Math.floor(old_r / r);[old_r, r] = [r, old_r - q * r];[old_s, s] = [s, old_s - q * s]; } return ((old_s % n2) + n2) % n2; }
+        function modPow2(b, e, m) { let res = 1n; b = BigInt(b); e = BigInt(e); m = BigInt(m); b %= m; while (e > 0n) { if (e % 2n === 1n) res = res * b % m; e >>= 1n; b = b * b % m; } return Number(res); }
+
+        function runModular() {
+            let n = parseInt(document.getElementById('modn').value) || 7;
+            let a = parseInt(document.getElementById('moda').value) || 3;
+            let b2 = parseInt(document.getElementById('modb').value) || 5;
+            document.getElementById('modAdd').innerText = ((a + b2) % n + n) % n;
+            document.getElementById('modMul').innerText = (a * b2) % n;
+            document.getElementById('modInv').innerText = gcd2(a, n) === 1 ? modInv2(a, n) : 'âˆ„ (not coprime)';
+            document.getElementById('modPow').innerText = modPow2(a, b2, n);
+            // Multiplication table for â„¤â‚™*
+            let units = Array.from({ length: n }, (_, i) => i).filter(i => gcd2(i, n) === 1);
+            let html = `<table class="border-collapse"><tr><td class="px-1 py-0.5 bg-gray-900 border border-gray-700">Ã—</td>${units.map(u => `<td class="px-1 py-0.5 bg-amber-900/30 border border-gray-700 text-amber-300 font-bold">${u}</td>`).join('')}</tr>`;
+            units.forEach(u => { html += `<tr><td class="px-1 py-0.5 bg-amber-900/30 border border-gray-700 text-amber-300 font-bold">${u}</td>${units.map(v => `<td class="px-1 py-0.5 border border-gray-700 text-center text-gray-200">${(u * v) % n}</td>`).join('')}</tr>`; });
+            html += '</table>';
+            document.getElementById('ringTable').innerHTML = html;
+            let isPrime = n > 1 && Array.from({ length: n - 2 }, (_, i) => i + 2).every(k => n % k !== 0);
+            document.getElementById('fieldInfo').innerHTML = `â„¤${n} has ${units.length} units. ${isPrime ? `<span class="text-green-400">GF(${n}) is a field (${n} is prime).</span>` : `<span class="text-gray-500">â„¤${n} is only a ring (${n} is not prime).</span>`}`;
+        }
+
+        loadPresetGroup();
+        setTimeout(() => { const c = document.getElementById('symCanvas'); if (c) { c.width = 280; c.height = 280; drawSymmetry(); } }, 200);
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>
+

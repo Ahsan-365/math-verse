@@ -1,0 +1,298 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laplace Transforms - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-btn {
+            padding: .55rem 1rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .8rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(236, 72, 153, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(236, 72, 153, 0.25);
+            color: white;
+            border-color: #ec4899;
+            box-shadow: 0 0 12px rgba(236, 72, 153, 0.4);
+        }
+
+        .lp-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(236, 72, 153, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            font-family: monospace;
+            width: 100%;
+        }
+
+        .lp-input:focus {
+            border-color: #f472b6;
+            outline: none;
+        }
+
+        .val-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(236, 72, 153, 0.4);
+            border-radius: .75rem;
+            padding: .75rem;
+        }
+
+        .transform-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: .5rem;
+            padding: .5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            align-items: center;
+        }
+
+        .transform-row:hover {
+            background: rgba(236, 72, 153, 0.05);
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-rose-500 pb-2">
+            <i class="fas fa-exchange-alt text-pink-400"></i> Laplace Transforms
+        </h2>
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-pink-500/30">
+            <button class="tab-btn active" onclick="switchTab('table',this)">Transform Table</button>
+            <button class="tab-btn" onclick="switchTab('lookup',this)">Quick Lookup</button>
+            <button class="tab-btn" onclick="switchTab('ode2',this)">Solve ODE with Laplace</button>
+            <button class="tab-btn" onclick="switchTab('zform',this)">Z-Transform</button>
+        </div>
+
+        <!-- Table -->
+        <div id="tab-table" class="tab-content flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-pink-500/30 flex flex-col gap-2">
+                <h3 class="text-pink-300 font-bold text-xl">Complete Laplace Transform Reference Table</h3>
+                <div class="grid grid-cols-3 gap-2 bg-black/40 p-3 rounded-xl mb-2">
+                    <div class="text-pink-400 font-bold text-sm">f(t) (time domain)</div>
+                    <div class="text-pink-400 font-bold text-sm">F(s) = ℒ{f(t)}</div>
+                    <div class="text-pink-400 font-bold text-sm">Conditions</div>
+                </div>
+                <div id="lapTable" class="flex flex-col gap-0 text-sm"></div>
+            </div>
+        </div>
+
+        <!-- Lookup -->
+        <div id="tab-lookup" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-pink-500/30 flex flex-col gap-4">
+                <h3 class="text-pink-300 font-bold text-xl">Quick Transform Lookup</h3>
+                <div class="flex gap-3 flex-wrap items-end">
+                    <div class="flex-1"><label class="text-xs text-gray-400">Search f(t) or F(s)</label><input
+                            type="text" id="lapSearch" class="lp-input" placeholder="e.g. sin, e^at, 1/s^2..."
+                            oninput="searchTransform()"></div>
+                </div>
+                <div id="lapSearchResult" class="flex flex-col gap-2"></div>
+                <div class="bg-black/40 p-4 rounded-xl flex flex-col gap-3">
+                    <h4 class="text-pink-300 font-bold">Key Theorems</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm font-mono text-gray-300">
+                        <div class="bg-black/30 p-3 rounded-lg">
+                            <div class="text-pink-400 font-bold mb-1">Linearity</div>ℒ{af(t)+bg(t)} = aF(s)+bG(s)
+                        </div>
+                        <div class="bg-black/30 p-3 rounded-lg">
+                            <div class="text-pink-400 font-bold mb-1">First Derivative</div>ℒ{f'(t)} = sF(s) - f(0)
+                        </div>
+                        <div class="bg-black/30 p-3 rounded-lg">
+                            <div class="text-pink-400 font-bold mb-1">Second Derivative</div>ℒ{f''(t)} = s²F(s) - sf(0)
+                            - f'(0)
+                        </div>
+                        <div class="bg-black/30 p-3 rounded-lg">
+                            <div class="text-pink-400 font-bold mb-1">s-shifting</div>ℒ{eᵃᵗf(t)} = F(s-a)
+                        </div>
+                        <div class="bg-black/30 p-3 rounded-lg">
+                            <div class="text-pink-400 font-bold mb-1">t-shifting</div>ℒ{f(t-a)u(t-a)} = e⁻ᵃˢF(s)
+                        </div>
+                        <div class="bg-black/30 p-3 rounded-lg">
+                            <div class="text-pink-400 font-bold mb-1">Convolution</div>ℒ{(f*g)(t)} = F(s)·G(s)
+                        </div>
+                        <div class="bg-black/30 p-3 rounded-lg">
+                            <div class="text-pink-400 font-bold mb-1">Initial Value Thm</div>f(0⁺) = lim[s→∞] s·F(s)
+                        </div>
+                        <div class="bg-black/30 p-3 rounded-lg">
+                            <div class="text-pink-400 font-bold mb-1">Final Value Thm</div>f(∞) = lim[s→0] s·F(s)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Solve ODE -->
+        <div id="tab-ode2" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-pink-500/30 flex flex-col gap-4">
+                <h3 class="text-pink-300 font-bold text-xl">Solve 2nd-Order ODE via Laplace Transforms</h3>
+                <p class="text-sm text-gray-400">ay'' + by' + cy = g(t) with initial conditions y(0) = y₀, y'(0) = y₀'
+                </p>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    <div><label class="text-xs text-gray-400">a (y'')</label><input type="number" id="oa"
+                            class="lp-input" value="1" step="any" oninput="solveODE2Lap()"></div>
+                    <div><label class="text-xs text-gray-400">b (y')</label><input type="number" id="ob"
+                            class="lp-input" value="3" step="any" oninput="solveODE2Lap()"></div>
+                    <div><label class="text-xs text-gray-400">c (y)</label><input type="number" id="oc" class="lp-input"
+                            value="2" step="any" oninput="solveODE2Lap()"></div>
+                    <div><label class="text-xs text-gray-400">y(0)</label><input type="number" id="oy0" class="lp-input"
+                            value="0" step="any" oninput="solveODE2Lap()"></div>
+                    <div><label class="text-xs text-gray-400">y'(0)</label><input type="number" id="oyp0"
+                            class="lp-input" value="1" step="any" oninput="solveODE2Lap()"></div>
+                </div>
+                <div><label class="text-xs text-gray-400">g(t) forcing function</label>
+                    <select id="ogt" class="lp-input mt-1" onchange="solveODE2Lap()">
+                        <option value="0">g(t) = 0 (homogeneous)</option>
+                        <option value="1">g(t) = 1 (step)</option>
+                        <option value="exp">g(t) = e^(-t)</option>
+                        <option value="sin">g(t) = sin(t)</option>
+                        <option value="cos">g(t) = cos(t)</option>
+                    </select>
+                </div>
+                <div id="odeSteps"
+                    class="bg-black/50 border border-pink-500/40 rounded-xl p-4 font-mono text-sm text-gray-300 leading-loose">
+                </div>
+                <canvas id="odeCanvas2" class="w-full rounded-xl bg-black/60 border border-gray-700"
+                    style="height:240px"></canvas>
+            </div>
+        </div>
+
+        <!-- Z-Transform -->
+        <div id="tab-zform" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-pink-500/30 flex flex-col gap-4">
+                <h3 class="text-pink-300 font-bold text-xl">Z-Transform Reference</h3>
+                <p class="text-sm text-gray-400">The discrete-time analogue of the Laplace transform: Z{x[n]} = Σ
+                    x[n]z⁻ⁿ</p>
+                <div class="grid grid-cols-3 gap-2 bg-black/40 p-3 rounded-xl">
+                    <div class="text-pink-400 font-bold text-sm">x[n]</div>
+                    <div class="text-pink-400 font-bold text-sm">X(z)</div>
+                    <div class="text-pink-400 font-bold text-sm">ROC</div>
+                </div>
+                <div id="zTable" class="flex flex-col gap-0 text-sm"></div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); document.getElementById('tab-' + id).classList.remove('hidden'); if (id === 'ode2') setTimeout(solveODE2Lap, 50); }
+
+        const lapData = [
+            { ft: '1', Fs: '1/s', cond: 's > 0' },
+            { ft: 't', Fs: '1/s²', cond: 's > 0' },
+            { ft: 'tⁿ', Fs: 'n!/s^(n+1)', cond: 's > 0, n ∈ ℕ' },
+            { ft: 'tⁿ (non-int)', Fs: 'Γ(n+1)/s^(n+1)', cond: 's > 0' },
+            { ft: 'e^(at)', Fs: '1/(s-a)', cond: 's > a' },
+            { ft: 'te^(at)', Fs: '1/(s-a)²', cond: 's > a' },
+            { ft: 't²e^(at)', Fs: '2/(s-a)³', cond: 's > a' },
+            { ft: 'sin(ωt)', Fs: 'ω/(s²+ω²)', cond: 's > 0' },
+            { ft: 'cos(ωt)', Fs: 's/(s²+ω²)', cond: 's > 0' },
+            { ft: 'sin²(ωt)', Fs: '2ω²/[s(s²+4ω²)]', cond: 's > 0' },
+            { ft: 'cos²(ωt)', Fs: '(s²+2ω²)/[s(s²+4ω²)]', cond: 's > 0' },
+            { ft: 'e^(at)sin(ωt)', Fs: 'ω/[(s-a)²+ω²]', cond: 's > a' },
+            { ft: 'e^(at)cos(ωt)', Fs: '(s-a)/[(s-a)²+ω²]', cond: 's > a' },
+            { ft: 'sinh(at)', Fs: 'a/(s²-a²)', cond: 's > |a|' },
+            { ft: 'cosh(at)', Fs: 's/(s²-a²)', cond: 's > |a|' },
+            { ft: 'e^(at)sinh(bt)', Fs: 'b/[(s-a)²-b²]', cond: 's > a+|b|' },
+            { ft: 'e^(at)cosh(bt)', Fs: '(s-a)/[(s-a)²-b²]', cond: 's > a+|b|' },
+            { ft: 't·sin(ωt)', Fs: '2ωs/(s²+ω²)²', cond: 's > 0' },
+            { ft: 't·cos(ωt)', Fs: '(s²-ω²)/(s²+ω²)²', cond: 's > 0' },
+            { ft: 'δ(t) (Dirac)', Fs: '1', cond: 'all s' },
+            { ft: 'δ(t-a)', Fs: 'e^(-as)', cond: 's > 0, a ≥ 0' },
+            { ft: 'u(t) (Heaviside)', Fs: '1/s', cond: 's > 0' },
+            { ft: 'u(t-a)', Fs: 'e^(-as)/s', cond: 's > 0, a ≥ 0' },
+            { ft: 't^(1/2)', Fs: '√π/(2s^(3/2))', cond: 's > 0' },
+            { ft: '1/√(πt)', Fs: '1/√s', cond: 's > 0' },
+            { ft: 'ln(t)', Fs: '-(γ+ln(s))/s', cond: 's > 0 (γ=0.5772...)' },
+            { ft: 'J₀(t) Bessel', Fs: '1/√(s²+1)', cond: 's > 0' },
+        ];
+        const cols = ['#a78bfa', '#60a5fa', '#34d399', '#fbbf24', '#f87171'];
+
+        function renderLapTable() {
+            document.getElementById('lapTable').innerHTML = lapData.map((r, i) => `
+        <div class="transform-row" style="border-bottom:1px solid rgba(236,72,153,0.1)">
+            <div class="font-mono text-${['violet', 'sky', 'emerald', 'amber', 'rose'][i % 5]}-300 font-bold">${r.ft}</div>
+            <div class="font-mono text-gray-200">${r.Fs}</div>
+            <div class="text-xs text-gray-500">${r.cond}</div>
+        </div>`).join('');
+        }
+
+        function searchTransform() {
+            let q = document.getElementById('lapSearch').value.toLowerCase();
+            if (!q) { document.getElementById('lapSearchResult').innerHTML = ''; return; }
+            let matches = lapData.filter(r => r.ft.toLowerCase().includes(q) || r.Fs.toLowerCase().includes(q) || r.cond.toLowerCase().includes(q));
+            document.getElementById('lapSearchResult').innerHTML = matches.length ? matches.map(r => `<div class="bg-black/40 p-3 rounded-xl border border-pink-500/30 grid grid-cols-2 gap-4"><div><div class="text-xs text-gray-500">f(t)</div><div class="font-mono text-pink-300 font-bold">${r.ft}</div></div><div><div class="text-xs text-gray-500">F(s)</div><div class="font-mono text-gray-200">${r.Fs}</div></div></div>`).join('') : '<div class="text-gray-500 text-sm">No matches found</div>';
+        }
+
+        const zData = [
+            { xn: 'δ[n]', Xz: '1', roc: 'All z' },
+            { xn: 'u[n]', Xz: 'z/(z-1)', roc: '|z| > 1' },
+            { xn: 'aⁿu[n]', Xz: 'z/(z-a)', roc: '|z| > |a|' },
+            { xn: 'naⁿu[n]', Xz: 'az/(z-a)²', roc: '|z| > |a|' },
+            { xn: 'cos(ω₀n)u[n]', Xz: 'z(z-cos ω₀)/(z²-2z cos ω₀+1)', roc: '|z| > 1' },
+            { xn: 'sin(ω₀n)u[n]', Xz: 'z sin ω₀/(z²-2z cos ω₀+1)', roc: '|z| > 1' },
+            { xn: 'aⁿcos(ω₀n)u[n]', Xz: 'z(z-a cos ω₀)/(z²-2az cos ω₀+a²)', roc: '|z| > |a|' },
+            { xn: 'rⁿ(n≥0)', Xz: 'z/(z-r)', roc: '|z| > |r|' },
+        ];
+
+        function renderZTable() { document.getElementById('zTable').innerHTML = zData.map((r, i) => `<div class="transform-row" style="border-bottom:1px solid rgba(236,72,153,0.1)"><div class="font-mono text-pink-300 font-bold">${r.xn}</div><div class="font-mono text-gray-200 text-xs">${r.Xz}</div><div class="text-xs text-gray-500">${r.roc}</div></div>`).join(''); }
+
+        function solveODE2Lap() {
+            let a = parseFloat(document.getElementById('oa').value) || 1;
+            let b2 = parseFloat(document.getElementById('ob').value) || 0;
+            let c = parseFloat(document.getElementById('oc').value) || 0;
+            let y0 = parseFloat(document.getElementById('oy0').value) || 0;
+            let yp0 = parseFloat(document.getElementById('oyp0').value) || 0;
+            let gt = document.getElementById('ogt').value;
+            let disc = b2 * b2 - 4 * a * c;
+            let roots = disc >= 0 ?
+                [(-b2 + Math.sqrt(disc)) / (2 * a), (-b2 - Math.sqrt(disc)) / (2 * a)] :
+                [(-b2) / (2 * a) + '±' + Math.sqrt(-disc) / (2 * a) + 'i'];
+            let gtDesc = { 0: '0', 1: '1', exp: 'e^(-t)', sin: 'sin(t)', cos: 'cos(t)' }[gt];
+            let steps = `<b class="text-pink-400">Step 1:</b> Apply ℒ to both sides of ${a}y'' + ${b2}y' + ${c}y = ${gtDesc}<br>` +
+                `<b class="text-pink-400">Step 2:</b> (${a}s² + ${b2}s + ${c})Y(s) = G(s) + (${a}s + ${b2})y(0) + ${a}y'(0)<br>` +
+                `= G(s) + (${a}s + ${b2})·${y0} + ${a}·${yp0}<br>` +
+                `<b class="text-pink-400">Step 3:</b> Characteristic roots: s = ${roots.join(', ')}<br>` +
+                `<b class="text-pink-400">Step 4:</b> Y(s) = [G(s) + IC-terms] / (${a}s² + ${b2}s + ${c})<br>` +
+                `<b class="text-pink-400">Step 5:</b> Apply partial fractions and inverse Laplace transform.<br>`;
+            if (disc > 0) steps += `<b class="text-pink-400">Result type:</b> <span class="text-emerald-400">Over-damped</span> — two real distinct roots → y(t) = C₁e^(r₁t) + C₂e^(r₂t) + particular`;
+            else if (disc === 0) steps += `<b class="text-pink-400">Result type:</b> <span class="text-amber-400">Critically damped</span> — repeated root → y(t) = (C₁+C₂t)e^(rt)`;
+            else steps += `<b class="text-pink-400">Result type:</b> <span class="text-blue-400">Under-damped</span> — complex conjugate roots → y(t) = e^(αt)[C₁cos(βt) + C₂sin(βt)]`;
+            document.getElementById('odeSteps').innerHTML = steps;
+            // Numerical solution for canvas
+            let fn = (t, y, yp) => {
+                let g = { 0: 0, 1: 1, exp: Math.exp(-t), sin: Math.sin(t), cos: Math.cos(t) }[gt] || 0;
+                return (g - b2 * yp - c * y) / a;
+            };
+            let pts = [], h = 0.05, yi = y0, ypi = yp0;
+            for (let t = 0; t <= 15; t += h) { pts.push({ t, y: yi }); let k = fn(t, yi, ypi); ypi += h * k; yi += h * ypi; }
+            const cv = document.getElementById('odeCanvas2'); cv.width = cv.offsetWidth; cv.height = 240;
+            const cx2 = cv.getContext('2d'), W = cv.width, H = 240, pad = 35;
+            cx2.fillStyle = '#0f172a'; cx2.fillRect(0, 0, W, H);
+            let ys = pts.map(p => p.y).filter(isFinite); let yMin = Math.min(-0.5, ...ys), yMax = Math.max(0.5, ...ys);
+            const tx = t => pad + t / 15 * (W - pad - 10), ty = y => H - pad - (y - yMin) / (yMax - yMin) * (H - pad - 20);
+            cx2.strokeStyle = '#334155'; cx2.lineWidth = 1; cx2.beginPath(); cx2.moveTo(pad, ty(0)); cx2.lineTo(W - 10, ty(0)); cx2.stroke();
+            cx2.strokeStyle = '#ec4899'; cx2.lineWidth = 2.5; cx2.beginPath();
+            pts.forEach((p, i) => { if (!isFinite(p.y) || p.y < yMin - 10 || p.y > yMax + 10) return; i === 0 ? cx2.moveTo(tx(p.t), ty(p.y)) : cx2.lineTo(tx(p.t), ty(p.y)); });
+            cx2.stroke(); cx2.fillStyle = '#f472b6'; cx2.font = '10px monospace'; cx2.fillText('y(t)', W - 40, pad + 12);
+        }
+
+        renderLapTable(); renderZTable();
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Probability Simulators - Math Verse</title>
+    <title>Probability Engine - Math Verse</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -146,6 +146,8 @@
             <button class="tab-btn active" onclick="switchTab('basic')">Core Events & Dist.</button>
             <button class="tab-btn" onclick="switchTab('monty')">Monty Hall Problem</button>
             <button class="tab-btn" onclick="switchTab('bday')">Birthday Paradox</button>
+            <button class="tab-btn" onclick="switchTab('bayes')">Bayesian Inference</button>
+            <button class="tab-btn" onclick="switchTab('tree')">Probability Tree</button>
         </div>
 
         <div id="errorBox"
@@ -315,6 +317,49 @@
 
     </div>
 
+    
+        <!-- Tab 4: Bayesian Inference Engine -->
+        <div id="tab-bayes" class="tab-content hidden flex flex-col items-center gap-8 w-full max-w-4xl mx-auto">
+            <div class="bg-gray-900/50 p-8 rounded-2xl border border-pink-500/30 shadow-lg w-full flex flex-col md:flex-row gap-8 items-center">
+                <div class="flex-1 w-full flex flex-col gap-4">
+                    <h3 class="text-2xl font-bold text-pink-300 border-b border-gray-700 pb-2">Bayes' Theorem</h3>
+                    <p class="text-sm text-gray-400">P(H|E) = P(E|H)P(H) / P(E). Update probability for a hypothesis given new evidence.</p>
+                    <div><label class="text-xs font-bold text-gray-400 uppercase">Prior Probability P(H)</label><input type="number" id="bayesPrior" class="math-input text-lg mt-1" value="0.01" step="0.01" min="0" max="1"></div>
+                    <div><label class="text-xs font-bold text-gray-400 uppercase">True Positive Rate P(E|H)</label><input type="number" id="bayesTPR" class="math-input text-lg mt-1" value="0.95" step="0.01" min="0" max="1"></div>
+                    <div><label class="text-xs font-bold text-gray-400 uppercase">False Positive Rate P(E|¬H)</label><input type="number" id="bayesFPR" class="math-input text-lg mt-1" value="0.05" step="0.01" min="0" max="1"></div>
+                    <button class="btn bg-pink-600 hover:bg-pink-500 text-white font-bold py-3 mt-4" onclick="runBayes()">Compute Posterior</button>
+                </div>
+                <div class="flex-1 w-full bg-black/40 border border-gray-700 rounded-2xl p-6 flex flex-col justify-center gap-6 min-h-[280px]">
+                    <div class="text-center"><span class="block text-xs uppercase tracking-widest text-gray-500 font-bold mb-1">Marginal Likelihood P(E)</span><span id="bOutMarg" class="text-xl font-mono text-gray-300 font-bold">-</span></div>
+                    <div class="h-px bg-gray-700 w-full"></div>
+                    <div class="text-center"><span class="block text-sm uppercase tracking-widest text-pink-400 font-bold mb-2">Posterior P(H|E)</span>
+                        <div class="bg-pink-900/30 border border-pink-500/50 rounded-xl p-4"><span id="bOutPost" class="text-5xl font-mono font-black text-pink-300">0.00%</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 5: Probability Tree Builder -->
+        <div id="tab-tree" class="tab-content hidden flex flex-col gap-6 w-full">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-gray-900/50 p-5 rounded-2xl border border-purple-500/30">
+                    <h3 class="text-xl font-bold text-purple-300 mb-3">Tree Structure</h3>
+                    <div class="flex gap-2 mb-3"><input type="text" id="rootNodeLabel" placeholder="Root label (e.g. Start)" class="math-input"><button class="btn bg-purple-600 hover:bg-purple-500 font-bold px-4" onclick="addRoot()">Initialize</button></div>
+                    <div class="bg-black/40 p-2 rounded-lg text-xs text-gray-400">Selected: <span id="selectedNodeDisplay" class="text-purple-200 font-bold">None</span></div>
+                </div>
+                <div class="bg-gray-900/50 p-5 rounded-2xl border border-purple-500/30">
+                    <h3 class="text-xl font-bold text-purple-300 mb-3">Add Branch</h3>
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <div><label class="text-xs text-gray-400">Outcome Label</label><input type="text" id="branchLabel" class="math-input text-sm mt-1" placeholder="Heads"></div>
+                        <div><label class="text-xs text-gray-400">Probability</label><input type="number" id="branchProb" class="math-input text-sm mt-1" min="0" max="1" step="0.01" value="0.5"></div>
+                        <div class="col-span-2"><label class="text-xs text-gray-400">Child Node Name</label><input type="text" id="newNodeLabel" class="math-input text-sm mt-1" placeholder="Node 2"></div>
+                    </div>
+                    <button class="btn w-full bg-fuchsia-600 hover:bg-fuchsia-500 font-bold py-2 mt-1" onclick="addBranchToNode()">Branch Out</button>
+                </div>
+            </div>
+            <div class="flex justify-end"><button class="btn border border-red-500/50 text-red-400 text-sm px-4 py-1" onclick="clearTree()">Reset Tree</button></div>
+            <canvas id="probTreeCanvas" width="1000" height="500" class="w-full rounded-xl bg-black border border-gray-700"></canvas>
+        </div>
     <script src="script.js"></script>
     <script>
         function switchTab(id) {
@@ -559,8 +604,67 @@
             }
         }
 
+    
+        /* Bayesian Engine */
+        function runBayes() {
+            let p_h = parseFloat(document.getElementById('bayesPrior').value);
+            let p_tpr = parseFloat(document.getElementById('bayesTPR').value);
+            let p_fpr = parseFloat(document.getElementById('bayesFPR').value);
+            let marginal_e = (p_tpr * p_h) + (p_fpr * (1 - p_h));
+            let posterior = marginal_e > 0 ? (p_tpr * p_h) / marginal_e : 0;
+            document.getElementById('bOutMarg').innerText = marginal_e.toFixed(6);
+            document.getElementById('bOutPost').innerText = (posterior * 100).toFixed(2) + "%";
+        }
+
+        /* Probability Tree */
+        const ptCanvas = document.getElementById('probTreeCanvas');
+        const ptCtx = ptCanvas ? ptCanvas.getContext('2d') : null;
+        let tData = { nodes: new Map(), branches: new Map(), rootId: null, nIdCtr: 0, bIdCtr: 0, selId: null };
+        const RAD=30, COL_N='#9333ea', COL_SEL='#ec4899', COL_LIN='rgba(192,132,252,0.7)', LVL_Y=120, MIN_X=80;
+
+        function addRoot() {
+            const label = document.getElementById('rootNodeLabel').value.trim() || 'Start';
+            if (tData.rootId) { alert('Clear tree first.'); return; }
+            tData.rootId = 'n' + tData.nIdCtr++;
+            tData.nodes.set(tData.rootId, { id: tData.rootId, label, x: 0, y: 0, parentB: null, children: [] });
+            selectN(tData.rootId); drawTree();
+        }
+        function addBranchToNode() {
+            if (!tData.selId) { alert('Select a node first.'); return; }
+            const bl = document.getElementById('branchLabel').value.trim() || 'Choice';
+            const bp = parseFloat(document.getElementById('branchProb').value);
+            const nl = document.getElementById('newNodeLabel').value.trim() || 'Node';
+            if (isNaN(bp) || bp < 0 || bp > 1) { alert('Probability must be 0-1.'); return; }
+            let cId = 'n' + tData.nIdCtr++, bId = 'b' + tData.bIdCtr++;
+            tData.nodes.set(cId, { id: cId, label: nl, x: 0, y: 0, parentB: bId, children: [] });
+            tData.branches.set(bId, { id: bId, from: tData.selId, to: cId, label: bl, prob: bp });
+            tData.nodes.get(tData.selId).children.push(cId);
+            selectN(cId); drawTree();
+        }
+        function clearTree() { tData = { nodes: new Map(), branches: new Map(), rootId: null, nIdCtr: 0, bIdCtr: 0, selId: null }; selectN(null); drawTree(); }
+        function selectN(id) { tData.selId = id; document.getElementById('selectedNodeDisplay').innerText = id ? tData.nodes.get(id).label : 'None'; drawTree(); }
+        ptCanvas && ptCanvas.addEventListener('click', e => { const r = ptCanvas.getBoundingClientRect(); const x=(e.clientX-r.left)*(ptCanvas.width/r.width),y=(e.clientY-r.top)*(ptCanvas.height/r.height); let hit=null; for(let [id,n] of tData.nodes)if(Math.hypot(n.x-x,n.y-y)<=RAD){hit=id;break;} selectN(hit); });
+        function layoutTree() { if(!tData.rootId)return; let q=[{id:tData.rootId,d:0}],maxD=0; const depths=new Map(); depths.set(tData.rootId,0); while(q.length){let cur=q.shift();maxD=Math.max(maxD,cur.d);let n=tData.nodes.get(cur.id);n.y=cur.d*LVL_Y+RAD+40;n.children.forEach(c=>{if(!depths.has(c)){depths.set(c,cur.d+1);q.push({id:c,d:cur.d+1});}});} const sw=new Map(); function calcW(id){let n=tData.nodes.get(id);if(!n.children.length){sw.set(id,RAD*2+MIN_X);return RAD*2+MIN_X;}let w=0;n.children.forEach(c=>w+=calcW(c));let mw=Math.max(RAD*2+MIN_X,w);sw.set(id,mw);return mw;} calcW(tData.rootId); function posX(id,xS){let n=tData.nodes.get(id),rw=sw.get(id);n.x=xS+rw/2;let cx=xS;n.children.forEach(c=>{posX(c,cx);cx+=sw.get(c);});} posX(tData.rootId,(ptCanvas.width-sw.get(tData.rootId))/2); }
+        function drawTree() { if(!ptCtx)return; ptCtx.clearRect(0,0,ptCanvas.width,ptCanvas.height); layoutTree(); for(let[,b]of tData.branches){let f=tData.nodes.get(b.from),t=tData.nodes.get(b.to);ptCtx.beginPath();ptCtx.moveTo(f.x,f.y);ptCtx.lineTo(t.x,t.y);ptCtx.strokeStyle=COL_LIN;ptCtx.lineWidth=2;ptCtx.stroke();let mx=(f.x+t.x)/2,my=(f.y+t.y)/2,ang=Math.atan2(t.y-f.y,t.x-f.x),ox=-Math.sin(ang)*15,oy=Math.cos(ang)*15;ptCtx.fillStyle='#fbcfe8';ptCtx.font='11px monospace';ptCtx.textAlign='center';ptCtx.textBaseline='middle';ptCtx.fillText(`${b.label}(${b.prob})`,mx+ox,my+oy);} for(let[id,n]of tData.nodes){ptCtx.beginPath();ptCtx.arc(n.x,n.y,RAD,0,Math.PI*2);ptCtx.fillStyle=id===tData.selId?COL_SEL:COL_N;ptCtx.fill();ptCtx.strokeStyle='#fff';ptCtx.lineWidth=1;ptCtx.stroke();ptCtx.fillStyle='#fff';ptCtx.font='bold 11px Inter';ptCtx.textAlign='center';ptCtx.textBaseline='middle';let l=n.label;if(l.length>7)l=l.slice(0,5)+'..';ptCtx.fillText(l,n.x,n.y);} if(tData.rootId){let leaves=[];function dfs(id,cp){let n=tData.nodes.get(id),bp=n.parentB?tData.branches.get(n.parentB).prob:1,tp=cp*bp;if(!n.children.length)leaves.push({id,p:tp});else n.children.forEach(c=>dfs(c,tp));}dfs(tData.rootId,1);ptCtx.fillStyle='#2dd4bf';ptCtx.font='bold 13px monospace';ptCtx.textAlign='left';leaves.forEach(lv=>{let cn=tData.nodes.get(lv.id);ptCtx.fillText(`P=${lv.p.toFixed(4)}`,cn.x+RAD+5,cn.y);});} }
+
+        // Update switchTab to handle new tabs
+        const _origSwitch = typeof switchTab !== 'undefined' ? switchTab : null;
+        function switchTab(id) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById('tab-' + id).classList.remove('hidden');
+            document.getElementById('errorBox')?.classList.add('hidden');
+            if (id === 'basic' && !distChartData) setTimeout(() => runDist(), 50);
+            if (id === 'bday' && !bdayChartData) setTimeout(() => runBdayInit(), 50);
+            if (id === 'monty') mhReset();
+            if (id === 'bayes') runBayes();
+            if (id === 'tree') drawTree();
+        }
+        setTimeout(() => runBayes(), 100);
     </script>
     <script src="ai-chat.js"></script>
 </body>
 
 </html>
+

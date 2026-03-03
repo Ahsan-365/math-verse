@@ -1,0 +1,342 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optimization - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-btn {
+            padding: .55rem 1rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .8rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(16, 185, 129, 0.25);
+            color: white;
+            border-color: #10b981;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+        }
+
+        .o-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            font-family: monospace;
+            width: 100%;
+        }
+
+        .o-input:focus {
+            border-color: #34d399;
+            outline: none;
+        }
+
+        .val-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            border-radius: .75rem;
+            padding: .75rem;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-500 pb-2">
+            <i class="fas fa-chart-line text-emerald-400"></i> Optimization Methods
+        </h2>
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-emerald-500/30">
+            <button class="tab-btn active" onclick="switchTab('gd',this)">Gradient Descent</button>
+            <button class="tab-btn" onclick="switchTab('newton',this)">Newton's Method</button>
+            <button class="tab-btn" onclick="switchTab('golden',this)">Golden Section Search</button>
+            <button class="tab-btn" onclick="switchTab('lagrange',this)">Lagrange Multipliers</button>
+        </div>
+
+        <!-- Gradient Descent -->
+        <div id="tab-gd" class="tab-content flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-emerald-500/30 flex flex-col gap-4">
+                <h3 class="text-emerald-300 font-bold text-xl">Gradient Descent Visualizer</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div><label class="text-xs text-gray-400">Function f(x)</label>
+                        <select id="gdFunc" class="o-input mt-1 text-sm" onchange="initGD()">
+                            <option value="0">x² (Bowl)</option>
+                            <option value="1">(x−2)²+(x+1)² (Shifted)</option>
+                            <option value="2">x⁴−3x²+x (Multi-modal)</option>
+                            <option value="3">sin(x)+0.1x²</option>
+                            <option value="4">|x−1|+|x+2|</option>
+                        </select>
+                    </div>
+                    <div><label class="text-xs text-gray-400">Start x₀</label><input type="number" id="gdX0"
+                            class="o-input" value="4" step="0.5" oninput="initGD()"></div>
+                    <div><label class="text-xs text-gray-400">Learning rate α</label><input type="number" id="gdAlpha"
+                            class="o-input" value="0.1" step="0.01" min="0.001" max="1" oninput="initGD()"></div>
+                    <div><label class="text-xs text-gray-400">Max iterations</label><input type="number" id="gdIter"
+                            class="o-input" value="50" min="5" max="200" step="5" oninput="initGD()"></div>
+                </div>
+                <div class="flex gap-3 flex-wrap">
+                    <button class="btn bg-emerald-700 hover:bg-emerald-600 font-bold" onclick="runGD()">Run GD</button>
+                    <button class="btn bg-gray-700 hover:bg-gray-600 text-sm" onclick="gdStep()">Step</button>
+                    <button class="btn bg-gray-700 hover:bg-gray-600 text-sm" onclick="initGD()">Reset</button>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Steps taken</span><span id="gdSteps"
+                            class="text-2xl font-mono text-emerald-300 font-bold">0</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Current x</span><span id="gdCurX"
+                            class="text-2xl font-mono text-emerald-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">f(x)</span><span id="gdCurFx"
+                            class="text-2xl font-mono text-emerald-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">|∇f|</span><span id="gdGrad"
+                            class="text-2xl font-mono text-emerald-300 font-bold">—</span></div>
+                </div>
+                <canvas id="gdCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:300px"></canvas>
+            </div>
+        </div>
+
+        <!-- Newton's Method -->
+        <div id="tab-newton" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-emerald-500/30 flex flex-col gap-4">
+                <h3 class="text-emerald-300 font-bold text-xl">Newton-Raphson Root Finder: xₙ₊₁ = xₙ − f(xₙ)/f'(xₙ)</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="md:col-span-2"><label class="text-xs text-gray-400">Function f(x)</label>
+                        <select id="nrFunc" class="o-input mt-1 text-sm" onchange="initNR()">
+                            <option value="0">x³−x−2</option>
+                            <option value="1">x²−2 (√2)</option>
+                            <option value="2">cos(x)−x</option>
+                            <option value="3">eˣ−3</option>
+                            <option value="4">x⁴−1</option>
+                        </select>
+                    </div>
+                    <div><label class="text-xs text-gray-400">Start x₀</label><input type="number" id="nrX0"
+                            class="o-input" value="2" step="0.5" oninput="initNR()"></div>
+                    <div><label class="text-xs text-gray-400">Tolerance ε</label><input type="number" id="nrTol"
+                            class="o-input" value="0.0001" step="0.0001" oninput="initNR()"></div>
+                </div>
+                <div class="flex gap-3 flex-wrap">
+                    <button class="btn bg-emerald-700 hover:bg-emerald-600 font-bold" onclick="runNR()">Find
+                        Root</button>
+                    <button class="btn bg-gray-700 hover:bg-gray-600 text-sm" onclick="nrStep()">Step</button>
+                    <button class="btn bg-gray-700 hover:bg-gray-600 text-sm" onclick="initNR()">Reset</button>
+                </div>
+                <canvas id="nrCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:280px"></canvas>
+                <div class="overflow-x-auto" id="nrTable"></div>
+            </div>
+        </div>
+
+        <!-- Golden Section -->
+        <div id="tab-golden" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-emerald-500/30 flex flex-col gap-4">
+                <h3 class="text-emerald-300 font-bold text-xl">Golden Section Search — Unimodal Minimum</h3>
+                <p class="text-sm text-gray-400">Finds minimum of a unimodal function on [a,b] using golden ratio
+                    φ=(1+√5)/2 to shrink interval by factor 1/φ each step.</p>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div><label class="text-xs text-gray-400">Function</label>
+                        <select id="gsFunc" class="o-input mt-1 text-sm" onchange="runGS()">
+                            <option value="0">x²−4x+5</option>
+                            <option value="1">(x−3)²+2</option>
+                            <option value="2">x⁴−8x²+5</option>
+                            <option value="3">sin(x)+x²/10</option>
+                        </select>
+                    </div>
+                    <div><label class="text-xs text-gray-400">a (left)</label><input type="number" id="gsA"
+                            class="o-input" value="-1" step="0.5" oninput="runGS()"></div>
+                    <div><label class="text-xs text-gray-400">b (right)</label><input type="number" id="gsB"
+                            class="o-input" value="5" step="0.5" oninput="runGS()"></div>
+                    <div><label class="text-xs text-gray-400">Tolerance</label><input type="number" id="gsTol"
+                            class="o-input" value="0.001" step="0.001" oninput="runGS()"></div>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="val-card"><span class="text-xs text-gray-500 block">x* (minimum)</span><span
+                            id="gsXStar" class="text-2xl font-mono text-emerald-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">f(x*)</span><span id="gsFStar"
+                            class="text-2xl font-mono text-emerald-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Iterations</span><span id="gsIter"
+                            class="text-2xl font-mono text-emerald-300 font-bold">—</span></div>
+                </div>
+                <canvas id="gsCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:260px"></canvas>
+            </div>
+        </div>
+
+        <!-- Lagrange -->
+        <div id="tab-lagrange" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-emerald-500/30 flex flex-col gap-4">
+                <h3 class="text-emerald-300 font-bold text-xl">Lagrange Multipliers — Constrained Optimization</h3>
+                <p class="text-sm text-gray-400">Optimize f(x,y) subject to g(x,y)=0 by solving ∇f = λ∇g.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-3">
+                        <div><label class="text-xs text-gray-400">Objective f</label>
+                            <select id="lagF" class="o-input mt-1 text-sm" onchange="runLagrange()">
+                                <option value="0">f = x²+y² (distance²)</option>
+                                <option value="1">f = x·y (product)</option>
+                                <option value="2">f = x+2y (linear)</option>
+                            </select>
+                        </div>
+                        <div><label class="text-xs text-gray-400">Constraint g(x,y)=0</label>
+                            <select id="lagG" class="o-input mt-1 text-sm" onchange="runLagrange()">
+                                <option value="0">x+y−1=0 (line)</option>
+                                <option value="1">x²+y²−1=0 (unit circle)</option>
+                                <option value="2">x²+4y²−4=0 (ellipse)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="lagResult"
+                        class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300 leading-loose"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); document.getElementById('tab-' + id).classList.remove('hidden'); if (id === 'gd') initGD(); if (id === 'newton') initNR(); if (id === 'golden') runGS(); if (id === 'lagrange') runLagrange(); }
+        function f4(v) { return isFinite(v) ? parseFloat(v.toFixed(6)).toString() : '—'; }
+
+        // ---- GRADIENT DESCENT ----
+        const gdFuncs = [
+            { f: x => x ** 2, df: x => 2 * x, label: 'f(x)=x²', xRange: [-5, 5] },
+            { f: x => (x - 2) ** 2 + (x + 1) ** 2, df: x => 2 * (x - 2) + 2 * (x + 1), label: 'f(x)=(x-2)²+(x+1)²', xRange: [-5, 5] },
+            { f: x => x ** 4 - 3 * x ** 2 + x, df: x => 4 * x ** 3 - 6 * x + 1, label: 'f(x)=x⁴−3x²+x', xRange: [-3, 3] },
+            { f: x => Math.sin(x) + 0.1 * x ** 2, df: x => Math.cos(x) + 0.2 * x, label: 'f(x)=sin(x)+0.1x²', xRange: [-6, 6] },
+            { f: x => Math.abs(x - 1) + Math.abs(x + 2), df: x => (x > 1 ? 1 : x < 1 ? -1 : 0) + (x > -2 ? 1 : x < -2 ? -1 : 0), label: 'f(x)=|x-1|+|x+2|', xRange: [-5, 5] },
+        ];
+        let gdState = { path: [], stepN: 0 };
+        function getGDFunc() { return gdFuncs[parseInt(document.getElementById('gdFunc').value)]; }
+        function initGD() { let x0 = parseFloat(document.getElementById('gdX0').value) || 4; gdState = { path: [{ x: x0, y: getGDFunc().f(x0) }], stepN: 0 }; updateGDStats(x0); drawGD(); }
+        function updateGDStats(x) { let fn = getGDFunc(); let fx = fn.f(x), grad = fn.df(x); document.getElementById('gdSteps').innerText = gdState.stepN; document.getElementById('gdCurX').innerText = f4(x); document.getElementById('gdCurFx').innerText = f4(fx); document.getElementById('gdGrad').innerText = f4(Math.abs(grad)); }
+        function gdStep() {
+            let fn = getGDFunc(); let alpha = parseFloat(document.getElementById('gdAlpha').value) || 0.1;
+            let last = gdState.path[gdState.path.length - 1]; let grad = fn.df(last.x); let nx = last.x - alpha * grad;
+            gdState.path.push({ x: nx, y: fn.f(nx) }); gdState.stepN++; updateGDStats(nx); drawGD();
+        }
+        function runGD() { let maxI = parseInt(document.getElementById('gdIter').value) || 50; for (let i = 0; i < maxI; i++)gdStep(); }
+        function drawGD() {
+            let fn = getGDFunc(), xr = fn.xRange;
+            const cv = document.getElementById('gdCanvas'); cv.width = cv.offsetWidth; cv.height = 300;
+            const cx = cv.getContext('2d'), W = cv.width, H = 300, pad = 40;
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let xs = Array.from({ length: 200 }, (_, i) => xr[0] + i / 199 * (xr[1] - xr[0]));
+            let ys = xs.map(x => fn.f(x)); let minY = Math.min(...ys) - 0.5, maxY = Math.max(...ys) + 0.5;
+            const tx = v => pad + (v - xr[0]) / (xr[1] - xr[0]) * (W - 2 * pad);
+            const ty = v => H - pad - (v - minY) / (maxY - minY) * (H - 2 * pad);
+            // Axes
+            cx.strokeStyle = '#334155'; cx.lineWidth = 1; if (minY < 0 && maxY > 0) { cx.beginPath(); cx.moveTo(pad, ty(0)); cx.lineTo(W - pad, ty(0)); cx.stroke(); }
+            // Curve
+            cx.strokeStyle = '#10b981'; cx.lineWidth = 2; cx.beginPath(); xs.forEach((x, i) => i === 0 ? cx.moveTo(tx(x), ty(fn.f(x))) : cx.lineTo(tx(x), ty(fn.f(x)))); cx.stroke();
+            // Path dots
+            gdState.path.forEach((pt, i) => { cx.beginPath(); cx.arc(tx(pt.x), ty(pt.y), 4, 0, Math.PI * 2); cx.fillStyle = i === gdState.path.length - 1 ? '#fbbf24' : 'rgba(16,185,129,0.6)'; cx.fill(); });
+            // Connect dots
+            if (gdState.path.length > 1) { cx.strokeStyle = 'rgba(251,191,36,0.5)'; cx.lineWidth = 1; cx.beginPath(); gdState.path.forEach((pt, i) => i === 0 ? cx.moveTo(tx(pt.x), ty(pt.y)) : cx.lineTo(tx(pt.x), ty(pt.y))); cx.stroke(); }
+            // Label
+            cx.fillStyle = '#10b981'; cx.font = '11px monospace'; cx.textAlign = 'center'; cx.fillText(fn.label, W / 2, 20);
+        }
+
+        // ---- NEWTON-RAPHSON ----
+        const nrFuncs = [
+            { f: x => x ** 3 - x - 2, df: x => 3 * x ** 2 - 1, label: 'f(x)=x³−x−2' },
+            { f: x => x ** 2 - 2, df: x => 2 * x, label: 'f(x)=x²−2' },
+            { f: x => Math.cos(x) - x, df: x => -Math.sin(x) - 1, label: 'f(x)=cos(x)−x' },
+            { f: x => Math.exp(x) - 3, df: x => Math.exp(x), label: 'f(x)=eˣ−3' },
+            { f: x => x ** 4 - 1, df: x => 4 * x ** 3, label: 'f(x)=x⁴−1' },
+        ];
+        let nrState = { path: [], stepN: 0 };
+        function getNRFunc() { return nrFuncs[parseInt(document.getElementById('nrFunc').value)]; }
+        function initNR() { let x0 = parseFloat(document.getElementById('nrX0').value) || 2; nrState = { path: [{ x: x0 }], stepN: 0 }; document.getElementById('nrTable').innerHTML = ''; drawNR(); }
+        function nrStep() {
+            let fn = getNRFunc(), tol = parseFloat(document.getElementById('nrTol').value) || 0.0001;
+            let last = nrState.path[nrState.path.length - 1].x; let fx = fn.f(last), dfx = fn.df(last);
+            if (Math.abs(dfx) < 1e-12) { document.getElementById('nrTable').innerHTML += '<div class="text-red-400 text-xs">f′(x)≈0 — derivative too small</div>'; return; }
+            let nx = last - fx / dfx; nrState.path.push({ x: nx }); nrState.stepN++;
+            let row = `<tr><td class="px-2 py-0.5 border border-gray-800 text-center text-xs">${nrState.stepN}</td><td class="px-2 py-0.5 border border-gray-800 font-mono text-xs">${f4(last)}</td><td class="px-2 py-0.5 border border-gray-800 font-mono text-xs">${f4(fx)}</td><td class="px-2 py-0.5 border border-gray-800 font-mono text-xs">${f4(dfx)}</td><td class="px-2 py-0.5 border border-gray-800 font-mono text-xs text-emerald-300">${f4(nx)}</td><td class="px-2 py-0.5 border border-gray-800 font-mono text-xs">${f4(Math.abs(nx - last))}</td></tr>`;
+            let tbl = document.getElementById('nrTable');
+            if (!tbl.innerHTML.includes('<table>')) { tbl.innerHTML = '<table class="border-collapse text-xs w-full mt-2"><tr class="bg-gray-900 text-emerald-400"><th class="px-2 py-0.5 border border-gray-700">n</th><th class="px-2 py-0.5 border border-gray-700">xₙ</th><th class="px-2 py-0.5 border border-gray-700">f(xₙ)</th><th class="px-2 py-0.5 border border-gray-700">f\'(xₙ)</th><th class="px-2 py-0.5 border border-gray-700">xₙ₊₁</th><th class="px-2 py-0.5 border border-gray-700">|Δx|</th></tr></table>'; }
+            tbl.querySelector('table').innerHTML += row;
+            drawNR(); if (Math.abs(nx - last) < tol) { tbl.innerHTML += '<div class="text-green-400 text-sm font-bold mt-2">Converged! Root ≈ ' + f4(nx) + '</div>'; }
+        }
+        function runNR() { let maxI = 30; for (let i = 0; i < maxI; i++) { let fn = getNRFunc(), tol = parseFloat(document.getElementById('nrTol').value) || 0.0001; let last = nrState.path[nrState.path.length - 1].x; let fx = fn.f(last), dfx = fn.df(last); if (Math.abs(dfx) < 1e-12) break; let nx = last - fx / dfx; if (Math.abs(nx - last) < tol) { nrStep(); break; } nrStep(); } }
+        function drawNR() {
+            let fn = getNRFunc(); let xc = nrState.path[nrState.path.length - 1].x; let xRange = [xc - 4, xc + 4];
+            const cv = document.getElementById('nrCanvas'); cv.width = cv.offsetWidth; cv.height = 280;
+            const cx = cv.getContext('2d'), W = cv.width, H = 280, pad = 40;
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let xs = Array.from({ length: 200 }, (_, i) => xRange[0] + i / 199 * (xRange[1] - xRange[0]));
+            let ys = xs.map(x => fn.f(x)).filter(isFinite); let minY = Math.min(...ys), maxY = Math.max(...ys); let span = Math.max(1, maxY - minY); minY -= span * 0.1; maxY += span * 0.1;
+            const tx = v => pad + (v - xRange[0]) / (xRange[1] - xRange[0]) * (W - 2 * pad);
+            const ty = v => H - pad - (v - minY) / (maxY - minY) * (H - 2 * pad);
+            if (minY < 0 && maxY > 0) { cx.strokeStyle = '#334155'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(pad, ty(0)); cx.lineTo(W - pad, ty(0)); cx.stroke(); }
+            cx.strokeStyle = '#10b981'; cx.lineWidth = 2; cx.beginPath(); let first = true; xs.forEach(x => { let y = fn.f(x); if (isFinite(y)) { if (first) { cx.moveTo(tx(x), ty(y)); first = false; } else cx.lineTo(tx(x), ty(y)); } }); cx.stroke();
+            // Newton tangent lines
+            nrState.path.slice(-3).forEach((pt, i) => { let x = pt.x, fx = fn.f(x), dfx = fn.df(x); if (!isFinite(fx) || !isFinite(dfx)) return; let x0 = x - 2, x1 = x + 2; cx.strokeStyle = `rgba(251,191,36,${0.3 + i * 0.3})`; cx.lineWidth = 1.5; cx.beginPath(); cx.moveTo(tx(x0), ty(fx + dfx * (x0 - x))); cx.lineTo(tx(x1), ty(fx + dfx * (x1 - x))); cx.stroke(); cx.beginPath(); cx.arc(tx(x), ty(fx), 5, 0, Math.PI * 2); cx.fillStyle = '#fbbf24'; cx.fill(); });
+            cx.fillStyle = '#10b981'; cx.font = '11px monospace'; cx.textAlign = 'center'; cx.fillText(fn.label, W / 2, 20);
+        }
+
+        // ---- GOLDEN SECTION ----
+        const gsFuncs = [
+            { f: x => x ** 2 - 4 * x + 5, label: 'x²−4x+5' },
+            { f: x => (x - 3) ** 2 + 2, label: '(x-3)²+2' },
+            { f: x => x ** 4 - 8 * x ** 2 + 5, label: 'x⁴−8x²+5' },
+            { f: x => Math.sin(x) + x ** 2 / 10, label: 'sin(x)+x²/10' },
+        ];
+        function getGSFunc() { return gsFuncs[parseInt(document.getElementById('gsFunc').value)]; }
+        function runGS() {
+            let fn = getGSFunc(), a = parseFloat(document.getElementById('gsA').value), b = parseFloat(document.getElementById('gsB').value), tol = parseFloat(document.getElementById('gsTol').value) || 0.001;
+            let phi = (1 + Math.sqrt(5)) / 2, iter = 0;
+            while (b - a > tol && iter < 200) { let c = b - (b - a) / phi, d = a + (b - a) / phi; if (fn.f(c) < fn.f(d)) b = d; else a = c; iter++; }
+            let xstar = (a + b) / 2; document.getElementById('gsXStar').innerText = f4(xstar); document.getElementById('gsFStar').innerText = f4(fn.f(xstar)); document.getElementById('gsIter').innerText = iter;
+            const cv = document.getElementById('gsCanvas'); cv.width = cv.offsetWidth; cv.height = 260;
+            const cx = cv.getContext('2d'), W = cv.width, H = 260, pad = 40;
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let x0 = parseFloat(document.getElementById('gsA').value), x1 = parseFloat(document.getElementById('gsB').value);
+            let xs = Array.from({ length: 200 }, (_, i) => x0 + i / 199 * (x1 - x0)); let ys = xs.map(x => fn.f(x));
+            let minY = Math.min(...ys) - 0.1, maxY = Math.max(...ys) + 0.1;
+            const tx = v => pad + (v - x0) / (x1 - x0) * (W - 2 * pad), ty = v => H - pad - (v - minY) / (maxY - minY) * (H - 2 * pad);
+            if (minY < 0 && maxY > 0) { cx.strokeStyle = '#334155'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(pad, ty(0)); cx.lineTo(W - pad, ty(0)); cx.stroke(); }
+            cx.strokeStyle = '#10b981'; cx.lineWidth = 2; cx.beginPath(); xs.forEach((x, i) => i === 0 ? cx.moveTo(tx(x), ty(fn.f(x))) : cx.lineTo(tx(x), ty(fn.f(x)))); cx.stroke();
+            cx.beginPath(); cx.arc(tx(xstar), ty(fn.f(xstar)), 7, 0, Math.PI * 2); cx.fillStyle = '#fbbf24'; cx.fill();
+            cx.fillStyle = '#fbbf24'; cx.font = '11px monospace'; cx.textAlign = 'center'; cx.fillText(`min ≈ (${f4(xstar)}, ${f4(fn.f(xstar))})`, tx(xstar), ty(fn.f(xstar)) - 14);
+            cx.fillStyle = '#10b981'; cx.fillText(fn.label, W / 2, 20);
+        }
+
+        // ---- LAGRANGE MULTIPLIERS ----
+        const lagCases = [
+            { fi: 0, gi: 0, solution: 'Minimize x²+y² subject to x+y=1 → x=y=½, min=½', result: 'Critical point: (½, ½), f=½, λ=1' },
+            { fi: 0, gi: 1, solution: 'Minimize x²+y² on unit circle → (x,y)=(±1,0) or (0,±1)... actually on circle min is 0... any point! max=(±1/√2,±1/√2), f=1', result: 'On unit circle: min f=1 (all points have f=1), trivially' },
+            { fi: 1, gi: 0, solution: 'Maximize xy subject to x+y=1 → x=y=½, max=¼, λ=½', result: 'Max xy on x+y=1: x=y=½, max=¼' },
+            { fi: 2, gi: 1, solution: 'Maximize x+2y on unit circle → (x,y)=(1/√5, 2/√5), max=√5, λ=√5/2', result: 'Max x+2y on circle: (1/√5, 2/√5)≈(0.447,0.894), max=√5≈2.236' },
+            { fi: 1, gi: 2, solution: 'Maximize xy on ellipse x²+4y²=4 → (±√2, ±√2/2), max=1', result: 'Max xy on ellipse: (√2, √2/2)≈(1.414, 0.707), max=1' },
+            { fi: 2, gi: 2, solution: 'Maximize x+2y on ellipse x²+4y²=4 → gradient matching', result: 'Max x+2y on ellipse x²+4y²=4: x=2/√5, y=4/√5≈0.894/1.789, max≈4.47' },
+        ];
+        function runLagrange() {
+            let fi = parseInt(document.getElementById('lagF').value), gi = parseInt(document.getElementById('lagG').value);
+            let fLabels = ['f(x,y)=x²+y²', 'f(x,y)=xy', 'f(x,y)=x+2y'];
+            let gLabels = ['g: x+y−1=0', 'g: x²+y²−1=0', 'g: x²+4y²−4=0'];
+            let c = lagCases[fi * 3 + gi] || lagCases[0];
+            document.getElementById('lagResult').innerHTML =
+                `<b class="text-emerald-400">Objective:</b> ${fLabels[fi]}<br><b class="text-emerald-400">Constraint:</b> ${gLabels[gi]}<br><br>` +
+                `<b class="text-emerald-300">Lagrange condition:</b> ∇f = λ∇g<br><br>` +
+                `<b class="text-yellow-300">Result:</b><br>${c.result}<br><br>` +
+                `<span class="text-gray-400 text-xs italic">Lagrange Theorem: At constrained extremum, ∇f = λ∇g (gradients are parallel). Solve simultaneously with constraint equation g=0.</span>`;
+        }
+
+        initGD(); initNR();
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

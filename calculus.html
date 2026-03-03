@@ -1,0 +1,453 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculus Studio - Math Verse</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+    <!-- Algebrite -->
+    <script src="algebrite.js"></script>
+    <!-- MathJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
+    <style>
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            font-weight: bold;
+            border-radius: 999px;
+            transition: all 0.3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+        }
+
+        .tab-btn:hover {
+            background: rgba(168, 85, 247, 0.1);
+            color: #c084fc;
+        }
+
+        .tab-btn.active {
+            background: rgba(168, 85, 247, 0.25);
+            color: white;
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.5);
+            border-color: #a855f7;
+        }
+
+        .math-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            color: white;
+            border-radius: 8px;
+            font-family: monospace;
+            padding: 0.5rem 1rem;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .math-input:focus {
+            border-color: #c084fc;
+            outline: none;
+            box-shadow: 0 0 10px rgba(192, 132, 252, 0.4);
+        }
+
+        .res-box {
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8">
+    <div class="glass-panel w-full max-w-6xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-8 relative">
+        <h2
+            class="text-3xl md:text-5xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400 pb-2">
+            <i class="fas fa-wave-square text-purple-400"></i> Calculus Studio
+        </h2>
+
+        <!-- Tabs -->
+        <div
+            class="flex flex-wrap justify-center gap-4 bg-black/40 p-2 rounded-full border border-purple-500/30 mx-auto">
+            <button class="tab-btn active" onclick="switchTab('1d')"><i
+                    class="fas fa-square-root-variable mr-2"></i>Single Variable</button>
+            <button class="tab-btn" onclick="switchTab('taylor')"><i class="fas fa-chart-line mr-2"></i>Taylor
+                Series</button>
+            <button class="tab-btn" onclick="switchTab('multi')"><i class="fas fa-cube mr-2"></i>Multivariable</button>
+        </div>
+        <div
+            class="bg-gray-900/50 p-4 rounded-2xl border border-purple-500/30 flex items-center justify-between gap-4 max-w-4xl mx-auto w-full">
+            <div>
+                <h3 class="text-purple-300 font-bold text-base">Calculus AI Tutor</h3>
+                <p class="text-xs text-gray-400 mt-0.5">Ask the AI to explain derivatives, integrals, or how Taylor
+                    series approximate functions.</p>
+            </div>
+            <button class="mv-ai-btn flex-shrink-0" onclick="openCalculusAI()">🤖 Ask AI</button>
+        </div>
+
+        <!-- TAB 1: Single Variable -->
+        <div id="tab-1d" class="tab-content flex flex-col lg:flex-row gap-8">
+            <div class="flex-1 bg-gray-900/50 p-6 rounded-2xl border border-purple-500/30 flex flex-col gap-6">
+                <div>
+                    <label class="block text-sm font-bold text-purple-300 mb-2">Function f(x):</label>
+                    <input type="text" id="func1D" class="math-input text-xl" value="x^2 * sin(x)">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <button
+                        class="btn bg-purple-600 hover:bg-purple-500 text-white font-bold p-3 shadow-[0_0_15px_rgba(168,85,247,0.4)]"
+                        onclick="calc1D('deriv')">f'(x) Derivative</button>
+                    <button
+                        class="btn bg-cyan-600 hover:bg-cyan-500 text-white font-bold p-3 shadow-[0_0_15px_rgba(34,211,238,0.4)]"
+                        onclick="calc1D('integ')">∫ f(x) Integral</button>
+                </div>
+                <div class="flex flex-col bg-black/40 p-4 rounded-xl border border-gray-700 gap-3">
+                    <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Definite Integral</span>
+                    <div class="flex items-center gap-3">
+                        <input type="number" id="defA" class="math-input w-24" placeholder="a">
+                        <span class="text-white font-bold">to</span>
+                        <input type="number" id="defB" class="math-input w-24" placeholder="b">
+                        <button class="btn bg-rose-600 hover:bg-rose-500 text-white font-bold px-6 py-2 shadow-md"
+                            onclick="calc1D('def')">Compute</button>
+                    </div>
+                </div>
+                <div class="flex-1 flex flex-col">
+                    <h3
+                        class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2 border-b border-gray-700 pb-2">
+                        Output</h3>
+                    <div id="out1D"
+                        class="flex-1 bg-black/50 border border-gray-700 rounded-xl p-4 flex items-center justify-center text-xl font-mono text-white res-box break-all text-center min-h-[100px]">
+                        Waiting...</div>
+                </div>
+            </div>
+            <div class="flex-1 bg-black/40 p-4 rounded-2xl border border-cyan-500/30 min-h-[400px] relative">
+                <div id="plot1D" class="absolute inset-2"></div>
+            </div>
+        </div>
+
+        <!-- TAB 2: Taylor Series -->
+        <div id="tab-taylor" class="tab-content hidden flex flex-col lg:flex-row gap-8">
+            <div class="flex-1 bg-gray-900/50 p-6 rounded-2xl border border-pink-500/30 flex flex-col gap-6">
+                <div>
+                    <label class="block text-sm font-bold text-pink-300 mb-2">Function f(x):</label>
+                    <input type="text" id="funcTaylor" class="math-input" value="sin(x)">
+                </div>
+                <div class="flex gap-4">
+                    <div class="flex-1">
+                        <label class="block text-sm text-gray-400 mb-1">Center (a):</label>
+                        <input type="number" id="taylorA" class="math-input" value="0">
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-sm text-gray-400 mb-1">Degree (n):</label>
+                        <input type="number" id="taylorN" class="math-input" value="5" min="1" max="15">
+                    </div>
+                </div>
+                <button
+                    class="btn bg-pink-600 hover:bg-pink-500 text-white font-bold py-3 shadow-[0_0_15px_rgba(236,72,153,0.4)]"
+                    onclick="calcTaylor()">Generate Polynomial</button>
+                <div class="flex-1 flex flex-col">
+                    <h3
+                        class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2 border-b border-gray-700 pb-2">
+                        P_n(x) Approximation</h3>
+                    <div id="outTaylor"
+                        class="flex-1 bg-black/50 border border-gray-700 rounded-xl p-4 text-lg font-mono text-white res-box break-all text-center flex items-center justify-center min-h-[120px]">
+                        Waiting...</div>
+                </div>
+            </div>
+            <div class="flex-1 bg-black/40 p-4 rounded-2xl border border-pink-500/30 min-h-[400px] relative">
+                <div id="plotTaylor" class="absolute inset-2"></div>
+            </div>
+        </div>
+
+        <!-- TAB 3: Multivariable -->
+        <div id="tab-multi" class="tab-content hidden flex flex-col gap-8">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-blue-500/30">
+                <h3 class="text-xl font-bold text-blue-300 mb-4 border-b border-blue-500/30 pb-2">Function 2D: f(x,y)
+                </h3>
+                <input type="text" id="func2D" class="math-input text-xl" value="x^2 + y^2 - x*y">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
+                    <!-- Gradient & Hessian -->
+                    <div class="flex flex-col gap-4">
+                        <button class="btn bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 shadow-md"
+                            onclick="calcMulti('gradhes')">Compute Gradient & Hessian</button>
+                        <div id="outMultiOps"
+                            class="bg-black/50 border border-gray-700 rounded-xl p-4 font-mono text-white min-h-[160px] text-lg">
+                            Waiting...</div>
+                    </div>
+
+                    <!-- Limit Tester -->
+                    <div class="flex flex-col gap-4 bg-black/40 p-4 rounded-xl border border-gray-700">
+                        <span class="text-sm font-bold text-gray-300"><i class="fas fa-crosshairs mr-2"></i>Numerical
+                            Path Limit Tester</span>
+                        <div class="flex items-center gap-2">
+                            <label class="text-gray-400">Limit (x,y) →</label>
+                            <input type="text" id="limX" class="math-input w-20 text-center" value="0" placeholder="x0">
+                            <span class="text-white">,</span>
+                            <input type="text" id="limY" class="math-input w-20 text-center" value="0" placeholder="y0">
+                        </div>
+                        <button class="btn bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 shadow-md"
+                            onclick="testLimit()">Test Paths</button>
+                        <div id="outLimit"
+                            class="bg-black/80 rounded-lg p-3 text-sm font-mono text-gray-300 min-h-[80px]">Approaches
+                            from varying angles...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Core Tab System
+        function switchTab(id) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            if (event) event.currentTarget.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById('tab-' + id).classList.remove('hidden');
+            if (id === '1d') setTimeout(() => Plotly.Plots.resize('plot1D'), 100);
+            if (id === 'taylor') setTimeout(() => Plotly.Plots.resize('plotTaylor'), 100);
+            window._activeCalcTab = id;
+            setTimeout(() => { if (window.injectAIButtons) window.injectAIButtons(); }, 100);
+        }
+        window._activeCalcTab = '1d';
+        function openCalculusAI() {
+            const tabs = { '1d': 'Single Variable Calculus', 'taylor': 'Taylor Series', 'multi': 'Multivariable Calculus' };
+            const label = tabs[window._activeCalcTab] || 'Calculus Studio';
+            if (window.openMathAI) openMathAI(label, 'Calculus Assistant covering derivatives, integrals, limits, and Taylor polynomials.');
+        }
+
+        // --- MATH UTILS FOR JS PLOTTING ---
+        function compileMath(exprStr) {
+            // Replace basic caret powers with JS Math.pow or **
+            let jsStr = exprStr.replace(/\^/g, '**');
+            const funcs = ['sin', 'cos', 'tan', 'log', 'exp', 'sqrt', 'abs', 'pi', 'e'];
+            funcs.forEach(f => {
+                let rx = new RegExp(`\\b${f}\\b`, 'gi');
+                jsStr = jsStr.replace(rx, `Math.${f}`);
+            });
+            return function (x) {
+                try { return eval(jsStr); } catch (e) { return NaN; }
+            };
+        }
+
+        // --- 1D CALCULUS ---
+        let curr1D = { f: null, d: null, a: -10, b: 10 };
+
+        function calc1D(type) {
+            const out = document.getElementById('out1D');
+            const fStr = document.getElementById('func1D').value;
+            if (!fStr) return out.innerHTML = '<span class="text-rose-400">Error: Empty function</span';
+
+            try {
+                if (type === 'deriv') {
+                    const res = Algebrite.run(`d(${fStr})`);
+                    out.innerHTML = `<span class="text-purple-300">f'(x) = </span> ${res}`;
+                    curr1D = { f: fStr, d: res, a: -10, b: 10 };
+                } else if (type === 'integ') {
+                    const res = Algebrite.run(`integral(${fStr})`);
+                    out.innerHTML = `<span class="text-cyan-300">∫ f(x) dx = </span> ${res} + C`;
+                    curr1D = { f: fStr, d: null, a: -10, b: 10 };
+                } else if (type === 'def') {
+                    const a = document.getElementById('defA').value;
+                    const b = document.getElementById('defB').value;
+                    if (a === '' || b === '') return window.showToast("Limits required", "error");
+                    const res = Algebrite.run(`defint(${fStr}, x, ${a}, ${b})`);
+                    const val = Algebrite.run(`float(${res})`);
+                    out.innerHTML = `<span class="text-rose-400">∫[${a} to ${b}] = </span> ${val} <div class="text-xs text-gray-500 mt-2">Exact: ${res}</div>`;
+                    curr1D = { f: fStr, d: null, a: parseFloat(a) - 2, b: parseFloat(b) + 2, fillX: [parseFloat(a), parseFloat(b)] };
+                }
+                plot1D();
+            } catch (e) { out.innerHTML = `<span class="text-rose-500">Syntax Error. Cannot evaluate.</span>`; }
+        }
+
+        function plot1D() {
+            if (!curr1D.f) return;
+            const fn = compileMath(curr1D.f);
+            let xs = [], ys = [];
+            for (let x = curr1D.a; x <= curr1D.b; x += 0.1) { xs.push(x); ys.push(fn(x)); }
+
+            let traces = [{ x: xs, y: ys, name: 'f(x)', line: { color: '#22d3ee', width: 3 } }];
+
+            if (curr1D.d) {
+                const dfn = compileMath(curr1D.d);
+                let dys = xs.map(x => dfn(x));
+                traces.push({ x: xs, y: dys, name: "f'(x)", line: { color: '#a855f7', width: 2, dash: 'dot' } });
+            }
+            if (curr1D.fillX) {
+                let fx = [], fy = [];
+                for (let x = curr1D.fillX[0]; x <= curr1D.fillX[1]; x += 0.05) { fx.push(x); fy.push(fn(x)); }
+                fx.push(curr1D.fillX[1], curr1D.fillX[0]);
+                fy.push(0, 0);
+                traces.push({ x: fx, y: fy, fill: 'toself', mode: 'none', fillcolor: 'rgba(225,29,72,0.4)', name: 'Area' });
+            }
+
+            const layout = { paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', font: { color: '#94a3b8' }, margin: { t: 20, r: 20, b: 30, l: 30 }, xaxis: { zerolinewidth: 2, zerolinecolor: '#475569', gridcolor: '#1e293b' }, yaxis: { zerolinewidth: 2, zerolinecolor: '#475569', gridcolor: '#1e293b' } };
+            Plotly.newPlot('plot1D', traces, layout, { responsive: true, displayModeBar: false });
+        }
+
+        // --- TAYLOR SERIES ---
+        function calcTaylor() {
+            const out = document.getElementById('outTaylor');
+            const fStr = document.getElementById('funcTaylor').value;
+            const a = parseFloat(document.getElementById('taylorA').value);
+            const n = parseInt(document.getElementById('taylorN').value);
+            if (!fStr) return out.innerHTML = 'Error: Empty function';
+            if (isNaN(a) || isNaN(n)) return out.innerHTML = 'Invalid parameters';
+
+            try {
+                // Manual Taylor Build using Mathjs for derivatives to get standard JS string out, 
+                // Or use Algebrite. Algebrite has taylor: `taylor(f, x, center, limit)`
+                // Limit is max degree + 1. So for degree n, limit is n+1.
+                // Wait Algebrite taylor is `taylor(expr, var, order, center)`. Wait no, syntax might vary.
+                // Let's use manual derivative expansion via mathjs to ensure format control, or Algebrite if simple string is ok.
+
+                // fallback to mathjs numeric expansion
+                let polyStr = "";
+                let currentMathJsNode = math.parse(fStr);
+
+                let terms = [];
+                let factorial = 1;
+                for (let i = 0; i <= n; i++) {
+                    // evaluated derivative at a
+                    let coeffNode = currentMathJsNode;
+                    let val = coeffNode.evaluate({ x: a });
+                    if (val !== 0 && !isNaN(val)) {
+                        let termC = val / factorial;
+                        let cRound = Math.round(termC * 1000) / 1000;
+                        if (cRound !== 0) {
+                            let factor = "";
+                            if (i === 1) factor = a === 0 ? `x` : `(x - ${a})`;
+                            else if (i > 1) factor = a === 0 ? `x^${i}` : `(x - ${a})^${i}`;
+
+                            let tStr = "";
+                            if (i === 0) tStr = `${cRound}`;
+                            else if (cRound === 1) tStr = factor;
+                            else if (cRound === -1) tStr = `-${factor}`;
+                            else tStr = `${cRound}*${factor}`;
+
+                            terms.push(terms.length > 0 && cRound > 0 ? `+ ${tStr}` : tStr);
+                        }
+                    }
+                    if (i < n) {
+                        currentMathJsNode = math.derivative(currentMathJsNode, 'x');
+                        factorial *= (i + 1);
+                    }
+                }
+
+                let finalApprox = terms.length > 0 ? terms.join(' ').replace(/\+ -/g, '- ') : "0";
+                out.innerHTML = `<span class="text-pink-300">P_${n}(x) ≈ </span> ${finalApprox}`;
+
+                // Plotly
+                let xs = [], yOrig = [], yTaylor = [];
+                const fn = compileMath(fStr);
+                const tFn = compileMath(finalApprox);
+
+                // range based on center
+                let minX = a - 3, maxX = a + 3;
+                for (let x = minX; x <= maxX; x += 0.05) { xs.push(x); yOrig.push(fn(x)); yTaylor.push(tFn(x)); }
+
+                let traces = [
+                    { x: xs, y: yOrig, name: 'Exact f(x)', line: { color: '#60a5fa', width: 3 } },
+                    { x: xs, y: yTaylor, name: `Taylor P_${n}`, line: { color: '#ec4899', width: 2, dash: 'dot' } }
+                ];
+                const layout = { paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', font: { color: '#94a3b8' }, margin: { t: 20, r: 20, b: 30, l: 30 }, xaxis: { zerolinewidth: 2, zerolinecolor: '#475569' }, yaxis: { zerolinewidth: 2, zerolinecolor: '#475569' } };
+                Plotly.newPlot('plotTaylor', traces, layout, { responsive: true, displayModeBar: false });
+
+            } catch (e) { out.innerHTML = `<span class="text-rose-500">Derivative failure or Syntax error.</span>`; }
+        }
+
+        // --- MULTIVARIABLE (2D) ---
+        function calcMulti(type) {
+            const out = document.getElementById('outMultiOps');
+            const fStr = document.getElementById('func2D').value;
+            if (!fStr) return out.innerHTML = 'Empty function';
+
+            try {
+                // Using Mathjs for symbolic partial derivatives
+                const fnNode = math.parse(fStr);
+                const dx = math.derivative(fnNode, 'x').toString();
+                const dy = math.derivative(fnNode, 'y').toString();
+
+                const dxx = math.derivative(math.parse(dx), 'x').toString();
+                const dxy = math.derivative(math.parse(dx), 'y').toString();
+                const dyx = math.derivative(math.parse(dy), 'x').toString();
+                const dyy = math.derivative(math.parse(dy), 'y').toString();
+
+                out.innerHTML = `
+                    <div class="mb-4">
+                        <span class="text-blue-300 font-bold block mb-1">Gradient Vector ∇f:</span>
+                        [  <span class="text-cyan-200">${dx}</span> , <span class="text-cyan-200">${dy}</span>  ]
+                    </div>
+                    <div>
+                        <span class="text-purple-300 font-bold block mb-1">Hessian Matrix H:</span>
+                        <div class="inline-flex flex-col border-l-2 border-r-2 border-purple-500 px-4 py-1 gap-2 text-center text-sm bg-black/50">
+                            <div><span class="text-gray-400">f_xx:</span> ${dxx} &nbsp;&nbsp;&nbsp; <span class="text-gray-400">f_xy:</span> ${dxy}</div>
+                            <div><span class="text-gray-400">f_yx:</span> ${dyx} &nbsp;&nbsp;&nbsp; <span class="text-gray-400">f_yy:</span> ${dyy}</div>
+                        </div>
+                    </div>
+                `;
+                window.showToast("Derivatives computed.", "success");
+            } catch (e) { out.innerHTML = `<span class="text-rose-500">Error computing symbolic derivatives via MathJS. ${e.message}</span>`; }
+        }
+
+        function testLimit() {
+            const out = document.getElementById('outLimit');
+            const fStr = document.getElementById('func2D').value;
+            const x0 = parseFloat(document.getElementById('limX').value) || 0;
+            const y0 = parseFloat(document.getElementById('limY').value) || 0;
+
+            try {
+                const node = math.parse(fStr);
+                const code = node.compile();
+                const evalF = (x, y) => code.evaluate({ x: x, y: y });
+
+                // Test multiple polar angles approaching (x0, y0)
+                let angles = [0, Math.PI / 4, Math.PI / 2, Math.PI, 3 * Math.PI / 2];
+                let rs = [0.1, 0.01, 0.001, 0.0001];
+
+                let html = `<table class="w-full text-center mt-2 border-collapse">
+                            <tr class="text-xs text-gray-500 border-b border-gray-700"><th>Angle (θ)</th><th>r=0.1</th><th>r=0.01</th><th>r→0</th></tr>`;
+
+                let limits = [];
+                angles.forEach(ang => {
+                    let rVals = [];
+                    rs.forEach(r => {
+                        let tx = x0 + r * Math.cos(ang);
+                        let ty = y0 + r * Math.sin(ang);
+                        rVals.push(evalF(tx, ty));
+                    });
+
+                    let v0 = rVals[0].toFixed(2);
+                    let v1 = rVals[1].toFixed(2);
+                    let vf = rVals[3];
+                    if (Math.abs(vf) > 1e10) vf = "∞";
+                    else vf = vf.toFixed(4);
+
+                    html += `<tr class="border-b border-gray-800"><td class="text-gray-400">${(ang / (Math.PI) * 180).toFixed(0)}°</td><td>${v0}</td><td>${v1}</td><td class="font-bold text-white">${vf}</td></tr>`;
+                    limits.push(vf);
+                });
+
+                html += `</table>`;
+
+                // Conclude
+                const first = limits[0];
+                const match = limits.every(v => v === first);
+
+                if (match) html += `<div class="mt-3 text-emerald-400 font-bold">Limit appears to converge to: ${first}</div>`;
+                else html += `<div class="mt-3 text-rose-400 font-bold">Limit Does Not Exist! (Varies by path)</div>`;
+
+                out.innerHTML = html;
+
+            } catch (e) { out.innerHTML = `<span class="text-rose-500">Math Evaluation Error.</span>`; }
+        }
+
+        // Init
+        document.getElementById('btnDeriv').click();
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

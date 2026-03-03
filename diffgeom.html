@@ -1,0 +1,320 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Differential Geometry - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-btn {
+            padding: .55rem 1rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .8rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(20, 184, 166, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(20, 184, 166, 0.25);
+            color: white;
+            border-color: #14b8a6;
+            box-shadow: 0 0 12px rgba(20, 184, 166, 0.4);
+        }
+
+        .dg-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(20, 184, 166, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            font-family: monospace;
+            width: 100%;
+        }
+
+        .dg-input:focus {
+            border-color: #2dd4bf;
+            outline: none;
+        }
+
+        .val-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(20, 184, 166, 0.4);
+            border-radius: .75rem;
+            padding: .75rem;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-500 pb-2">
+            <i class="fas fa-globe text-teal-400"></i> Differential Geometry
+        </h2>
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-teal-500/30">
+            <button class="tab-btn active" onclick="switchTab('curves',this)">Space Curves</button>
+            <button class="tab-btn" onclick="switchTab('surfaces',this)">Surfaces & Curvature</button>
+            <button class="tab-btn" onclick="switchTab('geodesics',this)">Geodesics</button>
+            <button class="tab-btn" onclick="switchTab('reference',this)">Reference</button>
+        </div>
+
+        <!-- Space Curves / Frenet-Serret -->
+        <div id="tab-curves" class="tab-content flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-teal-500/30 flex flex-col gap-4">
+                <h3 class="text-teal-300 font-bold text-xl">Frenet–Serret Frame — Curvature & Torsion</h3>
+                <p class="text-sm text-gray-400">For a parametric curve r(t), the Frenet-Serret frame gives tangent T,
+                    normal N, and binormal B = T×N.</p>
+                <div class="flex flex-wrap gap-3 items-end">
+                    <div><label class="text-xs text-gray-400">Curve preset</label>
+                        <select id="curvePreset" class="dg-input w-44 mt-1" onchange="runCurve()">
+                            <option value="helix">Circular helix</option>
+                            <option value="trefoil">Trefoil knot</option>
+                            <option value="circle">Circle (plane)</option>
+                            <option value="parabola">Parabolic arc</option>
+                            <option value="viviani">Viviani curve</option>
+                            <option value="lissajous">Lissajous 3:2</option>
+                        </select>
+                    </div>
+                    <div><label class="text-xs text-gray-400">Parameter t</label><input type="range" id="curveT" min="0"
+                            max="1" step="0.01" value="0.3" oninput="runCurve()"></div>
+                    <span id="curveTVal" class="text-teal-300 font-mono font-bold">0.3</span>
+                </div>
+                <canvas id="curveCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:300px"></canvas>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Curvature κ</span><span
+                            id="curveKappa" class="text-xl font-mono text-teal-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Torsion τ</span><span id="curveTau"
+                            class="text-xl font-mono text-teal-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Radius of curv. ρ</span><span
+                            id="curveRho" class="text-xl font-mono text-teal-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Arc length (approx)</span><span
+                            id="curveLen" class="text-xl font-mono text-teal-300 font-bold">—</span></div>
+                </div>
+                <div class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300">
+                    <b class="text-teal-300">Frenet-Serret formulas:</b><br>
+                    T' = κN | N' = −κT + τB | B' = −τN<br>
+                    κ = |r'×r''|/|r'|³ | τ = (r'×r'')·r'''/|r'×r''|²
+                </div>
+            </div>
+        </div>
+
+        <!-- Surfaces -->
+        <div id="tab-surfaces" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-teal-500/30 flex flex-col gap-4">
+                <h3 class="text-teal-300 font-bold text-xl">Gaussian Curvature K & Mean Curvature H</h3>
+                <div class="flex flex-wrap gap-3 items-end">
+                    <div><label class="text-xs text-gray-400">Surface z = f(x,y)</label>
+                        <select id="surfPreset" class="dg-input w-44 mt-1" onchange="runSurface()">
+                            <option value="paraboloid">Paraboloid x²+y²</option>
+                            <option value="saddle">Saddle x²−y²</option>
+                            <option value="sphere">Sphere √(4−x²−y²)</option>
+                            <option value="monkey">Monkey saddle x³−3xy²</option>
+                            <option value="torus">Torus (cross-section)</option>
+                            <option value="wave">Wave sin(x)cos(y)</option>
+                        </select>
+                    </div>
+                    <div><label class="text-xs text-gray-400">Point (x₀, y₀)</label>
+                        <div class="flex gap-2">
+                            <input type="number" id="surfX0" class="dg-input w-20" value="0.5" step="0.1"
+                                oninput="runSurface()">
+                            <input type="number" id="surfY0" class="dg-input w-20" value="0.5" step="0.1"
+                                oninput="runSurface()">
+                        </div>
+                    </div>
+                </div>
+                <canvas id="surfCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:280px"></canvas>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Gaussian K</span><span id="surfK"
+                            class="text-xl font-mono text-teal-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Mean H</span><span id="surfH"
+                            class="text-xl font-mono text-teal-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">κ₁ (min principal)</span><span
+                            id="surfK1" class="text-xl font-mono text-teal-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">κ₂ (max principal)</span><span
+                            id="surfK2" class="text-xl font-mono text-teal-300 font-bold">—</span></div>
+                </div>
+                <div id="surfType" class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300"></div>
+            </div>
+        </div>
+
+        <!-- Geodesics -->
+        <div id="tab-geodesics" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-teal-500/30 flex flex-col gap-4">
+                <h3 class="text-teal-300 font-bold text-xl">Geodesics on 2D Surfaces</h3>
+                <p class="text-sm text-gray-400">Geodesics are shortest paths on a surface. On a sphere, these are great
+                    circles.</p>
+                <div class="grid grid-cols-2 md:grid-cols-2 gap-3">
+                    <div><label class="text-xs text-gray-400">Surface</label>
+                        <select id="geoSurf" class="dg-input mt-1" onchange="runGeodesic()">
+                            <option value="sphere">Sphere (great circles)</option>
+                            <option value="cylinder">Cylinder (helical geodesics)</option>
+                            <option value="cone">Cone (unwrap to straight lines)</option>
+                            <option value="plane">Flat plane (straight lines)</option>
+                        </select>
+                    </div>
+                    <div><label class="text-xs text-gray-400">Start angle / Angle of launch (°)</label><input
+                            type="number" id="geoAngle" class="dg-input" value="30" step="15" oninput="runGeodesic()">
+                    </div>
+                </div>
+                <canvas id="geoCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:300px"></canvas>
+                <div id="geoInfo" class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300"></div>
+            </div>
+        </div>
+
+        <!-- Reference -->
+        <div id="tab-reference" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-teal-500/30 flex flex-col gap-4">
+                <h3 class="text-teal-300 font-bold text-xl">Key Theorems & Concepts</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="refCards"></div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); document.getElementById('tab-' + id).classList.remove('hidden'); if (id === 'curves') runCurve(); if (id === 'surfaces') runSurface(); if (id === 'geodesics') runGeodesic(); if (id === 'reference') renderRef(); }
+        function f4(v) { return isFinite(v) ? parseFloat(v.toFixed(4)).toString() : '—'; }
+
+        const curves = {
+            helix: { r: t => [Math.cos(2 * Math.PI * t), Math.sin(2 * Math.PI * t), t], label: 'r(t)=[cos(2πt), sin(2πt), t]' },
+            trefoil: { r: t => { let a = 2 * Math.PI * t; return [Math.sin(a) + 2 * Math.sin(2 * a), Math.cos(a) - 2 * Math.cos(2 * a), -Math.sin(3 * a)] }, label: 'r(t)=[sin+2sin2t, cos−2cos2t, −sin3t]' },
+            circle: { r: t => [Math.cos(2 * Math.PI * t), Math.sin(2 * Math.PI * t), 0], label: 'r(t)=[cos(2πt), sin(2πt), 0]' },
+            parabola: { r: t => { let x = 4 * t - 2; return [x, x * x, 0]; }, label: 'r(t)=[t, t², 0]' },
+            viviani: { r: t => { let t2 = 2 * Math.PI * t; return [1 + Math.cos(t2), Math.sin(t2), 2 * Math.sin(t2 / 2)]; }, label: 'Viviani: (1+cos t, sin t, 2sin(t/2))' },
+            lissajous: { r: t => [Math.sin(3 * 2 * Math.PI * t), Math.sin(2 * 2 * Math.PI * t + Math.PI / 4), 0], label: 'Lissajous 3:2 (plane)' },
+        };
+
+        function diff3(r, t, h = 1e-4) { return [(r(t + h)[0] - r(t - h)[0]) / (2 * h), (r(t + h)[1] - r(t - h)[1]) / (2 * h), (r(t + h)[2] - r(t - h)[2]) / (2 * h)]; }
+        function cross3(a, b) { return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; }
+        function norm3(v) { return Math.sqrt(v.reduce((s, x) => s + x * x, 0)); }
+        function dot3(a, b) { return a.reduce((s, v, i) => s + v * b[i], 0); }
+        function scalev(a, s) { return a.map(v => v * s); }
+        function addv(a, b) { return a.map((v, i) => v + b[i]); }
+
+        function runCurve() {
+            let preset = document.getElementById('curvePreset').value, t = parseFloat(document.getElementById('curveT').value) || 0.3;
+            document.getElementById('curveTVal').innerText = t.toFixed(2);
+            let cr = curves[preset]; if (!cr) return;
+            let r = cr.r, rp = diff3(r, t), rpp = diff3(x => diff3(r, x), t), rppp = diff3(x => diff3(y => diff3(r, y), x), t);
+            let cross = cross3(rp, rpp); let normRp = norm3(rp), normCross = norm3(cross);
+            let kappa = normCross / (normRp ** 3); let tau = normCross > 1e-8 ? dot3(cross, rppp) / (normCross ** 2) : 0;
+            let rho = kappa > 1e-8 ? 1 / kappa : Infinity;
+            document.getElementById('curveKappa').innerText = f4(kappa);
+            document.getElementById('curveTau').innerText = f4(tau);
+            document.getElementById('curveRho').innerText = isFinite(rho) ? f4(rho) : '∞';
+            let N = 200; let len = 0; for (let i = 0; i < N; i++) { let a = r(i / N), b = r((i + 1) / N); len += Math.sqrt((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2 + (b[2] - a[2]) ** 2); }
+            document.getElementById('curveLen').innerText = f4(len);
+            let cv = document.getElementById('curveCanvas'); cv.width = cv.offsetWidth; cv.height = 300;
+            let cx = cv.getContext('2d'), W = cv.width, H = 300, pad = 20; cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let pts = Array.from({ length: N + 1 }, (_, i) => r(i / N));
+            let xs = pts.map(p => p[0]), ys = pts.map(p => p[1]), zs = pts.map(p => p[2]);
+            let minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+            let rx = maxX - minX || 1, ry = maxY - minY || 1; let scl = Math.min((W - 2 * pad) / rx, (H - 2 * pad) / ry);
+            let ox = (W - (maxX + minX) * scl) / 2, oy = (H + (maxY + minY) * scl) / 2;
+            const tx = x => ox + x * scl, ty = y => oy - y * scl;
+            cx.strokeStyle = '#14b8a6'; cx.lineWidth = 2; cx.beginPath(); pts.forEach((p, i) => i === 0 ? cx.moveTo(tx(p[0]), ty(p[1])) : cx.lineTo(tx(p[0]), ty(p[1]))); cx.stroke();
+            let pt = r(t), tVec = diff3(r, t); let tN = norm3(tVec) || 1; let T = [tVec[0] / tN, tVec[1] / tN, 0];
+            let scale2 = Math.min(rx, ry) * 0.15;
+            cx.strokeStyle = '#ef4444'; cx.lineWidth = 2; cx.beginPath(); cx.moveTo(tx(pt[0]), ty(pt[1])); cx.lineTo(tx(pt[0] + T[0] * scale2), ty(pt[1] + T[1] * scale2)); cx.stroke();
+            cx.beginPath(); cx.arc(tx(pt[0]), ty(pt[1]), 5, 0, Math.PI * 2); cx.fillStyle = '#fbbf24'; cx.fill();
+            cx.fillStyle = '#ef4444'; cx.font = '10px monospace'; cx.fillText('T', tx(pt[0] + T[0] * scale2) + 4, ty(pt[1] + T[1] * scale2));
+            cx.fillStyle = '#14b8a6'; cx.font = '10px monospace'; cx.fillText(cr.label, pad, 16);
+        }
+
+        const surfFuncs = {
+            paraboloid: { f: (x, y) => x * x + y * y, label: 'z=x²+y²', K: 'K = 4/(1+4x²+4y²)²' },
+            saddle: { f: (x, y) => x * x - y * y, label: 'z=x²−y²', K: 'K = −4/(1+4x²+4y²)²' },
+            sphere: { f: (x, y) => Math.sqrt(Math.max(0, 4 - x * x - y * y)), label: 'z=√(4−x²−y²)', K: 'K = 1/r² = 0.25 (constant)' },
+            monkey: { f: (x, y) => x ** 3 - 3 * x * y * y, label: 'z=x³−3xy²(monkey saddle)', K: 'K=0 at origin, negative elsewhere' },
+            torus: { f: (x, y) => { let R = 2, r = 0.8, d = Math.sqrt(x * x + y * y); return d > 0 ? Math.sqrt(Math.max(0, r * r - (d - R) ** 2)) : NaN; }, label: 'Torus xsec' },
+            wave: { f: (x, y) => Math.sin(x) * Math.cos(y), label: 'z=sin(x)cos(y)' },
+        };
+        function numdiff2(f, x, y, h = 1e-4) {
+            let fx = (f(x + h, y) - f(x - h, y)) / (2 * h), fy = (f(x, y + h) - f(x, y - h)) / (2 * h);
+            let fxx = (f(x + h, y) - 2 * f(x, y) + f(x - h, y)) / (h * h), fyy = (f(x, y + h) - 2 * f(x, y) + f(x, y - h)) / (h * h), fxy = (f(x + h, y + h) - f(x + h, y - h) - f(x - h, y + h) + f(x - h, y - h)) / (4 * h * h);
+            return { fx, fy, fxx, fyy, fxy };
+        }
+        function runSurface() {
+            let preset = document.getElementById('surfPreset').value, x0 = +document.getElementById('surfX0').value, y0 = +document.getElementById('surfY0').value;
+            let sf = surfFuncs[preset]; if (!sf) return;
+            let { fx, fy, fxx, fyy, fxy } = numdiff2(sf.f, x0, y0);
+            let E = 1 + fx * fx, F = fx * fy, G = 1 + fy * fy; let denom = Math.sqrt(1 + fx * fx + fy * fy);
+            let L = fxx / denom, M = fxy / denom, N2 = fyy / denom;
+            let K = (L * N2 - M * M) / (E * G - F * F); let Hm = (E * N2 - 2 * F * M + G * L) / (2 * (E * G - F * F));
+            let disc = Hm * Hm - K; let sqrtD = disc >= 0 ? Math.sqrt(disc) : 0;
+            let k1 = Hm - sqrtD, k2 = Hm + sqrtD;
+            document.getElementById('surfK').innerText = f4(K); document.getElementById('surfH').innerText = f4(Hm);
+            document.getElementById('surfK1').innerText = f4(k1); document.getElementById('surfK2').innerText = f4(k2);
+            let type = K > 0.001 ? '<span class="text-green-400">Elliptic (dome) — K > 0</span>' : K < -0.001 ? '<span class="text-red-400">Hyperbolic (saddle) — K < 0</span>' : '<span class="text-amber-400">Parabolic/flat — K ≈ 0</span>';
+            document.getElementById('surfType').innerHTML = `<b class="text-teal-300">Surface type at (${x0},${y0}):</b> ${type}<br>${sf.label}<br><span class="text-xs text-gray-500">${sf.K}</span>`;
+            let cv = document.getElementById('surfCanvas'); cv.width = cv.offsetWidth; cv.height = 280;
+            let cx = cv.getContext('2d'), W = cv.width, H = 280; let step = 0.6, pts = [];
+            for (let ix = -3; ix <= 3; ix += step)for (let iy = -3; iy <= 3; iy += step) { let z = sf.f(ix, iy); if (isFinite(z)) pts.push({ x: ix, y: iy, z }); }
+            let maxz = Math.max(...pts.map(p => p.z)), minz = Math.min(...pts.map(p => p.z));
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let scl = 30, ox = W / 2, oy = H / 2;
+            const iso = ([x, y, z]) => [ox + scl * (x - y * 0.5), oy + scl * (-z + y * 0.3)];
+            pts.sort((a, b) => a.y - b.y);
+            pts.forEach(({ x, y, z }) => { let t = (z - minz) / (maxz - minz || 1); let [px, py] = iso([x, y, z]); cx.beginPath(); cx.arc(px, py, 2, 0, Math.PI * 2); cx.fillStyle = `hsl(${170 + t * 60},70%,${30 + t * 30}%)`; cx.fill(); });
+            let [px0, py0] = iso([x0, y0, sf.f(x0, y0) || 0]); cx.beginPath(); cx.arc(px0, py0, 7, 0, Math.PI * 2); cx.fillStyle = '#f43f5e'; cx.fill();
+        }
+
+        function runGeodesic() {
+            let surf = document.getElementById('geoSurf').value, angle = +document.getElementById('geoAngle').value * Math.PI / 180;
+            let cv = document.getElementById('geoCanvas'); cv.width = cv.offsetWidth; cv.height = 300;
+            let cx = cv.getContext('2d'), W = cv.width, H = 300, pad = 30, R = 120; cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let info = '';
+            if (surf === 'sphere') {
+                let cx2 = W / 2, cy2 = H / 2; cx.strokeStyle = '#334155'; cx.lineWidth = 1; cx.beginPath(); cx.arc(cx2, cy2, R, 0, Math.PI * 2); cx.stroke();
+                // Draw great circle (rotated by angle)
+                cx.strokeStyle = '#14b8a6'; cx.lineWidth = 2; cx.beginPath();
+                for (let t = 0; t <= 2 * Math.PI; t += 0.05) { let x = R * Math.cos(t) * Math.cos(angle), y = R * Math.sin(t); cx.lineTo(cx2 + x, cy2 + y); } cx.stroke();
+                cx.strokeStyle = 'rgba(20,184,166,0.3)'; cx.lineWidth = 1; cx.setLineDash([4, 4]); cx.beginPath();
+                for (let t = 0; t <= 2 * Math.PI; t += 0.05) { let x = R * Math.cos(t), y = R * Math.sin(t) * Math.cos(angle); cx.lineTo(cx2 + x, cy2 + y); } cx.stroke(); cx.setLineDash([]);
+                info = 'Great circle: geodesic on sphere. Equation: sin(φ)·cos(λ−λ₀)=tan(φ₀)/tan(φ₀) rotated. Distance: Δσ=arccos(sinφ₁sinφ₂+cosφ₁cosφ₂cosΔλ) (Haversine formula).';
+            } else if (surf === 'cylinder') {
+                let x0 = W / 2 - 80, w2 = 160, h2 = H - 2 * pad; cx.strokeStyle = '#334155'; cx.lineWidth = 1; cx.strokeRect(x0, pad, w2, h2);
+                cx.strokeStyle = '#14b8a6'; cx.lineWidth = 2; cx.beginPath(); for (let t = 0; t <= h2; t += 2) { let x = x0 + (t * Math.tan(angle)) % w2; cx.lineTo(x, pad + t); } cx.stroke();
+                info = 'On a cylinder, geodesics are helices. When unrolled, the helix becomes a straight line. Pitch angle = launch angle.';
+            } else if (surf === 'plane') {
+                let mid = H / 2; cx.strokeStyle = '#334155'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(pad, mid); cx.lineTo(W - pad, mid); cx.stroke(); cx.beginPath(); cx.moveTo(W / 2, pad); cx.lineTo(W / 2, H - pad); cx.stroke();
+                cx.strokeStyle = '#14b8a6'; cx.lineWidth = 3; cx.beginPath(); cx.moveTo(pad, H / 2 + Math.tan(angle) * (W / 2 - pad)); cx.lineTo(W - pad, H / 2 - Math.tan(angle) * (W / 2 - pad)); cx.stroke();
+                info = 'Geodesics on flat plane are straight lines (Euclidean distance is minimized). K=0 everywhere.';
+            } else {
+                let tip = W / 2, tipY = pad; let height = H - 2 * pad; cx.strokeStyle = '#334155'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(tip, tipY); cx.lineTo(tip - 120, H - pad); cx.lineTo(tip + 120, H - pad); cx.closePath(); cx.stroke();
+                cx.strokeStyle = '#14b8a6'; cx.lineWidth = 2; cx.beginPath(); cx.moveTo(tip, tipY + 10); let beta = angle; let steps = 80; for (let i = 0; i < steps; i++) { let s = i / steps; let r = height * (s); let phi = r * Math.tan(beta) / 120; cx.lineTo(tip + r * Math.sin(phi + Math.PI), tipY + r * Math.cos(phi + Math.PI) * 0.8); } cx.stroke();
+                info = 'Geodesics on cone → straight lines when cone is unrolled into flat sector. Cone angle determines geodesic behavior.';
+            }
+            document.getElementById('geoInfo').innerHTML = `<b class="text-teal-300">Surface:</b> ${surf}<br>${info}`;
+        }
+
+        const refData2 = [
+            { name: "Gauss-Bonnet Theorem", content: "∫∫_M K dA + ∫_∂M κ_g ds = 2πχ(M) where χ = Euler characteristic. Global topology from local geometry!" },
+            { name: "Theorema Egregium (Gauss)", content: "Gaussian curvature K is intrinsic — preserved under bending. K = (EM-F²)/(EG-F²) in first fundamental form." },
+            { name: "Parallel Transport", content: "A vector transported along a geodesic without rotating. On a curved surface, returns rotated. Holonomy angle = ∫K dA." },
+            { name: "First Fundamental Form", content: "I = E·du²+2F·du·dv+G·dv². Determines arc length, area, angle on surface. E=rᵤ·rᵤ, F=rᵤ·rᵥ, G=rᵥ·rᵥ." },
+            { name: "Second Fundamental Form", content: "II = L·du²+2M·du·dv+N·dv². Determines normal curvature. L=rᵤᵤ·n, M=rᵤᵥ·n, N=rᵥᵥ·n." },
+            { name: "Geodesic Equation", content: "ü^k + Γ^k_ij u^i_dot u^j_dot = 0 where Γ are Christoffel symbols. Second-order ODE system." },
+            { name: "Riemann Curvature Tensor", content: "R^l_ijk = ∂_iΓ^l_jk − ∂_jΓ^l_ik + Γ^l_im Γ^m_jk − Γ^l_jm Γ^m_ik. Zero iff locally flat." },
+            { name: "Minimal Surfaces", content: "H = 0 everywhere. Soap films! Examples: catenoid, helicoid, Plateau problem. Complex analysis via Weierstrass representation." },
+        ];
+        function renderRef() { document.getElementById('refCards').innerHTML = refData2.map(r => `<div class="bg-black/40 p-4 rounded-xl border border-teal-500/20"><div class="text-teal-300 font-bold text-sm mb-1">${r.name}</div><div class="text-xs text-gray-400 font-mono">${r.content}</div></div>`).join(''); }
+
+        runCurve();
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

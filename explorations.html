@@ -1,0 +1,276 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Explorations - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-btn {
+            padding: .55rem 1rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .8rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(239, 68, 68, 0.25);
+            color: white;
+            border-color: #ef4444;
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+        }
+
+        .e-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            font-family: monospace;
+            width: 100%;
+        }
+
+        .e-input:focus {
+            border-color: #f87171;
+            outline: none;
+        }
+
+        .val-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            border-radius: .75rem;
+            padding: .75rem;
+            text-align: center;
+        }
+
+        .seq-item {
+            display: inline-block;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: .3rem;
+            padding: .1rem .4rem;
+            margin: .1rem;
+            font-family: monospace;
+            font-size: .8rem;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-rose-500 pb-2">
+            <i class="fas fa-telescope text-red-400"></i> Mathematical Explorations
+        </h2>
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-red-500/30">
+            <button class="tab-btn active" onclick="switchTab('collatz',this)">Collatz Conjecture</button>
+            <button class="tab-btn" onclick="switchTab('goldbach',this)">Goldbach's Conjecture</button>
+            <button class="tab-btn" onclick="switchTab('twin',this)">Twin Primes</button>
+            <button class="tab-btn" onclick="switchTab('constants')">Famous Constants</button>
+        </div>
+
+        <!-- Collatz -->
+        <div id="tab-collatz" class="tab-content flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-red-500/30 flex flex-col gap-4">
+                <h3 class="text-red-300 font-bold text-xl">Collatz Conjecture (3n+1 Problem)</h3>
+                <p class="text-sm text-gray-400">Start with any positive integer n. If even â†’ n/2. If odd â†’ 3n+1.
+                    Conjecture: the sequence always reaches 1. <b class="text-red-400">Still unproven!</b></p>
+                <div class="flex gap-3 items-end flex-wrap">
+                    <div class="flex-1"><label class="text-xs text-gray-400">Starting number n</label><input
+                            type="number" id="colN" class="e-input mt-1" value="27" min="1" step="1"
+                            oninput="runCollatz()"></div>
+                    <button class="btn bg-red-700 hover:bg-red-600 font-bold" onclick="runCollatz()">Trace</button>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="collatzCards"></div>
+                <canvas id="collatzCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:240px"></canvas>
+                <div id="collatzSeq" class="flex flex-wrap gap-1 max-h-32 overflow-y-auto mt-1"></div>
+                <div class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300">
+                    <b class="text-red-300">Known:</b> Verified for all n up to ~2.95 Ã— 10Â²â° (Oliveira e Silva,
+                    2020).
+                    ErdÅ‘s: "Mathematics is not yet ready for such problems." Terrytao.wordpress.com/2019/09/10/
+                    (partial
+                    result: "almost all" orbits reach 1).
+                </div>
+            </div>
+        </div>
+
+        <!-- Goldbach -->
+        <div id="tab-goldbach" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-red-500/30 flex flex-col gap-4">
+                <h3 class="text-red-300 font-bold text-xl">Goldbach's Conjecture (1742)</h3>
+                <p class="text-sm text-gray-400">Every even integer â‰¥ 4 is the sum of two primes. <b
+                        class="text-red-400">Still unproven after 280+ years!</b> Verified up to 4 Ã— 10Â¹â¸.</p>
+                <div class="flex gap-3 items-end flex-wrap">
+                    <div class="flex-1"><label class="text-xs text-gray-400">Even number n</label><input type="number"
+                            id="gbN" class="e-input mt-1" value="28" min="4" step="2" oninput="runGoldbach()"></div>
+                    <button class="btn bg-red-700 hover:bg-red-600 font-bold" onclick="runGoldbach()">Find
+                        decompositions</button>
+                </div>
+                <div id="gbResults" class="flex flex-wrap gap-2"></div>
+                <canvas id="goldCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:200px"></canvas>
+                <div class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300">
+                    <b class="text-red-300">Weak Goldbach (proven 2013):</b> Every odd integer â‰¥ 7 is the sum of 3
+                    primes (Helfgott). Strong Goldbach (2 primes) remains open. <b class="text-red-300">Goldbach
+                        comet:</b> The number of decompositions of 2n grows roughly as n/(ln n)Â².
+                </div>
+            </div>
+        </div>
+
+        <!-- Twin Primes -->
+        <div id="tab-twin" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-red-500/30 flex flex-col gap-4">
+                <h3 class="text-red-300 font-bold text-xl">Twin Prime Conjecture</h3>
+                <p class="text-sm text-gray-400">Twin primes are primes differing by 2: (3,5), (5,7), (11,13), (17,19),
+                    ... Conjecture: there are infinitely many. <b class="text-red-400">Still unproven!</b></p>
+                <div class="flex gap-3 items-end flex-wrap">
+                    <div><label class="text-xs text-gray-400">Search up to N</label><input type="number" id="twinN"
+                            class="e-input w-40" value="200" min="4" max="5000" step="100" oninput="runTwin()"></div>
+                    <button class="btn bg-red-700 hover:bg-red-600 font-bold" onclick="runTwin()">Find Twin
+                        Primes</button>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="twinCards"></div>
+                <canvas id="twinCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:220px"></canvas>
+                <div id="twinList" class="flex flex-wrap gap-1 max-h-24 overflow-y-auto mt-1"></div>
+                <div class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300">
+                    <b class="text-red-300">Zhang 2013:</b> There are infinitely many prime pairs with gap &lt;
+                    70,000,000 (breakthrough!). <b class="text-red-300">Polymath8 (Maynard, 2014):</b> Gap reduced to
+                    246. <b class="text-red-300">Twin prime constant:</b> Câ‚‚ â‰ˆ 0.6601618... â‰ˆ 2âˆâ‚šâ‰¥â‚ƒ
+                    p(p-2)/(p-1)Â²
+                </div>
+            </div>
+        </div>
+
+        <!-- Riemann Zeta -->
+        <div id="tab-riemann" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-red-500/30 flex flex-col gap-4">
+                <h3 class="text-red-300 font-bold text-xl">Riemann Zeta Function Î¶(s)</h3>
+                <p class="text-sm text-gray-400">Î¶(s) = Î£â‚™â‚Œâ‚^âˆž 1/nË¢. The Riemann Hypothesis: all non-trivial
+                    zeros have
+                    Re(s) = 1/2. <b class="text-red-400">$1 million Millennium Prize â€” still unproven!</b></p>
+                <div class="flex gap-3 items-end flex-wrap">
+                    <div><label class="text-xs text-gray-400">Real part Ïƒ</label><input type="number" id="zetaSigma"
+                            class="e-input w-32" value="2" step="0.5" min="1.1" max="10" oninput="runZeta()"></div>
+                    <div><label class="text-xs text-gray-400">Terms N</label><input type="range" id="zetaN" min="10"
+                            max="5000" value="1000"
+                            oninput="document.getElementById('zetaNV').innerText=this.value;runZeta()"><span id="zetaNV"
+                            class="text-red-300 font-mono font-bold ml-1">1000</span></div>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="zetaCards"></div>
+                <canvas id="zetaCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:220px"></canvas>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-1">
+                    <div class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300">
+                        <b class="text-red-300">Special values:</b><br>Î¶(2) = Ï€Â²/6 â‰ˆ 1.6449 (Basel problem, Euler
+                        1734)<br>Î¶(4) = Ï€â´/90 â‰ˆ 1.0823<br>Î¶(âˆ’1) = âˆ’1/12 (regularized; âˆž formally)<br>Î¶(0)
+                        =
+                        âˆ’1/2<br>Î¶(âˆ’2n) = 0 (trivial zeros)
+                    </div>
+                    <div class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300">
+                        <b class="text-red-300">First known non-trivial zeros (Im part):</b><br>s = 1/2 + it, t â‰ˆ
+                        14.1347, 21.0220, 25.0109, 30.4249, 32.9351...<br><b class="text-red-300">Known:</b> 10Â¹Â³
+                        zeros
+                        computed (all on critical line). RH equivalent to prime counting error bound.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); if (btn) btn.classList.add('active'); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); document.getElementById('tab-' + id).classList.remove('hidden'); if (id === 'collatz') runCollatz(); if (id === 'goldbach') runGoldbach(); if (id === 'twin') runTwin(); if (id === 'riemann') runZeta(); setTimeout(() => { if (window.injectAIButtons) window.injectAIButtons(); }, 100); }
+        function card(label, val) { return `<div class="val-card"><span class="text-xs text-gray-500 block">${label}</span><span class="text-lg font-mono text-red-300 font-bold">${val}</span></div>`; }
+        function isPrime(n) { if (n < 2) return false; if (n < 4) return true; if (n % 2 === 0 || n % 3 === 0) return false; for (let i = 5; i * i <= n; i += 6)if (n % i === 0 || n % (i + 2) === 0) return false; return true; }
+
+        function runCollatz() {
+            let n = parseInt(document.getElementById('colN').value) || 27;
+            let seq = [n], maxVal = n;
+            while (n !== 1 && seq.length < 10000) { n = n % 2 === 0 ? n / 2 : 3 * n + 1; seq.push(n); if (n > maxVal) maxVal = n; }
+            document.getElementById('collatzCards').innerHTML = [['Steps', seq.length - 1], ['Max value', maxVal], ['Max/Start', (maxVal / (seq[0])).toFixed(2) + 'Ã—'], ['Final', seq[seq.length - 1]]].map(([k, v]) => card(k, v)).join('');
+            let cv = document.getElementById('collatzCanvas'); cv.width = cv.offsetWidth; cv.height = 240;
+            let cx = cv.getContext('2d'), W = cv.width, H = 240, pad = 30; cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let maxY = maxVal, N = seq.length;
+            const tx = i => pad + i / (N - 1) * (W - 2 * pad), ty = v => H - pad - v / maxY * (H - 2 * pad);
+            cx.strokeStyle = '#ef4444'; cx.lineWidth = 1.5; cx.beginPath(); seq.forEach((v, i) => i === 0 ? cx.moveTo(tx(i), ty(v)) : cx.lineTo(tx(i), ty(v))); cx.stroke();
+            cx.fillStyle = '#ef4444'; cx.font = '10px monospace'; cx.fillText(`n=${seq[0]} â†’ ${seq.length - 1} steps â†’ 1`, pad, 16);
+            document.getElementById('collatzSeq').innerHTML = seq.slice(0, 100).map(v => `<span class="seq-item">${v}</span>`).join('') + (seq.length > 100 ? `<span class="seq-item text-gray-500">...+${seq.length - 100} more</span>` : '');
+        }
+
+        function runGoldbach() {
+            let n = parseInt(document.getElementById('gbN').value) || 28;
+            if (n % 2 !== 0 || n < 4) { document.getElementById('gbResults').innerHTML = '<span class="text-red-400">Must be even and â‰¥ 4</span>'; return; }
+            let pairs = []; for (let p = 2; p <= n / 2; p++) { if (isPrime(p) && isPrime(n - p)) pairs.push([p, n - p]); }
+            document.getElementById('gbResults').innerHTML = pairs.length ? pairs.map(([p, q]) => `<span class="seq-item text-emerald-300">${p}+${q}</span>`).join('') : '<span class="text-red-400">No pairs found</span>';
+            let cv = document.getElementById('goldCanvas'); cv.width = cv.offsetWidth; cv.height = 200;
+            let cx = cv.getContext('2d'), W = cv.width, H = 200, pad = 25; cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let counts = []; let maxC = 0; for (let k = 4; k <= Math.min(n, 200); k += 2) { let c = 0; for (let p = 2; p <= k / 2; p++) { if (isPrime(p) && isPrime(k - p)) c++; } counts.push(c); if (c > maxC) maxC = c; }
+            let bw = (W - 2 * pad) / counts.length;
+            counts.forEach((c, i) => { let bh = c / Math.max(maxC, 1) * (H - 2 * pad); cx.fillStyle = i === counts.length - 1 ? '#ef4444' : 'rgba(239,68,68,0.5)'; cx.fillRect(pad + i * bw, H - pad - bh, Math.max(bw - 1, 1), bh); });
+            cx.fillStyle = '#ef4444'; cx.font = '9px monospace'; cx.textAlign = 'right'; cx.fillText(`n=${n}: ${pairs.length} decompositions`, W - pad, 14); cx.textAlign = 'start';
+        }
+
+        function runTwin() {
+            let N = parseInt(document.getElementById('twinN').value) || 200;
+            let twins = [], primes = [];
+            for (let p = 2; p <= N; p++) { if (isPrime(p)) { primes.push(p); if (p > 2 && isPrime(p - 2)) twins.push([p - 2, p]); } }
+            document.getElementById('twinCards').innerHTML = [['Twin pairs found', twins.length], ['Primes â‰¤ N', primes.length], ['Largest twin', (twins.length ? `(${twins[twins.length - 1][0]},${twins[twins.length - 1][1]})` : '-')], ['% primes in twin', (primes.length ? ((twins.length * 2 / primes.length) * 100).toFixed(1) + '%' : '-')]].map(([k, v]) => card(k, v)).join('');
+            let cv = document.getElementById('twinCanvas'); cv.width = cv.offsetWidth; cv.height = 220;
+            let cx = cv.getContext('2d'), W = cv.width, H = 220, pad = 25; cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let counts = [], step = Math.max(1, Math.floor(N / 50)); let maxC = 0;
+            for (let k = 4; k <= N; k += step) { let c = twins.filter(([p]) => p <= k).length; counts.push({ x: k, c }); if (c > maxC) maxC = c; }
+            const tx = x => pad + x / N * (W - 2 * pad), ty = c => H - pad - c / Math.max(maxC, 1) * (H - 2 * pad);
+            cx.strokeStyle = '#ef4444'; cx.lineWidth = 2; cx.beginPath(); counts.forEach((p, i) => i === 0 ? cx.moveTo(tx(p.x), ty(p.c)) : cx.lineTo(tx(p.x), ty(p.c))); cx.stroke();
+            cx.fillStyle = '#ef4444'; cx.font = '9px monospace'; cx.fillText('Twin prime count Ï€â‚‚(x)', pad, 14);
+            document.getElementById('twinList').innerHTML = twins.slice(0, 50).map(([a, b]) => `<span class="seq-item">(${a},${b})</span>`).join('') + (twins.length > 50 ? `<span class="seq-item text-gray-500">...+${twins.length - 50} more</span>` : '');
+        }
+
+        function runZeta() {
+            let sigma = parseFloat(document.getElementById('zetaSigma').value) || 2;
+            let N = parseInt(document.getElementById('zetaN').value) || 1000;
+            if (sigma <= 1) { document.getElementById('zetaCards').innerHTML = '<div class="col-span-4 text-red-400">Î¶(s) diverges for Re(s) â‰¤ 1</div>'; return; }
+            let zeta = 0; for (let n = 1; n <= N; n++)zeta += Math.pow(n, -sigma);
+            let exact = sigma === 2 ? Math.PI * Math.PI / 6 : sigma === 4 ? Math.pow(Math.PI, 4) / 90 : NaN;
+            let err = isNaN(exact) ? 'â€”' : Math.abs(zeta - exact).toExponential(2);
+            document.getElementById('zetaCards').innerHTML = [['Î¶(Ïƒ)', zeta.toFixed(8)], ['Exact', isNaN(exact) ? 'â€”' : exact.toFixed(8)], ['Error', err], ['Terms N', N]].map(([k, v]) => card(k, v)).join('');
+            let cv = document.getElementById('zetaCanvas'); cv.width = cv.offsetWidth; cv.height = 220;
+            let cx = cv.getContext('2d'), W = cv.width, H = 220, pad = 30; cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let sigmas = Array.from({ length: 200 }, (_, i) => 1.05 + i * 0.05), zetas = sigmas.map(s => { let z = 0; for (let n = 1; n <= 200; n++)z += Math.pow(n, -s); return z; });
+            let maxZ = Math.min(zetas[0], 20);
+            const tx = s => pad + (s - 1.05) / (sigmas[sigmas.length - 1] - 1.05) * (W - 2 * pad), ty = z => H - pad - (Math.min(z, maxZ) - 1) / (maxZ - 1) * (H - 2 * pad);
+            cx.strokeStyle = '#ef4444'; cx.lineWidth = 2; cx.beginPath(); sigmas.forEach((s, i) => { let z = Math.min(zetas[i], maxZ); i === 0 ? cx.moveTo(tx(s), ty(z)) : cx.lineTo(tx(s), ty(z)); }); cx.stroke();
+            cx.beginPath(); cx.arc(tx(sigma), ty(Math.min(zeta, maxZ)), 5, 0, Math.PI * 2); cx.fillStyle = '#fbbf24'; cx.fill();
+            cx.fillStyle = '#ef4444'; cx.font = '9px monospace'; cx.fillText('Î¶(Ïƒ) for Ïƒ > 1', pad, 14); cx.fillStyle = '#64748b'; cx.fillText('Ïƒ â†’', W - 45, H - 4);
+        }
+        runCollatz();
+
+        /* Famous Constants Calculator */
+        function evalConst() {
+            const PI = Math.PI, E = Math.E, PHI = (1 + Math.sqrt(5)) / 2;
+            const GAMMA = 0.5772156649015328586, SQRT2 = Math.SQRT2;
+            try {
+                let expr = document.getElementById('constExpr').value;
+                expr = expr.replace(/\^/g, '**');
+                let result = Function('PI', 'E', 'PHI', 'GAMMA', 'SQRT2', `"use strict"; return (${expr})`)(PI, E, PHI, GAMMA, SQRT2);
+                document.getElementById('constResult').innerText = typeof result === 'number' ? result.toPrecision(15) : String(result);
+            } catch (ex) {
+                document.getElementById('constResult').innerText = 'Error: ' + ex.message;
+                document.getElementById('constResult').style.color = '#f87171';
+            }
+        }
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

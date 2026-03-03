@@ -1,0 +1,414 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stochastic Processes - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-btn {
+            padding: .55rem 1rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .8rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(20, 184, 166, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(20, 184, 166, 0.25);
+            color: white;
+            border-color: #14b8a6;
+            box-shadow: 0 0 12px rgba(20, 184, 166, 0.4);
+        }
+
+        .s-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(20, 184, 166, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            font-family: monospace;
+            width: 100%;
+        }
+
+        .s-input:focus {
+            border-color: #2dd4bf;
+            outline: none;
+        }
+
+        .val-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(20, 184, 166, 0.4);
+            border-radius: .75rem;
+            padding: .75rem;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-cyan-500 pb-2">
+            <i class="fas fa-random text-teal-400"></i> Stochastic Processes
+        </h2>
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-teal-500/30">
+            <button class="tab-btn active" onclick="switchTab('rw',this)">Random Walk</button>
+            <button class="tab-btn" onclick="switchTab('brownian',this)">Brownian Motion</button>
+            <button class="tab-btn" onclick="switchTab('poisson',this)">Poisson Process</button>
+            <button class="tab-btn" onclick="switchTab('birthdeath',this)">
+            <button class="tab-btn" onclick="switchTab('matrix')">Transition Matrix</button>
+            <button class="tab-btn" onclick="switchTab('matrix')">Transition Matrix</button>
+            <button class="tab-btn" onclick="switchTab('steady')">Steady State</button>
+            <button class="tab-btn" onclick="switchTab('chainsim')">Chain Simulation</button>
+            <button class="tab-btn" onclick="switchTab('absorb')">Absorbing Chains</button>
+        </div>
+
+        <!-- Random Walk -->
+        <div id="tab-rw" class="tab-content flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-teal-500/30 flex flex-col gap-4">
+                <h3 class="text-teal-300 font-bold text-xl">1D & 2D Random Walk Simulator</h3>
+                <div class="flex flex-wrap gap-3 items-end">
+                    <div><label class="text-xs text-gray-400">Steps</label><input type="number" id="rwSteps"
+                            class="s-input w-24" value="200" min="10" max="2000" step="10"></div>
+                    <div><label class="text-xs text-gray-400">Paths</label><input type="number" id="rwPaths"
+                            class="s-input w-20" value="5" min="1" max="10"></div>
+                    <div><label class="text-xs text-gray-400">p (prob right/up)</label><input type="number" id="rwP"
+                            class="s-input w-24" value="0.5" min="0" max="1" step="0.05"></div>
+                    <div class="flex items-center gap-2"><input type="checkbox" id="rw2D"><label
+                            class="text-xs text-gray-400">2D Walk</label></div>
+                    <button class="btn bg-teal-700 hover:bg-teal-600 font-bold" onclick="runRW()">Simulate</button>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="val-card"><span class="text-xs text-gray-500 block">E[X_n]</span><span id="rwMean"
+                            class="text-xl font-mono text-teal-300 font-bold">â€”</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Var[X_n] â‰ˆnÂ·4pq</span><span
+                            id="rwVar" class="text-xl font-mono text-teal-300 font-bold">â€”</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Final positions</span><span
+                            id="rwFinal" class="text-sm font-mono text-teal-200">â€”</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Ïƒ = âˆšnÂ·âˆš(4pq)</span><span id="rwSd"
+                            class="text-xl font-mono text-teal-300 font-bold">â€”</span></div>
+                </div>
+                <canvas id="rwCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:280px"></canvas>
+            </div>
+        </div>
+
+        <!-- Brownian Motion -->
+        <div id="tab-brownian" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-teal-500/30 flex flex-col gap-4">
+                <h3 class="text-teal-300 font-bold text-xl">Brownian Motion (Wiener Process) W(t)</h3>
+                <p class="text-sm text-gray-400">W(0)=0, increments W(t)âˆ’W(s)âˆ¼N(0,tâˆ’s), independent. Geometric Brownian
+                    Motion: dS = Î¼S dt + ÏƒS dW</p>
+                <div class="flex flex-wrap gap-3 items-end">
+                    <div><label class="text-xs text-gray-400">Paths</label><input type="number" id="bmPaths"
+                            class="s-input w-20" value="5" min="1" max="15"></div>
+                    <div><label class="text-xs text-gray-400">Time T</label><input type="number" id="bmT"
+                            class="s-input w-20" value="1" min="0.1" max="5" step="0.1"></div>
+                    <div><label class="text-xs text-gray-400">Steps N</label><input type="number" id="bmN"
+                            class="s-input w-24" value="500" min="100" max="2000" step="100"></div>
+                    <div class="flex items-center gap-2"><input type="checkbox" id="bmGeo"><label
+                            class="text-xs text-gray-400">Geometric BM</label></div>
+                    <button class="btn bg-teal-700 hover:bg-teal-600 font-bold" onclick="runBM()">Simulate</button>
+                </div>
+                <div id="bmGeoParams" class="hidden flex gap-3 items-end flex-wrap">
+                    <div><label class="text-xs text-gray-400">Î¼ (drift)</label><input type="number" id="bmMu"
+                            class="s-input w-20" value="0.1" step="0.01"></div>
+                    <div><label class="text-xs text-gray-400">Ïƒ (volatility)</label><input type="number" id="bmSigma"
+                            class="s-input w-20" value="0.2" step="0.01"></div>
+                    <div><label class="text-xs text-gray-400">Sâ‚€</label><input type="number" id="bmS0"
+                            class="s-input w-20" value="100" step="1"></div>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div class="val-card"><span class="text-xs text-gray-500 block">E[W(T)]</span><span id="bmEW"
+                            class="text-xl font-mono text-teal-300 font-bold">0</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Var[W(T)] = T</span><span
+                            id="bmVarW" class="text-xl font-mono text-teal-300 font-bold">â€”</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Simulated E[W(T)]</span><span
+                            id="bmSimMean" class="text-xl font-mono text-teal-200 font-bold">â€”</span></div>
+                </div>
+                <canvas id="bmCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:280px"></canvas>
+            </div>
+        </div>
+
+        <!-- Poisson -->
+        <div id="tab-poisson" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-teal-500/30 flex flex-col gap-4">
+                <h3 class="text-teal-300 font-bold text-xl">Poisson Process N(t) â€” Counting Process</h3>
+                <p class="text-sm text-gray-400">N(t) counts arrivals in [0,t] with rate Î». Interarrival times ~ Exp(Î»).
+                    E[N(t)] = Î»t, Var[N(t)] = Î»t.</p>
+                <div class="flex flex-wrap gap-3 items-end">
+                    <div><label class="text-xs text-gray-400">Rate Î»</label><input type="number" id="ppLambda"
+                            class="s-input w-24" value="3" min="0.1" max="20" step="0.5" oninput="runPoisson()"></div>
+                    <div><label class="text-xs text-gray-400">Time T</label><input type="number" id="ppT"
+                            class="s-input w-20" value="5" min="0.5" max="20" step="0.5" oninput="runPoisson()"></div>
+                    <button class="btn bg-teal-700 hover:bg-teal-600 font-bold" onclick="runPoisson()">Simulate</button>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="val-card"><span class="text-xs text-gray-500 block">E[N(T)] = Î»T</span><span id="ppEN"
+                            class="text-2xl font-mono text-teal-300 font-bold">â€”</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Var[N(T)] = Î»T</span><span id="ppVN"
+                            class="text-2xl font-mono text-teal-300 font-bold">â€”</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Simulated N(T)</span><span id="ppSN"
+                            class="text-2xl font-mono text-teal-200 font-bold">â€”</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Mean inter-arrival</span><span
+                            id="ppMIA" class="text-2xl font-mono text-teal-200 font-bold">â€”</span></div>
+                </div>
+                <canvas id="ppCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:240px"></canvas>
+                <div class="bg-black/40 p-4 rounded-xl">
+                    <h4 class="text-teal-300 font-bold text-sm mb-2">Poisson PMF P(N(T)=k)</h4>
+                    <div id="ppPMF" class="flex flex-wrap gap-2 text-xs font-mono"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Birth-Death -->
+        <div id="tab-birthdeath" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-teal-500/30 flex flex-col gap-4">
+                <h3 class="text-teal-300 font-bold text-xl">Birth-Death Markov Chain</h3>
+                <p class="text-sm text-gray-400">State space {0,1,â€¦,N}. Birth rate Î»áµ¢ from state i, death rate Î¼áµ¢. Find
+                    steady-state distribution Ï€.</p>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div><label class="text-xs text-gray-400">States N (max)</label><input type="number" id="bdN"
+                            class="s-input" value="5" min="2" max="10" oninput="runBD()"></div>
+                    <div><label class="text-xs text-gray-400">Birth rate Î» (uniform)</label><input type="number"
+                            id="bdLambda" class="s-input" value="2" step="0.1" min="0.01" oninput="runBD()"></div>
+                    <div><label class="text-xs text-gray-400">Death rate Î¼ (uniform)</label><input type="number"
+                            id="bdMu" class="s-input" value="3" step="0.1" min="0.01" oninput="runBD()"></div>
+                    <div><label class="text-xs text-gray-400">Start state</label><input type="number" id="bdStart"
+                            class="s-input" value="0" min="0" oninput="runBD()"></div>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Traffic intensity Ï=Î»/Î¼</span><span
+                            id="bdRho" class="text-2xl font-mono text-teal-300 font-bold">â€”</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Ï€â‚€ (steady state)</span><span
+                            id="bdPi0" class="text-xl font-mono text-teal-300 font-bold">â€”</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">E[queue length]</span><span
+                            id="bdEQ" class="text-xl font-mono text-teal-300 font-bold">â€”</span></div>
+                </div>
+                <div id="bdSteadyChart" class="flex flex-col gap-2"></div>
+                <canvas id="bdCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:200px"></canvas>
+            </div>
+        </div>
+    </div>
+    
+        <!-- Markov: Transition Matrix -->
+        <div id="tab-matrix" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-teal-500/30 flex flex-col gap-4">
+                <h3 class="text-teal-300 font-bold text-xl">Transition Matrix Builder</h3>
+                <div class="flex gap-3 flex-wrap items-center">
+                    <label class="text-gray-400">States n:</label>
+                    <select id="mcN" class="bg-black/60 border border-teal-500/40 text-white rounded p-1 w-20" onchange="buildMC()"><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option></select>
+                    <div><label class="text-xs text-gray-400 block">State names (comma-sep)</label><input type="text" id="mcNames" class="bg-black/60 border border-teal-500/40 text-white rounded p-1.5 font-mono w-64" value="Sunny, Cloudy, Rainy" oninput="buildMC()"></div>
+                    <button class="btn bg-teal-700 hover:bg-teal-600 font-bold" onclick="analyzeMatrix()">Analyze</button>
+                    <button class="btn bg-slate-700 text-xs hover:bg-slate-600" onclick="loadExample()">Weather Example</button>
+                </div>
+                <div class="overflow-x-auto"><table id="mcTable" class="border-collapse text-sm w-full"></table></div>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3" id="matrixStats"></div>
+            </div>
+        </div>
+
+        <!-- Markov: Steady State -->
+        <div id="tab-steady" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-teal-500/30 flex flex-col gap-4">
+                <h3 class="text-teal-300 font-bold text-xl">Steady-State Distribution (π)</h3>
+                <p class="text-sm text-gray-400">The long-run probability of being in each state. Solves πP = π using power iteration.</p>
+                <div class="flex gap-3 flex-wrap">
+                    <div class="flex-1"><label class="text-xs text-gray-400">Initial distribution π₀</label><input type="text" id="mcInitDist" class="bg-black/60 border border-teal-500/40 text-white rounded p-1.5 w-full font-mono mt-1" value="1, 0, 0"></div>
+                    <div><label class="text-xs text-gray-400">Steps</label><input type="number" id="mcSteps" class="bg-black/60 border border-teal-500/40 text-white rounded p-1.5 w-24 mt-1" value="50"></div>
+                </div>
+                <button class="btn bg-teal-700 hover:bg-teal-600 font-bold" onclick="computeSteady()">Compute π</button>
+                <div id="steadyResult" class="bg-black/50 border border-teal-500/40 rounded-xl p-5"></div>
+                <canvas id="steadyCanvas" class="w-full rounded-xl bg-black/60 border border-gray-700" style="height:220px"></canvas>
+            </div>
+        </div>
+
+        <!-- Markov: Chain Simulation -->
+        <div id="tab-chainsim" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-teal-500/30 flex flex-col gap-4">
+                <h3 class="text-teal-300 font-bold text-xl">Chain Path Simulator</h3>
+                <div class="flex gap-3 flex-wrap items-end">
+                    <div><label class="text-xs text-gray-400">Start state (0-indexed)</label><input type="number" id="simStart" class="bg-black/60 border border-teal-500/40 text-white rounded p-1.5 w-24 mt-1" value="0" min="0"></div>
+                    <div><label class="text-xs text-gray-400">Steps</label><input type="number" id="simLen" class="bg-black/60 border border-teal-500/40 text-white rounded p-1.5 w-24 mt-1" value="30" min="1" max="200"></div>
+                    <button class="btn bg-teal-700 hover:bg-teal-600 font-bold" onclick="simulate()">▷ Simulate</button>
+                </div>
+                <div id="simPath" class="flex flex-wrap gap-2 bg-black/30 rounded-xl p-4 min-h-16"></div>
+                <canvas id="simCanvas" class="w-full rounded-xl bg-black/60 border border-gray-700" style="height:200px"></canvas>
+            </div>
+        </div>
+
+        <!-- Markov: Absorbing Chains -->
+        <div id="tab-absorb" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-teal-500/30 flex flex-col gap-4">
+                <h3 class="text-teal-300 font-bold text-xl">Absorbing Markov Chain (Gambler's Ruin)</h3>
+                <p class="text-sm text-gray-400">Gambler starts with k dollars. Win <script src="script.js"> (prob p) or lose <script src="script.js"> (prob 1-p). Game ends at <script src="script.js"> or target $N.</p>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div><label class="text-xs text-gray-400">Win prob p</label><input type="number" id="grP" class="bg-black/60 border border-teal-500/40 text-white rounded p-1.5 w-full mt-1" value="0.48" step="0.01" min="0" max="1" oninput="solveGambler()"></div>
+                    <div><label class="text-xs text-gray-400">Starting wealth k</label><input type="number" id="grK" class="bg-black/60 border border-teal-500/40 text-white rounded p-1.5 w-full mt-1" value="10" min="1" oninput="solveGambler()"></div>
+                    <div><label class="text-xs text-gray-400">Target N</label><input type="number" id="grN" class="bg-black/60 border border-teal-500/40 text-white rounded p-1.5 w-full mt-1" value="20" min="2" oninput="solveGambler()"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-black/50 border border-teal-500/40 rounded-xl p-5 text-center"><span class="text-xs text-gray-500 block mb-1">P(win | start k)</span><span id="grWin" class="text-3xl font-mono text-teal-300 font-bold">—</span></div>
+                    <div class="bg-black/50 border border-teal-500/40 rounded-xl p-5 text-center"><span class="text-xs text-gray-500 block mb-1">P(ruin | start k)</span><span id="grRuin" class="text-3xl font-mono text-rose-400 font-bold">—</span></div>
+                </div>
+                <canvas id="grCanvas" class="w-full rounded-xl bg-black/60 border border-gray-700" style="height:200px"></canvas>
+            </div>
+        </div>
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); document.getElementById('tab-' + id).classList.remove('hidden'); if (id === 'brownian') document.getElementById('bmGeoParams').classList.toggle('hidden', !document.getElementById('bmGeo').checked); if (id === 'poisson') setTimeout(runPoisson, 50); if (id === 'birthdeath') setTimeout(runBD, 50); }
+        function rng() { return Math.random(); }
+        function randn() { let u = 1 - rng(), v = rng(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+        const colors2 = ['#14b8a6', '#60a5fa', '#f87171', '#fbbf24', '#c084fc', '#34d399', '#f472b6', '#fb923c', '#a78bfa', '#4ade80'];
+
+        function f3(v) { return isFinite(v) ? parseFloat(v.toFixed(4)).toString() : 'â€”'; }
+
+        /* Random Walk */
+        function runRW() {
+            let n = parseInt(document.getElementById('rwSteps').value) || 200;
+            let np = parseInt(document.getElementById('rwPaths').value) || 5;
+            let p = parseFloat(document.getElementById('rwP').value) || 0.5;
+            let is2D = document.getElementById('rw2D').checked;
+            const cv = document.getElementById('rwCanvas'); cv.width = cv.offsetWidth; cv.height = 280;
+            const cx = cv.getContext('2d'), W = cv.width, H = 280, pad = 30;
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let allPaths = [], finals = [];
+            for (let pi = 0; pi < np; pi++) {
+                let path = [{ x: 0, y: 0 }]; let px = 0, py = 0;
+                for (let i = 0; i < n; i++) {
+                    let dx = rng() < p ? 1 : -1, dy = is2D ? (rng() < p ? 1 : -1) : 0;
+                    if (!is2D) px += dx; else { px += dx; py += dy; }
+                    path.push({ x: is2D ? px : i + 1, y: is2D ? py : px });
+                }
+                allPaths.push(path); finals.push(is2D ? Math.hypot(px, py) : px);
+            }
+            if (!is2D) {
+                let allY = allPaths.flat().map(p2 => p2.y);
+                let minY = Math.min(...allY) - 1, maxY = Math.max(...allY) + 1;
+                const tx = v => pad + v / n * (W - 2 * pad), ty = v => H / 2 - (v - 0) / (maxY || 1) * (H / 2 - pad);
+                cx.strokeStyle = '#1e293b'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(pad, H / 2); cx.lineTo(W - pad, H / 2); cx.stroke();
+                allPaths.forEach((path, pi) => { cx.strokeStyle = colors2[pi % colors2.length]; cx.lineWidth = 1.5; cx.beginPath(); path.forEach((pt, i) => i === 0 ? cx.moveTo(tx(pt.x), ty(pt.y)) : cx.lineTo(tx(pt.x), ty(pt.y))); cx.stroke(); });
+            } else {
+                let allX = allPaths.flat().map(p2 => p2.x), allY = allPaths.flat().map(p2 => p2.y);
+                let minX = Math.min(...allX), maxX = Math.max(...allX), minY = Math.min(...allY), maxY = Math.max(...allY);
+                const tx = v => pad + (v - minX) / (maxX - minX || 1) * (W - 2 * pad), ty = v => H - pad - (v - minY) / (maxY - minY || 1) * (H - 2 * pad);
+                allPaths.forEach((path, pi) => { cx.strokeStyle = colors2[pi % colors2.length]; cx.lineWidth = 1.5; cx.beginPath(); path.forEach((pt, i) => i === 0 ? cx.moveTo(tx(pt.x), ty(pt.y)) : cx.lineTo(tx(pt.x), ty(pt.y))); cx.stroke(); cx.beginPath(); cx.arc(tx(path[path.length - 1].x), ty(path[path.length - 1].y), 4, 0, Math.PI * 2); cx.fillStyle = colors2[pi % colors2.length]; cx.fill(); });
+            }
+            let mean = finals.reduce((a, v) => a + v, 0) / np;
+            let expMean = n * (2 * p - 1); let variance = 4 * p * (1 - p) * n;
+            document.getElementById('rwMean').innerText = f3(expMean);
+            document.getElementById('rwVar').innerText = f3(variance);
+            document.getElementById('rwSd').innerText = f3(Math.sqrt(variance));
+            document.getElementById('rwFinal').innerText = finals.map(v => v.toFixed(1)).join(', ');
+        }
+
+        /* Brownian Motion */
+        document.getElementById('bmGeo').addEventListener('change', function () { document.getElementById('bmGeoParams').classList.toggle('hidden', !this.checked); });
+        function runBM() {
+            let np = parseInt(document.getElementById('bmPaths').value) || 5;
+            let T = parseFloat(document.getElementById('bmT').value) || 1;
+            let N2 = parseInt(document.getElementById('bmN').value) || 500;
+            let isGeo = document.getElementById('bmGeo').checked;
+            let mu = parseFloat(document.getElementById('bmMu').value) || 0.1;
+            let sigma = parseFloat(document.getElementById('bmSigma').value) || 0.2;
+            let S0 = parseFloat(document.getElementById('bmS0').value) || 100;
+            let dt = T / N2;
+            const cv = document.getElementById('bmCanvas'); cv.width = cv.offsetWidth; cv.height = 280;
+            const cx = cv.getContext('2d'), W = cv.width, H = 280, pad = 30;
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let allPaths = [], finals = [];
+            for (let pi = 0; pi < np; pi++) {
+                let path = [isGeo ? S0 : 0];
+                for (let i = 0; i < N2; i++) { let dW = randn() * Math.sqrt(dt); let prev = path[path.length - 1]; path.push(isGeo ? prev * Math.exp((mu - 0.5 * sigma ** 2) * dt + sigma * dW) : prev + dW); }
+                allPaths.push(path); finals.push(path[path.length - 1]);
+            }
+            let allY = allPaths.flat().filter(isFinite); let minY = Math.min(...allY) - 0.1, maxY = Math.max(...allY) + 0.1;
+            const tx = i => pad + i / N2 * (W - 2 * pad), ty = v => H - pad - (v - minY) / (maxY - minY || 1) * (H - 2 * pad);
+            cx.strokeStyle = '#1e293b'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(pad, ty(isGeo ? S0 : 0)); cx.lineTo(W - pad, ty(isGeo ? S0 : 0)); cx.stroke();
+            allPaths.forEach((path, pi) => { cx.strokeStyle = colors2[pi % colors2.length]; cx.lineWidth = 1.5; cx.beginPath(); path.forEach((v, i) => i === 0 ? cx.moveTo(tx(i), ty(v)) : cx.lineTo(tx(i), ty(v))); cx.stroke(); });
+            let simMean = finals.reduce((a, v) => a + v, 0) / np;
+            document.getElementById('bmVarW').innerText = f3(T);
+            document.getElementById('bmSimMean').innerText = f3(simMean);
+        }
+
+        /* Poisson */
+        function runPoisson() {
+            let lambda = parseFloat(document.getElementById('ppLambda').value) || 3;
+            let T = parseFloat(document.getElementById('ppT').value) || 5;
+            // Simulate
+            let t = 0, times = [0], count = 0;
+            while (t < T) { let ia = -Math.log(rng()) / lambda; t += ia; if (t < T) { times.push(t); count++; } }
+            times.push(T);
+            document.getElementById('ppEN').innerText = f3(lambda * T);
+            document.getElementById('ppVN').innerText = f3(lambda * T);
+            document.getElementById('ppSN').innerText = count;
+            document.getElementById('ppMIA').innerText = f3(1 / lambda);
+            // Canvas step plot
+            const cv = document.getElementById('ppCanvas'); cv.width = cv.offsetWidth; cv.height = 240;
+            const cx = cv.getContext('2d'), W = cv.width, H = 240, pad = 35;
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let maxN = count + 1; const tx = v => pad + v / T * (W - 2 * pad), ty = v => H - pad - (v / maxN) * (H - 2 * pad);
+            cx.strokeStyle = '#334155'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(pad, H - pad); cx.lineTo(W - pad, H - pad); cx.stroke();
+            cx.strokeStyle = '#14b8a6'; cx.lineWidth = 2; cx.beginPath(); let c2 = 0; times.forEach((t2, i) => { if (i === 0) { cx.moveTo(tx(0), ty(0)); return; } cx.lineTo(tx(times[i]), ty(c2)); cx.lineTo(tx(times[i]), ty(c2 + 1)); c2++; }); cx.lineTo(tx(T), ty(c2)); cx.stroke();
+            times.slice(1, -1).forEach(t2 => { cx.beginPath(); cx.arc(tx(t2), ty(times.indexOf(t2) - 1 + 1), 3, 0, Math.PI * 2); cx.fillStyle = '#2dd4bf'; cx.fill(); });
+            // PMF
+            let pmf = Array.from({ length: Math.min(15, Math.ceil(lambda * T * 2) + 5) }, (_, k) => { let lt = lambda * T; let logP = k * Math.log(lt) - lt - lgamma(k + 1); return { k, p: Math.exp(logP) }; });
+            document.getElementById('ppPMF').innerHTML = pmf.map(({ k, p }) => `<span class="bg-teal-900/40 border border-teal-500/30 px-2 py-1 rounded text-teal-200">P(${k})=${p.toFixed(4)}</span>`).join('');
+        }
+        function lgamma(n) { if (n === 1 || n === 2) return 0; let x = n - 1, r = 0; while (x > 1) { r += Math.log(x); x--; } return r; }
+
+        /* Birth-Death */
+        function runBD() {
+            let N = parseInt(document.getElementById('bdN').value) || 5;
+            let lambda = parseFloat(document.getElementById('bdLambda').value) || 2;
+            let mu = parseFloat(document.getElementById('bdMu').value) || 3;
+            let rho = lambda / mu;
+            document.getElementById('bdRho').innerText = f3(rho);
+            // Steady-state for M/M/1-like: pi_i = pi_0 * rho^i
+            let pi = Array.from({ length: N + 1 }, (_, i) => Math.pow(rho, i));
+            let sum = pi.reduce((a, v) => a + v, 0); pi = pi.map(v => v / sum);
+            document.getElementById('bdPi0').innerText = f3(pi[0]);
+            let EQ = pi.reduce((s, pv, i) => s + i * pv, 0); document.getElementById('bdEQ').innerText = f3(EQ);
+            document.getElementById('bdSteadyChart').innerHTML = `<div class="text-xs text-gray-500 uppercase mb-1">Steady-state Ï€</div><div class="flex flex-wrap gap-2">${pi.map((pv, i) => `<div class="val-card flex-1 min-w-0"><span class="text-xs text-gray-500 block">Ï€${i}</span><span class="text-sm font-mono text-teal-300">${f3(pv)}</span></div>`).join('')}</div>`;
+            // Canvas bar chart
+            const cv = document.getElementById('bdCanvas'); cv.width = cv.offsetWidth; cv.height = 200;
+            const cx = cv.getContext('2d'), W = cv.width, H = 200, pad = 30;
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let bw = (W - 2 * pad) / (N + 1), maxP = Math.max(...pi);
+            pi.forEach((pv, i) => { let bh = pv / maxP * (H - 2 * pad); cx.fillStyle = colors2[i % colors2.length]; cx.fillRect(pad + i * bw + 2, H - pad - bh, bw - 4, bh); cx.fillStyle = '#94a3b8'; cx.font = '9px monospace'; cx.textAlign = 'center'; cx.fillText(i, pad + i * bw + bw / 2, H - pad + 12); }); cx.textAlign = 'start';
+        }
+
+        runRW(); setTimeout(runPoisson, 100); setTimeout(runBD, 100);
+    
+        /* ===== MARKOV CHAIN FUNCTIONS ===== */
+        let mcMatrix = [[0.8,0.15,0.05],[0.2,0.6,0.2],[0.1,0.3,0.6]];
+        let mcNames2 = ['Sunny','Cloudy','Rainy'];
+        function loadExample(){document.getElementById('mcNames').value='Sunny, Cloudy, Rainy';mcNames2=['Sunny','Cloudy','Rainy'];mcMatrix=[[0.8,0.15,0.05],[0.2,0.6,0.2],[0.1,0.3,0.6]];document.getElementById('mcN').value=3;buildMC();for(let i=0;i<3;i++)for(let j=0;j<3;j++){let el=document.getElementById(`mc${i}_${j}`);if(el)el.value=mcMatrix[i][j];}}
+        function buildMC(){let n=parseInt(document.getElementById('mcN').value)||3;mcNames2=document.getElementById('mcNames').value.split(',').map(s=>s.trim()).slice(0,n);while(mcNames2.length<n)mcNames2.push(`S${mcNames2.length+1}`);let t=document.getElementById('mcTable');let html='<tr><td style="border:none"></td>'+mcNames2.map(n=>`<td class="bg-black/40 border border-teal-500/20 p-1 text-teal-300 text-xs font-bold text-center">${n}</td>`).join('')+'</tr>';for(let i=0;i<n;i++){html+=`<tr><td class="bg-black/40 border border-teal-500/20 p-1 text-rose-300 text-xs font-bold">${mcNames2[i]}</td>`;for(let j=0;j<n;j++){let v=(mcMatrix[i]&&mcMatrix[i][j]!==undefined)?mcMatrix[i][j]:(i===j?0.5:0.5/(n-1));html+=`<td class="bg-black/40 border border-teal-500/20 p-1"><input type="number" class="bg-transparent outline-none text-center text-teal-200 font-mono font-bold w-14 text-sm" id="mc${i}_${j}" value="${v.toFixed(2)}" step="0.01" min="0" max="1" oninput="updateMC()"></td>`;}html+='</tr>';}t.innerHTML=html;updateMC();}
+        function updateMC(){let n=parseInt(document.getElementById('mcN').value)||3;mcMatrix=Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>parseFloat(document.getElementById(`mc${i}_${j}`)?.value)||0));}
+        function analyzeMatrix(){let n=parseInt(document.getElementById('mcN').value)||3;updateMC();let rowSums=mcMatrix.map(row=>row.reduce((a,v)=>a+v,0));let isS=rowSums.every(s=>Math.abs(s-1)<0.01);document.getElementById('matrixStats').innerHTML=`<div class="bg-black/40 p-3 rounded-lg border border-teal-500/20 col-span-full"><span class="text-xs text-gray-500 block">Row Sums</span><span class="font-mono text-sm text-teal-200">${rowSums.map((s,i)=>`${mcNames2[i]}: ${s.toFixed(4)}`).join(' | ')}</span></div><div class="bg-black/40 p-3 rounded-lg border border-teal-500/20"><span class="text-xs text-gray-500 block">Stochastic?</span><span class="font-mono font-bold ${isS?'text-green-400':'text-rose-400'}">${isS?'✓ Yes':'✗ No'}</span></div>`;}
+        function vecMatMul(v,M){return M[0].map((_,j)=>v.reduce((s,_,i)=>s+v[i]*M[i][j],0));}
+        function computeSteady(){let n=parseInt(document.getElementById('mcN').value)||3;updateMC();let pi=document.getElementById('mcInitDist').value.split(',').map(Number);let tot=pi.reduce((a,v)=>a+v,0);pi=pi.map(v=>v/tot);let steps=parseInt(document.getElementById('mcSteps').value)||50,history=[pi.slice()];for(let s=0;s<steps;s++){pi=vecMatMul(pi,mcMatrix);history.push(pi.slice());}document.getElementById('steadyResult').innerHTML='<p class="text-xs text-gray-500 mb-2 uppercase font-bold">Stationary π</p>'+pi.map((v,i)=>`<div class="text-sm text-teal-200"><span class="bg-teal-900/50 border border-teal-500/40 text-teal-300 px-2 py-0.5 rounded-full text-xs mr-2">${mcNames2[i]}</span>${(v*100).toFixed(4)}%</div>`).join('');const c=document.getElementById('steadyCanvas');c.width=c.offsetWidth;c.height=220;const cx=c.getContext('2d'),W=c.width,H=220,pad=30;cx.fillStyle='#0f172a';cx.fillRect(0,0,W,H);const colors=['#34d399','#60a5fa','#f87171','#fbbf24','#c084fc'];for(let i=0;i<n;i++){cx.strokeStyle=colors[i%colors.length];cx.lineWidth=2;cx.beginPath();history.forEach((h,t)=>{let px=pad+t/(history.length-1)*(W-pad-10),py=H-pad-h[i]*(H-2*pad);t===0?cx.moveTo(px,py):cx.lineTo(px,py);});cx.stroke();cx.fillStyle=colors[i%colors.length];cx.font='10px sans-serif';cx.fillText(mcNames2[i],W-80,(i+1)*14);}}
+        function simulate(){let n=parseInt(document.getElementById('mcN').value)||3;updateMC();let start=Math.min(parseInt(document.getElementById('simStart').value)||0,n-1),len=parseInt(document.getElementById('simLen').value)||30;const colors=['#34d399','#60a5fa','#f87171','#fbbf24','#c084fc'];let path=[start];for(let s=1;s<len;s++){let cur=path[path.length-1],r=Math.random(),cum=0;for(let j=0;j<n;j++){cum+=mcMatrix[cur][j];if(r<cum){path.push(j);break;}}}document.getElementById('simPath').innerHTML=path.map((s,t)=>`<span style="display:inline-block;padding:.2rem .5rem;border-radius:999px;background:rgba(0,0,0,.5);border:1px solid ${colors[s%colors.length]};color:${colors[s%colors.length]};font-family:monospace;font-size:.8rem">${mcNames2[s]}</span>`).join('→');const c=document.getElementById('simCanvas');c.width=c.offsetWidth;c.height=200;const cx=c.getContext('2d'),W=c.width,H=200,pad=30;cx.fillStyle='#0f172a';cx.fillRect(0,0,W,H);let freq=new Array(n).fill(0);path.forEach(s=>freq[s]++);let bw=(W-2*pad)/n;freq.forEach((f,i)=>{let bh=(f/len)*(H-2*pad);cx.fillStyle=colors[i%colors.length];cx.fillRect(pad+i*bw+2,H-pad-bh,bw-4,bh);cx.fillStyle='#94a3b8';cx.font='10px sans-serif';cx.textAlign='center';cx.fillText(mcNames2[i],pad+i*bw+bw/2,H-pad+12);cx.fillText((f/len*100).toFixed(1)+'%',pad+i*bw+bw/2,H-pad-bh-4);});}
+        function solveGambler(){let p=parseFloat(document.getElementById('grP').value)||0.48,k=parseInt(document.getElementById('grK').value)||10,N=parseInt(document.getElementById('grN').value)||20,q=1-p,pWin;if(Math.abs(p-0.5)<1e-10){pWin=k/N;}else{let r=q/p;pWin=(1-Math.pow(r,k))/(1-Math.pow(r,N));}document.getElementById('grWin').innerText=(pWin*100).toFixed(3)+'%';document.getElementById('grRuin').innerText=((1-pWin)*100).toFixed(3)+'%';const c=document.getElementById('grCanvas');c.width=c.offsetWidth;c.height=200;const cx=c.getContext('2d'),W=c.width,H=200,pad=30;cx.fillStyle='#0f172a';cx.fillRect(0,0,W,H);cx.strokeStyle='#14b8a6';cx.lineWidth=2;cx.beginPath();for(let i=0;i<=N;i++){let pw=Math.abs(p-0.5)<1e-10?i/N:(1-Math.pow(q/p,i))/(1-Math.pow(q/p,N));let px=pad+i/N*(W-2*pad),py=H-pad-pw*(H-2*pad);i===0?cx.moveTo(px,py):cx.lineTo(px,py);}cx.stroke();let mk=pad+k/N*(W-2*pad),mpw=H-pad-pWin*(H-2*pad);cx.beginPath();cx.arc(mk,mpw,6,0,Math.PI*2);cx.fillStyle='#fbbf24';cx.fill();cx.fillStyle='#94a3b8';cx.font='10px monospace';cx.textAlign='left';cx.fillText(`k=${k}: ${(pWin*100).toFixed(1)}%`,mk+8,mpw-5);}
+        buildMC(); loadExample(); solveGambler();
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>
+
+
+

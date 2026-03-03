@@ -1,0 +1,335 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proof Strategies - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-btn {
+            padding: .55rem 1rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .8rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(234, 179, 8, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(234, 179, 8, 0.25);
+            color: white;
+            border-color: #eab308;
+            box-shadow: 0 0 12px rgba(234, 179, 8, 0.4);
+        }
+
+        .p-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(234, 179, 8, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            font-family: monospace;
+            width: 100%;
+        }
+
+        .p-input:focus {
+            border-color: #fde047;
+            outline: none;
+        }
+
+        .proof-step {
+            background: rgba(0, 0, 0, 0.4);
+            border-left: 3px solid #eab308;
+            border-radius: 0 .5rem .5rem 0;
+            padding: .5rem .75rem;
+            font-family: monospace;
+            font-size: .85rem;
+            color: #e2e8f0;
+            margin: .2rem 0;
+        }
+
+        .val-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(234, 179, 8, 0.4);
+            border-radius: .75rem;
+            padding: .75rem;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-500 pb-2">
+            <i class="fas fa-scroll text-yellow-400"></i> Mathematical Proof Strategies
+        </h2>
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-yellow-500/30">
+            <button class="tab-btn active" onclick="switchTab('direct',this)">Direct Proof</button>
+            <button class="tab-btn" onclick="switchTab('contra',this)">Contrapositive</button>
+            <button class="tab-btn" onclick="switchTab('induction',this)">Induction</button>
+            <button class="tab-btn" onclick="switchTab('contradiction',this)">Contradiction</button>
+            <button class="tab-btn" onclick="switchTab('counting',this)">Counting</button>
+            <button class="tab-btn" onclick="switchTab('inequal',this)">Inequalities</button>
+        </div>
+        <div class="bg-gray-900/50 p-4 rounded-2xl border border-yellow-500/30 flex items-center justify-between gap-4">
+            <div>
+                <h3 class="text-yellow-300 font-bold text-base">Proof Strategies AI Tutor</h3>
+                <p class="text-xs text-gray-400 mt-0.5">Ask about any proof technique — direct, induction,
+                    contradiction, or inequalities.</p>
+            </div>
+            <button class="mv-ai-btn flex-shrink-0" onclick="openActiveProofAI()">🤖 Ask AI</button>
+        </div>
+
+        <!-- Direct Proof -->
+        <div id="tab-direct" class="tab-content flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-yellow-500/30 flex flex-col gap-4">
+                <h3 class="text-yellow-300 font-bold text-xl">Direct Proof — "If P then Q"</h3>
+                <p class="text-sm text-gray-400">Assume P is true, then through a logical sequence of steps, show Q must
+                    also be true.</p>
+                <div class="flex gap-2 flex-wrap mb-1">
+                    <button class="btn bg-yellow-900/50 hover:bg-yellow-800/50 text-sm border border-yellow-500/30"
+                        onclick="showDirect(0)">Sum of two even numbers</button>
+                    <button class="btn bg-yellow-900/50 hover:bg-yellow-800/50 text-sm border border-yellow-500/30"
+                        onclick="showDirect(1)">n odd ⟹ n² odd</button>
+                    <button class="btn bg-yellow-900/50 hover:bg-yellow-800/50 text-sm border border-yellow-500/30"
+                        onclick="showDirect(2)">n²+n always even</button>
+                    <button class="btn bg-yellow-900/50 hover:bg-yellow-800/50 text-sm border border-yellow-500/30"
+                        onclick="showDirect(3)">Product of consecutive ints divisible by 2</button>
+                </div>
+                <div id="directProof" class="flex flex-col gap-2 bg-black/30 p-4 rounded-xl"></div>
+            </div>
+        </div>
+
+        <!-- Contrapositive -->
+        <div id="tab-contra" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-yellow-500/30 flex flex-col gap-4">
+                <h3 class="text-yellow-300 font-bold text-xl">Proof by Contrapositive — Prove (¬Q ⟹ ¬P)</h3>
+                <p class="text-sm text-gray-400">"P ⟹ Q" is logically equivalent to "¬Q ⟹ ¬P". Sometimes proving the
+                    contrapositive is easier.</p>
+                <div class="flex gap-2 flex-wrap mb-1">
+                    <button class="btn bg-yellow-900/50 hover:bg-yellow-800/50 text-sm border border-yellow-500/30"
+                        onclick="showContra(0)">n² even ⟹ n even</button>
+                    <button class="btn bg-yellow-900/50 hover:bg-yellow-800/50 text-sm border border-yellow-500/30"
+                        onclick="showContra(1)">n² odd ⟹ n odd</button>
+                    <button class="btn bg-yellow-900/50 hover:bg-yellow-800/50 text-sm border border-yellow-500/30"
+                        onclick="showContra(2)">Product≠0 ⟹ both factors≠0</button>
+                </div>
+                <div id="contraProof" class="flex flex-col gap-2 bg-black/30 p-4 rounded-xl"></div>
+            </div>
+        </div>
+
+        <!-- Induction -->
+        <div id="tab-induction" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-yellow-500/30 flex flex-col gap-4">
+                <h3 class="text-yellow-300 font-bold text-xl">Mathematical Induction</h3>
+                <p class="text-sm text-gray-400">Prove P(1) (base case), then prove P(k) ⟹ P(k+1) (inductive step).
+                    Concluded: P(n) holds for all n ≥ 1.</p>
+                <div class="flex gap-2 flex-wrap mb-1">
+                    <button class="btn bg-yellow-900/50 hover:bg-yellow-800/50 text-sm border border-yellow-500/30"
+                        onclick="showInduction(0)">Sum 1+2+...+n = n(n+1)/2</button>
+                    <button class="btn bg-yellow-900/50 hover:bg-yellow-800/50 text-sm border border-yellow-500/30"
+                        onclick="showInduction(1)">Sum of squares n(n+1)(2n+1)/6</button>
+                    <button class="btn bg-yellow-900/50 hover:bg-yellow-800/50 text-sm border border-yellow-500/30"
+                        onclick="showInduction(2)">2ⁿ > n for all n≥1</button>
+                    <button class="btn bg-yellow-900/50 hover:bg-yellow-800/50 text-sm border border-yellow-500/30"
+                        onclick="showInduction(3)">Strong induction: Fibonacci divisibility</button>
+                </div>
+                <div id="inductProof" class="flex flex-col gap-2 bg-black/30 p-4 rounded-xl"></div>
+                <div class="bg-gray-900/50 p-4 rounded-xl flex flex-col gap-3 mt-2">
+                    <h4 class="text-yellow-300 font-bold text-sm">Live Induction Verifier</h4>
+                    <div class="flex gap-3 flex-wrap items-end">
+                        <div class="flex-1"><label class="text-xs text-gray-400">Formula for Σₖ₌₁ⁿ f(k) — try: k, k^2,
+                                k^3, 2^k</label><input type="text" id="indF" class="p-input mt-1" value="k"></div>
+                        <div><label class="text-xs text-gray-400">Closed form (function of n)</label><input type="text"
+                                id="indClosed" class="p-input mt-1 w-48" value="n*(n+1)/2"></div>
+                        <div><label class="text-xs text-gray-400">Test up to n=</label><input type="number" id="indN"
+                                class="p-input w-20" value="10" min="2" max="50"></div>
+                        <button class="btn bg-yellow-700 hover:bg-yellow-600 font-bold"
+                            onclick="verifyInduction()">Verify</button>
+                    </div>
+                    <div id="indResult" class="text-sm font-mono text-gray-300"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contradiction -->
+        <div id="tab-contradiction" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-yellow-500/30 flex flex-col gap-4">
+                <h3 class="text-yellow-300 font-bold text-xl">Proof by Contradiction — "Reductio ad Absurdum"</h3>
+                <p class="text-sm text-gray-400">Assume ¬P is true, then derive a contradiction (something known to be
+                    false). Therefore P must be true.</p>
+                <div class="flex gap-2 flex-wrap mb-1">
+                    <button class="btn bg-yellow-900/50 hover:bg-yellow-800/50 text-sm border border-yellow-500/30"
+                        onclick="showContrad(0)">√2 is irrational</button>
+                    <button class="btn bg-yellow-900/50 hover:bg-yellow-800/50 text-sm border border-yellow-500/30"
+                        onclick="showContrad(1)">Infinitely many primes</button>
+                    <button class="btn bg-yellow-900/50 hover:bg-yellow-800/50 text-sm border border-yellow-500/30"
+                        onclick="showContrad(2)">log₂3 is irrational</button>
+                    <button class="btn bg-yellow-900/50 hover:bg-yellow-800/50 text-sm border border-yellow-500/30"
+                        onclick="showContrad(3)">No largest prime</button>
+                </div>
+                <div id="contradProof" class="flex flex-col gap-2 bg-black/30 p-4 rounded-xl"></div>
+            </div>
+        </div>
+
+        <!-- Counting / Combinatorial -->
+        <div id="tab-counting" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-yellow-500/30 flex flex-col gap-4">
+                <h3 class="text-yellow-300 font-bold text-xl">Combinatorial Proofs & Pigeonhole Principle</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="countingCards"></div>
+                <div class="bg-gray-900/50 p-4 rounded-xl flex flex-col gap-3 mt-1">
+                    <h4 class="text-yellow-300 font-bold text-sm">Pigeonhole Principle — Interactive</h4>
+                    <div class="flex gap-3 items-end flex-wrap">
+                        <div><label class="text-xs text-gray-400">Items n</label><input type="number" id="phN"
+                                class="p-input w-24" value="13" oninput="runPigeonhole()"></div>
+                        <div><label class="text-xs text-gray-400">Boxes k</label><input type="number" id="phK"
+                                class="p-input w-24" value="12" oninput="runPigeonhole()"></div>
+                    </div>
+                    <div id="phResult" class="text-sm font-mono text-gray-300"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inequalities -->
+        <div id="tab-inequal" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-yellow-500/30 flex flex-col gap-4">
+                <h3 class="text-yellow-300 font-bold text-xl">Classic Inequalities</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="inequalCards"></div>
+                <div class="bg-gray-900/50 p-4 rounded-xl flex flex-col gap-3">
+                    <h4 class="text-yellow-300 font-bold text-sm">AM-GM Verifier — check a₁,a₂,...,aₙ ≥ 0</h4>
+                    <div class="flex gap-3 items-end flex-wrap">
+                        <div class="flex-1"><label class="text-xs text-gray-400">Comma-separated positive
+                                numbers</label><input type="text" id="amgmInput" class="p-input mt-1"
+                                value="1, 4, 9, 16" oninput="runAMGM()"></div>
+                    </div>
+                    <div id="amgmResult" class="text-sm font-mono text-gray-300"></div>
+                    <canvas id="amgmCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                        style="height:160px"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById('tab-' + id).classList.remove('hidden');
+            if (id === 'counting') renderCounting();
+            if (id === 'inequal') { renderInequal(); runAMGM(); }
+            if (id === 'direct') showDirect(0);
+            if (id === 'contra') showContra(0);
+            if (id === 'induction') showInduction(0);
+            if (id === 'contradiction') showContrad(0);
+            window._activeProofTab = id;
+            setTimeout(() => { if (window.injectAIButtons) window.injectAIButtons(); }, 80);
+        }
+        window._activeProofTab = 'direct';
+        const proofTabInfo = {
+            direct: { label: 'Direct Proof', ctx: 'Direct Proof technique: Assume P is true, derive Q through logical steps. Covers: sum of evens, odd squares, consecutive integers.' },
+            contra: { label: 'Proof by Contrapositive', ctx: 'Contrapositive Proof: P⇒Q proven as ¬Q⇒¬P. Covers: n² even⇒n even, product≠0.' },
+            induction: { label: 'Mathematical Induction', ctx: 'Induction: base case + inductive step. Covers: sum 1..n, sum of squares, 2ⁿ>n, Fibonacci divisibility.' },
+            contradiction: { label: 'Proof by Contradiction', ctx: 'Contradiction (Reductio ad Absurdum): Assume ¬P then derive contradiction. Covers: √2 irrational, infinitely many primes, log₂3 irrational.' },
+            counting: { label: 'Combinatorial Proofs', ctx: 'Combinatorial proofs: Pigeonhole, Double Counting, Bijective Proof, Inclusion-Exclusion.' },
+            inequal: { label: 'Classic Inequalities', ctx: 'Classic Inequalities: AM-GM, Cauchy-Schwarz, Triangle Inequality, Jensen, Bernoulli, Young.' },
+        };
+        function openActiveProofAI() {
+            const tab = window._activeProofTab || 'direct';
+            const info = proofTabInfo[tab] || proofTabInfo['direct'];
+            if (window.openMathAI) openMathAI(info.label, info.ctx);
+        }
+        function step(text, highlight = false) { return `<div class="proof-step ${highlight ? 'border-yellow-400 text-yellow-200' : ''}">${text}</div>`; }
+        function header(text) { return `<div class="text-yellow-300 font-bold text-sm mb-1">${text}</div>`; }
+
+        const directs = [
+            [['Claim: The sum of two even integers is even.', 'Let a, b ∈ ℤ be even. Then a = 2m and b = 2n for some m,n ∈ ℤ.', 'a + b = 2m + 2n = 2(m+n).', 'Since m+n ∈ ℤ, a+b = 2(m+n) is even. ∎', true]],
+            [['Claim: If n is odd, then n² is odd.', 'Let n be odd. Then n = 2k+1 for some k ∈ ℤ.', 'n² = (2k+1)² = 4k²+4k+1 = 2(2k²+2k) + 1.', 'Since 2k²+2k ∈ ℤ, n² is odd. ∎', true]],
+            [['Claim: n²+n is even for all n ∈ ℤ.', 'n²+n = n(n+1).', 'Either n is even or n+1 is even (consecutive integers).', 'In either case, n(n+1) is divisible by 2. ∎', true]],
+            [['Claim: The product of any two consecutive integers is even.', 'Let the integers be n and n+1.', 'Their product is n(n+1).', 'One of n, n+1 must be even (by division algorithm: n = 2q or n = 2q+1).', 'If n = 2q: n(n+1) = 2q(n+1) ⇒ divisible by 2. ∎', 'If n = 2q+1: n+1 = 2q+2 = 2(q+1) ⇒ divisible by 2. ∎', true]],
+        ];
+        function showDirect(i) { document.getElementById('directProof').innerHTML = directs[i][0].map((s, j) => step(s, j === directs[i][0].length - 1)).join(''); }
+
+        const contras = [
+            [['Claim: If n² is even, then n is even.', 'Prove the contrapositive: If n is odd, then n² is odd.', 'Let n be odd ⇒ n = 2k+1.', 'n² = (2k+1)² = 4k²+4k+1 = 2(2k²+2k)+1, which is odd.', 'By contrapositive, n² even ⟹ n even. ∎']],
+            [['Claim: If n² is odd, then n is odd.', 'Contrapositive: If n is even, then n² is even.', 'Let n = 2k. Then n² = 4k² = 2(2k²), which is even.', 'Therefore n² odd ⟹ n odd. ∎']],
+            [['Claim: If ab ≠ 0, then a ≠ 0 and b ≠ 0.', 'Contrapositive: If a = 0 or b = 0, then ab = 0.', 'If a = 0: ab = 0·b = 0. ✓', 'If b = 0: ab = a·0 = 0. ✓', 'By contrapositive, the original claim holds. ∎']],
+        ];
+        function showContra(i) { document.getElementById('contraProof').innerHTML = contras[i][0].map((s, j) => step(s, j === contras[i][0].length - 1)).join(''); }
+
+        const inductions = [
+            [['Claim: 1+2+...+n = n(n+1)/2 for all n ≥ 1.', 'Base case n=1: LHS=1, RHS=1·2/2=1. ✓', 'Inductive step: Assume P(k): 1+2+...+k = k(k+1)/2.', 'We must show P(k+1): 1+2+...+k+(k+1) = (k+1)(k+2)/2.', 'LHS = [k(k+1)/2] + (k+1) = (k+1)[k/2 + 1] = (k+1)(k+2)/2. ✓', 'By induction, P(n) holds for all n ≥ 1. ∎']],
+            [['Claim: Σₖ₌₁ⁿ k² = n(n+1)(2n+1)/6.', 'Base case n=1: LHS=1, RHS=1·2·3/6=1. ✓', 'Inductive step: Assume Σₖ₌₁ᵏ i² = k(k+1)(2k+1)/6.', 'Σₖ₌₁ᵏ⁺¹ i² = k(k+1)(2k+1)/6 + (k+1)²', '= (k+1)[k(2k+1)/6 + (k+1)]', '= (k+1)(k+2)(2k+3)/6. ✓', 'By induction, formula holds for all n ≥ 1. ∎']],
+            [['Claim: 2ⁿ > n for all n ≥ 1.', 'Base case n=1: 2¹=2 > 1. ✓', 'Inductive step: Assume 2ᵏ > k.', '2ᵏ⁺¹ = 2·2ᵏ > 2k = k+k ≥ k+1 (since k≥1).', 'Therefore 2ᵏ⁺¹ > k+1. ✓ By induction, holds for all n≥1. ∎']],
+            [['Claim: F(n) (Fibonacci) — F(3n) is even for all n ≥ 1.', 'Fibonacci: F(1)=1,F(2)=1,F(3)=2,F(4)=3,F(5)=5,F(6)=8,...', 'Base: F(3)=2 is even. ✓', 'Inductive step (strong induction): Assume F(3j) is even for all j≤k.', 'F(3(k+1))=F(3k+3)=F(3k+2)+F(3k+1)=2F(3k+1)+F(3k).', 'Since F(3k) is even by hypothesis, 2F(3k+1)+F(3k) is even. ∎']],
+        ];
+        function showInduction(i) { document.getElementById('inductProof').innerHTML = inductions[i][0].map((s, j) => step(s, j === inductions[i][0].length - 1)).join(''); }
+        function verifyInduction() {
+            let f = document.getElementById('indF').value, cl = document.getElementById('indClosed').value, N = parseInt(document.getElementById('indN').value) || 10;
+            let results = [], sumSoFar = 0; let ok = true;
+            for (let n = 1; n <= N; n++) { try { let k = n; sumSoFar += eval(f.replace(/\^/g, '**').replace(/k/g, '(' + n + ')')); let closed = eval(cl.replace(/\^/g, '**').replace(/n/g, '(' + n + ')')); results.push(`n=${n}: Σ=${sumSoFar.toFixed(4)}, closed=${closed.toFixed(4)}, match=${Math.abs(sumSoFar - closed) < 1e-6 ? '✓' : '✗'}`); if (Math.abs(sumSoFar - closed) > 1e-6) ok = false; } catch (e) { results.push(`n=${n}: Error`); ok = false; } }
+            document.getElementById('indResult').innerHTML = `<div class="${ok ? 'text-green-400' : 'text-red-400'} font-bold mb-2">${ok ? '✓ Formula verified for n=1 to ' + N : '✗ Mismatch found'}</div>` + results.map(r => step(r)).join('');
+        }
+
+        const contradictions = [
+            [['Claim: √2 is irrational.', 'Assume for contradiction that √2 is rational.', 'Then √2 = p/q where p,q ∈ ℤ, q≠0, and gcd(p,q)=1 (lowest terms).', '2 = p²/q² ⟹ p² = 2q² ⟹ p² is even ⟹ p is even (from contrapositive proof).', 'Write p = 2m. Then (2m)² = 2q² ⟹ 4m² = 2q² ⟹ q² = 2m² ⟹ q is even.', 'But if both p and q are even, gcd(p,q) ≥ 2. Contradiction with gcd(p,q)=1! ∎']],
+            [['Claim: There are infinitely many primes.', 'Assume for contradiction only finitely many primes: p₁, p₂, ..., pₙ.', 'Construct N = p₁·p₂·...·pₙ + 1.', 'N is not divisible by any pᵢ (leaves remainder 1 for each).', 'N > 1, so N has a prime factorization. That prime is not among p₁,...,pₙ. Contradiction! ∎']],
+            [['Claim: log₂3 is irrational.', 'Assume log₂3 = p/q (rational, lowest terms, p,q > 0).', 'Then 2^(p/q) = 3 ⟹ 2^p = 3^q.', 'LHS is even, RHS is odd (3 is odd, odd^q is odd). Contradiction! ∎']],
+            [['Claim: There is no largest prime.', 'Assume p is the largest prime.', 'Consider N = 2·3·5·7·...·p + 1 (product of all primes up to p, plus 1).', 'N is not divisible by any prime ≤ p (leaves remainder 1).', 'If N is prime, then N > p contradicts p being largest.', 'If N is composite, it has a prime factor > p. Contradiction! ∎']],
+        ];
+        function showContrad(i) { document.getElementById('contradProof').innerHTML = contradictions[i][0].map((s, j) => step(s, j === contradictions[i][0].length - 1)).join(''); }
+
+        const countingData = [
+            { name: "Pigeonhole Principle", content: "If n+1 objects are placed in n boxes, at least one box contains ≥ 2 objects.  Generalized: n objects into k boxes ⟹ some box has ≥ ⌈n/k⌉ objects. Example: Among 13 people, at least 2 share a birth month." },
+            { name: "Double Counting", content: "Count a set S two ways: |S| must be the same. Example: Handshake lemma — Σ deg(v) = 2|E|. Count (vertex, edge) incidences as both: Σ deg(v) and 2|E|." },
+            { name: "Bijective Proof", content: "If a bijection f:A→B exists, then |A|=|B|. Example: C(n,k) = C(n,n-k). Choose k from n ↔↔ exclude k from n. The complement map is the bijection." },
+            { name: "Inclusion-Exclusion", content: "|A∪B| = |A|+|B|−|A∩B| |A∪B∪C| = |A|+|B|+|C| − |A∩B|−|A∩C|−|B∩C| + |A∩B∩C| General: |∪ Aᵢ| = Σ|Aᵢ| − Σ|Aᵢ∩Aⱼ| + ..." },
+        ];
+        function renderCounting() { document.getElementById('countingCards').innerHTML = countingData.map(c => `<div class="bg-black/40 p-4 rounded-xl border border-yellow-500/20"><div class="text-yellow-300 font-bold text-sm mb-1">${c.name}</div><div class="text-xs text-gray-400 font-mono leading-relaxed">${c.content}</div></div>`).join(''); }
+        function runPigeonhole() {
+            let n = parseInt(document.getElementById('phN').value) || 13, k = parseInt(document.getElementById('phK').value) || 12;
+            let guarantee = Math.ceil(n / k);
+            document.getElementById('phResult').innerHTML = `<div class="${n > k ? 'text-green-400' : 'text-red-400'} font-bold">${n > k ? '✓ Pigeonhole applies' : 'No guarantee — n ≤ k'}</div><div class="text-gray-300 text-xs">${n} items in ${k} boxes ⟹ at least one box has ≥ <b class="text-yellow-300">${guarantee}</b> items.</div>`;
+        }
+
+        const inequalData = [
+            { name: "AM-GM Inequality", content: "For non-negative reals a₁,...,aₙ: (a₁+...+aₙ)/n ≥ (a₁·...·aₙ)^(1/n). Equality iff a₁=a₂=...=aₙ. Proof by convexity of -log, or by induction using Cauchy's forward-backward method." },
+            { name: "Cauchy-Schwarz", content: "(Σaᵢbᵢ)² ≤ (Σaᵢ²)(Σbᵢ²). Geometric: |a·b|² ≤ |a|²|b|². Proof: consider Σ(aᵢt+bᵢ)² ≥ 0 as polynomial in t; discriminant ≤ 0." },
+            { name: "Triangle Inequality", content: "|a+b| ≤ |a|+|b| for all a,b ∈ ℝⁿ. Generalizes to |Σaᵢ| ≤ Σ|aᵢ|. For complex: |z+w| ≤ |z|+|w|. Reverse: ||a|−|b|| ≤ |a−b|." },
+            { name: "Jensen's Inequality", content: "If f is convex and X is a random variable: f(E[X]) ≤ E[f(X)]. Examples: e^(E[X]) ≤ E[eˣ], (E[X])² ≤ E[X²]." },
+            { name: "Bernoulli's Inequality", content: "(1+x)ⁿ ≥ 1+nx for x > −1, n ≥ 1 integer. Proof by induction." },
+            { name: "Young's Inequality", content: "ab ≤ aᵖ/p + bᵍ/q for a,b≥0, 1/p+1/q=1. Used to prove Hölder, which generalizes Cauchy-Schwarz." },
+        ];
+        function renderInequal() { document.getElementById('inequalCards').innerHTML = inequalData.map(c => `<div class="bg-black/40 p-4 rounded-xl border border-yellow-500/20"><div class="text-yellow-300 font-bold text-sm mb-1">${c.name}</div><div class="text-xs text-gray-400 font-mono leading-relaxed">${c.content}</div></div>`).join(''); }
+        function runAMGM() {
+            let vals = document.getElementById('amgmInput').value.split(',').map(v => parseFloat(v.trim())).filter(v => !isNaN(v) && v >= 0);
+            if (!vals.length) return;
+            let am = vals.reduce((a, b) => a + b, 0) / vals.length;
+            let gm = Math.pow(vals.reduce((a, b) => a * b, 1), 1 / vals.length);
+            let hm = vals.length / vals.reduce((a, b) => a + 1 / b, 0);
+            document.getElementById('amgmResult').innerHTML = `<div class="text-yellow-300">AM = ${am.toFixed(6)}</div><div class="text-teal-300">GM = ${gm.toFixed(6)}</div><div class="text-sky-300">HM = ${isFinite(hm) ? hm.toFixed(6) : '—'}</div><div class="font-bold ${am >= gm - 1e-8 ? 'text-green-400' : 'text-red-400'} mt-1">${am >= gm - 1e-8 ? '✓ AM ≥ GM verified' : '✗ Unexpected result'}</div>`;
+            let cv = document.getElementById('amgmCanvas'); cv.width = cv.offsetWidth; cv.height = 160;
+            let cx = cv.getContext('2d'), W = cv.width, H = 160, pad = 20; cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let maxV = Math.max(...vals, am, gm) * 1.15 || 1; let bw = (W - 2 * pad) / (vals.length + 3);
+            vals.forEach((v, i) => { let bh = v / maxV * (H - 2 * pad); cx.fillStyle = '#94a3b8'; cx.fillRect(pad + i * bw, H - pad - bh, bw - 2, bh); });
+            let amBh = am / maxV * (H - 2 * pad), gmBh = gm / maxV * (H - 2 * pad);
+            cx.fillStyle = '#eab308'; cx.fillRect(pad + vals.length * bw, H - pad - amBh, bw - 2, amBh);
+            cx.fillStyle = '#10b981'; cx.fillRect(pad + (vals.length + 1) * bw, H - pad - gmBh, bw - 2, gmBh);
+            cx.fillStyle = '#94a3b8'; cx.font = '9px monospace'; cx.textAlign = 'center'; cx.fillText('values', pad + (vals.length / 2) * bw, H - 4);
+            cx.fillStyle = '#eab308'; cx.fillText('AM', pad + vals.length * bw + bw / 2, H - 4); cx.fillStyle = '#10b981'; cx.fillText('GM', pad + (vals.length + 1) * bw + bw / 2, H - 4);
+        }
+        showDirect(0); renderCounting(); renderInequal(); runAMGM(); runPigeonhole();
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

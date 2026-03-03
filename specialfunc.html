@@ -1,0 +1,312 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Special Functions - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-btn {
+            padding: .55rem 1rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .8rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(6, 182, 212, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(6, 182, 212, 0.25);
+            color: white;
+            border-color: #06b6d4;
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.4);
+        }
+
+        .s-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(6, 182, 212, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            width: 100%;
+            font-family: monospace;
+        }
+
+        .s-input:focus {
+            border-color: #22d3ee;
+            outline: none;
+        }
+
+        .val-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(6, 182, 212, 0.4);
+            border-radius: .75rem;
+            padding: .75rem;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-sky-500 pb-2">
+            <i class="fas fa-infinity text-cyan-400"></i> Special Functions Lab
+        </h2>
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-cyan-500/30">
+            <button class="tab-btn active" onclick="switchTab('gamma',this)">Gamma & Beta</button>
+            <button class="tab-btn" onclick="switchTab('zeta',this)">Riemann Zeta</button>
+            <button class="tab-btn" onclick="switchTab('bessel',this)">Bessel</button>
+            <button class="tab-btn" onclick="switchTab('erf',this)">Error Fn</button>
+            <button class="tab-btn" onclick="switchTab('poly',this)">Polygamma</button>
+        </div>
+
+        <div id="tab-gamma" class="tab-content flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-cyan-500/30 flex flex-col gap-4">
+                <h3 class="text-cyan-300 font-bold text-xl">Gamma Γ(z) and Beta B(x,y)</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div><label class="text-xs text-gray-400">z → Γ(z)</label><input type="number" id="gZ"
+                            class="s-input" value="4.5" step="any" oninput="runGamma()"></div>
+                    <div><label class="text-xs text-gray-400">x → B(x,y)</label><input type="number" id="bx"
+                            class="s-input" value="3" step="any" oninput="runGamma()"></div>
+                    <div><label class="text-xs text-gray-400">y → B(x,y)</label><input type="number" id="by"
+                            class="s-input" value="2" step="any" oninput="runGamma()"></div>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Γ(z)</span><span id="gVal"
+                            class="text-2xl font-mono text-cyan-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Γ(z+1) = z·Γ(z)</span><span
+                            id="gVal1" class="text-xl font-mono text-cyan-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">B(x,y)</span><span id="bVal"
+                            class="text-2xl font-mono text-cyan-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Γ(x)Γ(y)/Γ(x+y)</span><span
+                            id="bVal2" class="text-xl font-mono text-cyan-300 font-bold">—</span></div>
+                </div>
+                <div class="grid grid-cols-3 md:grid-cols-6 gap-2" id="gammaTable"></div>
+                <canvas id="gammaCanvas" class="w-full rounded-xl bg-black/60 border border-gray-700"
+                    style="height:220px"></canvas>
+            </div>
+        </div>
+
+        <div id="tab-zeta" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-cyan-500/30 flex flex-col gap-4">
+                <h3 class="text-cyan-300 font-bold text-xl">Riemann Zeta ζ(s) = Σ 1/nˢ</h3>
+                <div><label class="text-xs text-gray-400">s (s &gt; 1)</label><input type="number" id="zetaS"
+                        class="s-input w-40" value="2" step="0.1" oninput="runZeta()"></div>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div class="val-card"><span class="text-xs text-gray-500 block">ζ(s)</span><span id="zetaVal"
+                            class="text-2xl font-mono text-cyan-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Exact form</span><span
+                            id="zetaExact" class="text-lg font-mono text-cyan-200 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Convergence terms</span><span
+                            id="zetaTerms" class="text-2xl font-mono text-cyan-300 font-bold">—</span></div>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-2" id="zetaFamous"></div>
+                <canvas id="zetaCanvas" class="w-full rounded-xl bg-black/60 border border-gray-700"
+                    style="height:220px"></canvas>
+            </div>
+        </div>
+
+        <div id="tab-bessel" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-cyan-500/30 flex flex-col gap-4">
+                <h3 class="text-cyan-300 font-bold text-xl">Bessel Functions J_n(x)</h3>
+                <div class="flex gap-3">
+                    <div class="flex-1"><label class="text-xs text-gray-400">Order n (0-4)</label><input type="number"
+                            id="besN" class="s-input" value="0" min="0" max="4" oninput="drawBessel()"></div>
+                    <div class="flex-1"><label class="text-xs text-gray-400">x</label><input type="number" id="besX"
+                            class="s-input" value="2.4048" step="any" oninput="runBessel()"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="val-card"><span class="text-xs text-gray-500 block">J_n(x)</span><span id="besJ"
+                            class="text-2xl font-mono text-cyan-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">I_n(x) modified</span><span
+                            id="besI" class="text-2xl font-mono text-cyan-300 font-bold">—</span></div>
+                </div>
+                <div class="text-xs text-gray-500">First zeros of J₀: 2.4048, 5.5201, 8.6537… | J₁: 3.8317, 7.0156…
+                </div>
+                <canvas id="besselCanvas" class="w-full rounded-xl bg-black/60 border border-gray-700"
+                    style="height:260px"></canvas>
+            </div>
+        </div>
+
+        <div id="tab-erf" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-cyan-500/30 flex flex-col gap-4">
+                <h3 class="text-cyan-300 font-bold text-xl">Error & Related Functions</h3>
+                <div><label class="text-xs text-gray-400">x</label><input type="number" id="erfX" class="s-input w-40"
+                        value="0.5" step="any" oninput="runErf()"></div>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div class="val-card"><span class="text-xs text-gray-500 block">erf(x)</span><span id="erfVal"
+                            class="text-xl font-mono text-cyan-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">erfc(x)</span><span id="erfcVal"
+                            class="text-xl font-mono text-cyan-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Fresnel S(x)</span><span id="fresS"
+                            class="text-xl font-mono text-cyan-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Fresnel C(x)</span><span id="fresC"
+                            class="text-xl font-mono text-cyan-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Lambert W₀(x)</span><span id="lambW"
+                            class="text-xl font-mono text-cyan-300 font-bold">—</span></div>
+                </div>
+                <canvas id="erfCanvas" class="w-full rounded-xl bg-black/60 border border-gray-700"
+                    style="height:220px"></canvas>
+            </div>
+        </div>
+
+        <div id="tab-poly" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-cyan-500/30 flex flex-col gap-4">
+                <h3 class="text-cyan-300 font-bold text-xl">Polygamma & Hypergeometric Functions</h3>
+                <div class="flex gap-3">
+                    <div class="flex-1"><label class="text-xs text-gray-400">x for ψ(x)</label><input type="number"
+                            id="pgX" class="s-input" value="1" step="any" oninput="runPolyGamma()"></div>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="val-card"><span class="text-xs text-gray-500 block">ψ(x) Digamma</span><span id="pgD"
+                            class="text-xl font-mono text-cyan-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">ψ'(x) Trigamma</span><span id="pgT"
+                            class="text-xl font-mono text-cyan-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">ψ''(x) Tetragamma</span><span
+                            id="pgTe" class="text-xl font-mono text-cyan-300 font-bold">—</span></div>
+                </div>
+                <h4 class="text-cyan-400 font-bold">Confluent Hypergeometric ₁F₁(a;b;z)</h4>
+                <div class="grid grid-cols-3 gap-3">
+                    <div><label class="text-xs text-gray-400">a</label><input type="number" id="hga" class="s-input"
+                            value="1" step="any" oninput="runHyper()"></div>
+                    <div><label class="text-xs text-gray-400">b</label><input type="number" id="hgb" class="s-input"
+                            value="2" step="any" oninput="runHyper()"></div>
+                    <div><label class="text-xs text-gray-400">z</label><input type="number" id="hgz" class="s-input"
+                            value="0.5" step="any" oninput="runHyper()"></div>
+                </div>
+                <div class="val-card"><span class="text-xs text-gray-500 block">₁F₁(a;b;z)</span><span id="hgVal"
+                        class="text-2xl font-mono text-cyan-300 font-bold">—</span></div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); document.getElementById('tab-' + id).classList.remove('hidden'); if (id === 'zeta') setTimeout(runZeta, 50); if (id === 'bessel') setTimeout(drawBessel, 50); if (id === 'erf') setTimeout(runErf, 50); }
+        function f8(v) { if (!isFinite(v)) return '∄'; return parseFloat(v.toFixed(8)).toString(); }
+
+        function gammaLanczos(z) {
+            if (z < 0.5) return Math.PI / (Math.sin(Math.PI * z) * gammaLanczos(1 - z));
+            z -= 1; const g = 7, c = [0.99999999999980993, 676.5203681218851, -1259.1392167224028, 771.32342877765313, -176.61502916214059, 12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
+            let x = c[0]; for (let i = 1; i < g + 2; i++)x += c[i] / (z + i);
+            let t = z + g + 0.5; return Math.sqrt(2 * Math.PI) * Math.pow(t, z + 0.5) * Math.exp(-t) * x;
+        }
+
+        function runGamma() {
+            let z = parseFloat(document.getElementById('gZ').value) || 4.5;
+            let x = parseFloat(document.getElementById('bx').value) || 3;
+            let y = parseFloat(document.getElementById('by').value) || 2;
+            document.getElementById('gVal').innerText = f8(gammaLanczos(z));
+            document.getElementById('gVal1').innerText = f8(z * gammaLanczos(z));
+            let beta = gammaLanczos(x) * gammaLanczos(y) / gammaLanczos(x + y);
+            document.getElementById('bVal').innerText = f8(beta);
+            document.getElementById('bVal2').innerText = f8(beta);
+            const kvs = [0.5, 1, 1.5, 2, 2.5, 3, 4, 5, 10];
+            document.getElementById('gammaTable').innerHTML = kvs.map(n => `<div class="bg-black/30 p-2 rounded text-center"><div class="text-cyan-400 text-xs font-bold">Γ(${n})</div><div class="text-gray-300 text-xs">${f8(gammaLanczos(n))}</div></div>`).join('');
+            const c = document.getElementById('gammaCanvas'); c.width = c.offsetWidth; c.height = 220;
+            const cx = c.getContext('2d'), W = c.width, H = 220, pad = 30;
+            cx.fillStyle = '#0f172a'; cx.fillRect(0, 0, W, H);
+            let xMin = 0.1, xMax = 6, yMax = 25;
+            const tx = v => pad + (v - xMin) / (xMax - xMin) * (W - pad - 10), ty = v => H - pad - (v / yMax) * (H - 2 * pad);
+            cx.strokeStyle = '#334155'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(pad, H - pad); cx.lineTo(W - 10, H - pad); cx.stroke();
+            cx.strokeStyle = '#06b6d4'; cx.lineWidth = 2; cx.beginPath(); let f = true;
+            for (let p = 0; p < W - pad; p++) { let x = xMin + p / (W - pad - 10) * (xMax - xMin); let y = gammaLanczos(x); if (!isFinite(y) || y < 0 || y > yMax) { f = true; continue; } if (f) { cx.moveTo(tx(x), ty(y)); f = false; } else cx.lineTo(tx(x), ty(y)); }
+            cx.stroke();
+        }
+
+        function zetaFn(s, t = 10000) { if (s <= 1) return Infinity; let sum = 0; for (let n = 1; n <= t; n++)sum += Math.pow(n, -s); return sum; }
+        function runZeta() {
+            let s = parseFloat(document.getElementById('zetaS').value) || 2;
+            let t = s > 5 ? 5000 : 30000; let z = zetaFn(s, t);
+            document.getElementById('zetaVal').innerText = f8(z);
+            const ex = { 2: 'π²/6', 4: 'π⁴/90', 6: 'π⁶/945' };
+            document.getElementById('zetaExact').innerText = ex[s] || '—';
+            document.getElementById('zetaTerms').innerText = t.toLocaleString();
+            const famous = [[2, Math.PI * Math.PI / 6, 'π²/6'], [3, 1.2020569, 'Apéry\'s const'], [4, Math.PI ** 4 / 90, 'π⁴/90'], [6, Math.PI ** 6 / 945, 'π⁶/945']];
+            document.getElementById('zetaFamous').innerHTML = famous.map(([sv, val, d]) => `<div class="bg-black/30 p-2 rounded"><span class="text-cyan-400 font-bold">ζ(${sv})</span><br><span class="text-gray-300 text-xs">${f8(val)}</span><br><span class="text-xs text-gray-600">${d}</span></div>`).join('');
+            const c = document.getElementById('zetaCanvas'); c.width = c.offsetWidth; c.height = 220;
+            const cx = c.getContext('2d'), W = c.width, H = 220, pad = 30;
+            cx.fillStyle = '#0f172a'; cx.fillRect(0, 0, W, H);
+            let xMin = 1.05, xMax = 10, yMin = 1, yMax = 7;
+            const tx = v => pad + (v - xMin) / (xMax - xMin) * (W - pad - 10), ty = v => H - pad - (v - yMin) / (yMax - yMin) * (H - 2 * pad);
+            cx.strokeStyle = '#334155'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(pad, H - pad); cx.lineTo(W - 10, H - pad); cx.stroke();
+            cx.strokeStyle = '#06b6d4'; cx.lineWidth = 2.5; cx.beginPath(); let f = true;
+            for (let p = 0; p < W - pad; p++) { let x = xMin + p / (W - pad - 10) * (xMax - xMin); let y = zetaFn(x, 2000); if (!isFinite(y) || y > yMax) { f = true; continue; } if (f) { cx.moveTo(tx(x), ty(y)); f = false; } else cx.lineTo(tx(x), ty(y)); }
+            cx.stroke();
+        }
+
+        function besselJ(n, x, t = 50) { let sum = 0; for (let m = 0; m <= t; m++) { let num = Math.pow(-1, m) * Math.pow(x / 2, 2 * m + n); let df = 1, gf = 1; for (let k = 1; k <= m; k++)df *= k; for (let k = 1; k <= m + n; k++)gf *= k; sum += num / (df * gf); } return sum; }
+        function besselI(n, x, t = 40) { let sum = 0; for (let m = 0; m <= t; m++) { let num = Math.pow(x / 2, 2 * m + n); let df = 1, gf = 1; for (let k = 1; k <= m; k++)df *= k; for (let k = 1; k <= m + n; k++)gf *= k; sum += num / (df * gf); } return sum; }
+        function runBessel() { let n = parseInt(document.getElementById('besN').value) || 0; let x = parseFloat(document.getElementById('besX').value) || 2.4048; document.getElementById('besJ').innerText = f8(besselJ(n, x)); document.getElementById('besI').innerText = f8(besselI(n, x)); }
+        function drawBessel() {
+            runBessel();
+            let n = parseInt(document.getElementById('besN').value) || 0;
+            const c = document.getElementById('besselCanvas'); c.width = c.offsetWidth; c.height = 260;
+            const cx = c.getContext('2d'), W = c.width, H = 260, pad = 30;
+            cx.fillStyle = '#0f172a'; cx.fillRect(0, 0, W, H);
+            const cols = ['#06b6d4', '#f87171', '#34d399', '#fbbf24', '#c084fc'];
+            let xMax = 15;
+            const tx = v => pad + v / xMax * (W - pad - 10), ty = v => H / 2 - v * (H / 2 - pad) * 0.8;
+            cx.strokeStyle = '#334155'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(pad, H / 2); cx.lineTo(W - 10, H / 2); cx.stroke();
+            for (let ni = 0; ni <= Math.min(n + 2, 4); ni++) {
+                cx.strokeStyle = cols[ni % cols.length]; cx.lineWidth = ni === n ? 2.5 : 1; cx.setLineDash(ni === n ? [] : [4, 3]); cx.beginPath(); let f = true;
+                for (let p = 0; p <= W - pad; p++) { let x = p / (W - pad - 10) * xMax; let y = besselJ(ni, x); if (!isFinite(y)) { f = true; continue; } if (f) { cx.moveTo(tx(x), ty(y)); f = false; } else cx.lineTo(tx(x), ty(y)); }
+                cx.stroke(); cx.setLineDash([]);
+                cx.fillStyle = cols[ni % cols.length]; cx.font = '10px monospace'; cx.fillText(`J${ni}(x)`, W - 55, (ni + 1) * 13 + 5);
+            }
+        }
+
+        function erfFn(x) { let s = x, t = x, n = 1; while (Math.abs(t) > 1e-13 && n < 120) { t *= -x * x * (2 * n - 1) / (n * (2 * n + 1)); s += t; n++; } return 2 / Math.sqrt(Math.PI) * s; }
+        function fresnelInt(x, fn) { let s = 0, dt = 0.005; for (let t = 0; t <= x; t += dt)s += fn(t) * dt; return s; }
+        function lambertW(x) { if (x < -1 / Math.E) return NaN; let w = x > 0 ? Math.log(1 + x) : 0; for (let i = 0; i < 100; i++) { let e = Math.exp(w); let d = (w * e - x); w -= d / (e * (w + 1) - ((w + 2) * d) / (2 * w + 2)); if (Math.abs(d) < 1e-12) break; } return w; }
+        function runErf() {
+            let x = parseFloat(document.getElementById('erfX').value) || 0.5;
+            let e = erfFn(x);
+            document.getElementById('erfVal').innerText = f8(e);
+            document.getElementById('erfcVal').innerText = f8(1 - e);
+            document.getElementById('fresS').innerText = f8(fresnelInt(x, t => Math.sin(Math.PI * t * t / 2)));
+            document.getElementById('fresC').innerText = f8(fresnelInt(x, t => Math.cos(Math.PI * t * t / 2)));
+            document.getElementById('lambW').innerText = f8(lambertW(x));
+            const c = document.getElementById('erfCanvas'); c.width = c.offsetWidth; c.height = 220;
+            const cx = c.getContext('2d'), W = c.width, H = 220, pad = 30;
+            cx.fillStyle = '#0f172a'; cx.fillRect(0, 0, W, H);
+            const tx = v => pad + (v + 3) / 6 * (W - pad - 10), ty = v => (H - pad) - (v + 1) / 2 * (H - 2 * pad);
+            cx.strokeStyle = '#334155'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(pad, H / 2); cx.lineTo(W - 10, H / 2); cx.stroke(); cx.beginPath(); cx.moveTo(tx(0), pad); cx.lineTo(tx(0), H - pad); cx.stroke();
+            [[erfFn, '#06b6d4', 'erf(x)'], [v => 1 - erfFn(v), '#f87171', 'erfc(x)']].forEach(([fn, col, lbl], i) => {
+                cx.strokeStyle = col; cx.lineWidth = 2; cx.beginPath(); let f = true;
+                for (let p = 0; p < W - pad; p++) { let x = -3 + p / (W - pad - 10) * 6; let y = fn(x); if (!isFinite(y)) { f = true; continue; } if (f) { cx.moveTo(tx(x), ty(y)); f = false; } else cx.lineTo(tx(x), ty(y)); }
+                cx.stroke(); cx.fillStyle = col; cx.font = '10px monospace'; cx.fillText(lbl, W - 75, (i + 1) * 13);
+            });
+        }
+
+        function digamma(x) { let r = 0; while (x < 6) { r -= 1 / x; x++; } return r + Math.log(x) - 1 / (2 * x) - 1 / (12 * x * x) + 1 / (120 * x ** 4); }
+        function trigamma(x) { let r = 0; while (x < 6) { r += 1 / (x * x); x++; } return r + 1 / x + 1 / (2 * x * x) + 1 / (6 * x ** 3); }
+        function runPolyGamma() {
+            let x = parseFloat(document.getElementById('pgX').value) || 1;
+            document.getElementById('pgD').innerText = f8(digamma(x));
+            document.getElementById('pgT').innerText = f8(trigamma(x));
+            let t2 = trigamma(x), t3; { let y = x; let r = 0; while (y < 6) { r -= 2 / (y ** 3); y++; } t3 = r - 1 / (y * y) - 1 / (y ** 3); }
+            document.getElementById('pgTe').innerText = f8(t3);
+        }
+        function runHyper() {
+            let a = parseFloat(document.getElementById('hga').value) || 1;
+            let b = parseFloat(document.getElementById('hgb').value) || 2;
+            let z = parseFloat(document.getElementById('hgz').value) || 0.5;
+            let sum = 1, tm = 1; for (let n = 1; n < 60; n++) { tm *= a * z / (b * n); a++; b++; sum += tm; if (Math.abs(tm) < 1e-13) break; }
+            document.getElementById('hgVal').innerText = f8(sum);
+        }
+
+        runGamma(); runZeta(); runBessel(); runErf(); runPolyGamma(); runHyper();
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

@@ -1,113 +1,380 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prime Number Identifier</title>
-    <!-- Tailwind CSS CDN -->
+    <title>Prime Analyzer - Math Verse</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Custom font for a better look */
-        body {
-            font-family: 'Inter', sans-serif;
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            font-weight: bold;
+            border-radius: 999px;
+            transition: all 0.3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+        }
+
+        .tab-btn:hover {
+            background: rgba(14, 165, 233, 0.1);
+            color: #38bdf8;
+        }
+
+        .tab-btn.active {
+            background: rgba(14, 165, 233, 0.25);
+            color: white;
+            box-shadow: 0 0 15px rgba(14, 165, 233, 0.5);
+            border-color: #0ea5e9;
+        }
+
+        .math-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(14, 165, 233, 0.4);
+            color: white;
+            border-radius: 8px;
+            font-family: monospace;
+            padding: 0.5rem 1rem;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .math-input:focus {
+            border-color: #38bdf8;
+            outline: none;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+        }
+
+        #primeList::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #primeList::-webkit-scrollbar-thumb {
+            background: #0ea5e9;
+            border-radius: 4px;
+        }
+
+        #primeList::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .number-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(14, 165, 233, 0.3);
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.25rem;
+            display: inline-block;
+            margin: 0.25rem;
         }
     </style>
 </head>
-<body class="bg-gradient-to-r from-blue-500 to-purple-600 min-h-screen flex items-center justify-center p-4">
-    <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md text-center">
-        <h1 class="text-4xl font-extrabold text-gray-800 mb-6">Prime Number Identifier</h1>
 
-        <div class="mb-6">
-            <label for="numberInput" class="block text-gray-700 text-lg font-semibold mb-2">Enter a number:</label>
-            <input
-                type="number"
-                id="numberInput"
-                placeholder="e.g., 17"
-                class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
-            >
+<body class="flex flex-col items-center p-4 lg:p-8">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-8 relative">
+        <h2
+            class="text-3xl md:text-5xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 pb-2">
+            <i class="fas fa-gem text-cyan-400"></i> Prime Analyzer
+        </h2>
+
+        <!-- Tabs -->
+        <div class="flex flex-wrap justify-center gap-4 bg-black/40 p-2 rounded-full border border-cyan-500/30 mx-auto">
+            <button class="tab-btn active" onclick="switchTab('validator')">Validator & Sieve</button>
+            <button class="tab-btn" onclick="switchTab('ulam')">Ulam Spiral Visualizer</button>
+            <button class="tab-btn" onclick="switchTab('twin')">Twin Primes Analyzer</button>
         </div>
 
-        <button
-            id="checkButton"
-            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 text-xl shadow-lg"
-        >
-            Check
-        </button>
+        <!-- Tab 1: Validator & Sieve -->
+        <div id="tab-validator" class="tab-content flex flex-col lg:flex-row gap-8">
+            <div class="flex-1 flex flex-col gap-6">
+                <!-- Single Check -->
+                <div class="bg-gray-900/50 p-6 rounded-2xl border border-cyan-500/30 flex flex-col gap-4">
+                    <h3 class="text-xl font-bold text-cyan-300 border-b border-gray-700 pb-2">Single Integrity Check
+                    </h3>
+                    <div class="flex gap-4">
+                        <input type="number" id="checkInput" class="math-input text-lg flex-1"
+                            placeholder="e.g. 104729">
+                        <button
+                            class="btn bg-cyan-600 hover:bg-cyan-500 text-white font-bold px-6 shadow-[0_0_15px_rgba(6,182,212,0.4)]"
+                            onclick="checkPrime()">Check</button>
+                    </div>
+                    <div id="checkResult" class="hidden p-4 rounded-xl text-center font-bold text-xl border"></div>
+                </div>
 
-        <div id="result" class="mt-8 p-4 bg-gray-100 rounded-lg text-gray-800 text-2xl font-bold min-h-[60px] flex items-center justify-center break-words">
-            <!-- Result will be displayed here -->
-            Enter a number above to check if it's prime.
+                <!-- Range Sieve -->
+                <div class="bg-gray-900/50 p-6 rounded-2xl border border-blue-500/30 flex flex-col gap-4 flex-1">
+                    <h3 class="text-xl font-bold text-blue-300 border-b border-gray-700 pb-2">Sieve of Eratosthenes</h3>
+                    <label class="text-gray-400 text-sm">Find all primes up to (max 100,000)</label>
+                    <div class="flex gap-4">
+                        <input type="number" id="rangeInput" class="math-input text-lg flex-1" value="1000">
+                        <button
+                            class="btn bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 shadow-[0_0_15px_rgba(59,130,246,0.4)]"
+                            onclick="findPrimes()">Extract Primes</button>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="flex-1 bg-black/40 p-6 rounded-2xl border border-cyan-500/30 shadow-[inset_0_0_30px_rgba(0,0,0,0.8)] flex flex-col h-[500px]">
+                <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
+                    <h3 class="text-xl font-bold text-cyan-300">Prime Database</h3>
+                    <span id="primeMetrics"
+                        class="text-sm font-bold text-emerald-400 bg-emerald-900/40 px-3 py-1 rounded-full border border-emerald-500/30 hidden">Found
+                        0 in 0ms</span>
+                </div>
+                <div id="primeList" class="flex-1 overflow-y-auto text-cyan-100 font-mono text-sm leading-relaxed p-2">
+                    <div class="text-gray-500 text-center mt-10 italic">Run the Sieve to populate.</div>
+                </div>
+            </div>
         </div>
+
+        <!-- Tab 2: Ulam Spiral -->
+        <div id="tab-ulam" class="tab-content hidden flex flex-col lg:flex-row gap-8">
+            <div class="w-full lg:w-1/3 bg-gray-900/50 p-6 rounded-2xl border border-purple-500/30 flex flex-col gap-4">
+                <h3 class="text-2xl font-bold text-purple-300 border-b border-gray-700 pb-2">Ulam Spiral</h3>
+                <p class="text-xs text-gray-400 leading-relaxed mb-4">Discovered by Stanislaw Ulam, this visualizes the
+                    distribution of primes. Prime numbers (cyan dots) tend to align along diagonal lines, revealing deep
+                    underlying patterns in prime distribution.</p>
+                <label class="text-sm font-bold text-white">Generate sequence up to N:</label>
+                <input type="number" id="ulamN" class="math-input text-lg" value="10000" min="10" max="100000">
+                <button
+                    class="btn bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 mt-4 shadow-[0_0_15px_rgba(168,85,247,0.4)]"
+                    onclick="drawUlam()">Initialize Spiral</button>
+            </div>
+
+            <div
+                class="flex-1 flex justify-center bg-black/60 rounded-2xl border border-purple-500/30 p-4 shadow-[inset_0_0_50px_rgba(0,0,0,0.8)] min-h-[500px] relative">
+                <canvas id="ulamCanvas" width="600" height="600"
+                    class="max-w-full h-auto bg-black rounded border border-gray-800"></canvas>
+            </div>
+        </div>
+
+        <!-- Tab 3: Twin Primes -->
+        <div id="tab-twin" class="tab-content hidden flex flex-col gap-8">
+            <div class="bg-gray-900/50 p-8 rounded-2xl border border-pink-500/30 flex flex-col items-center">
+                <h3 class="text-3xl font-bold text-pink-300 mb-2">Twin Primes Distribution</h3>
+                <p class="text-gray-400 mb-6 text-center max-w-2xl">Twin primes are pairs of primes that differ by 2
+                    (e.g., 11 and 13). The Twin Prime Conjecture posits there are infinitely many such pairs, an
+                    unsolved mystery in mathematics.</p>
+
+                <div class="flex items-center gap-4 bg-black/40 p-4 rounded-xl border border-pink-500/20 mb-8">
+                    <label class="text-white font-bold">Search Limit:</label>
+                    <input type="number" id="twinLimit" class="math-input text-lg w-32 text-center" value="2000"
+                        max="100000">
+                    <button
+                        class="btn bg-pink-600 hover:bg-pink-500 text-white font-bold px-6 py-2 shadow-[0_0_15px_rgba(236,72,153,0.4)]"
+                        onclick="findTwinPrimes()">Analyze</button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl mb-6">
+                    <div class="bg-black/50 p-6 rounded-xl border border-gray-700 text-center shadow-lg">
+                        <div class="text-xs text-gray-400 font-bold uppercase tracking-widest mb-1">Total Primes</div>
+                        <div id="tpTotalPrimes" class="text-4xl font-black text-white">-</div>
+                    </div>
+                    <div
+                        class="bg-black/50 p-6 rounded-xl border border-pink-500/40 text-center shadow-[0_0_20px_rgba(236,72,153,0.15)]">
+                        <div class="text-xs text-pink-300 font-bold uppercase tracking-widest mb-1">Twin Prime Pairs
+                        </div>
+                        <div id="tpTotalPairs" class="text-4xl font-black text-pink-400">-</div>
+                    </div>
+                    <div class="bg-black/50 p-6 rounded-xl border border-gray-700 text-center shadow-lg">
+                        <div class="text-xs text-gray-400 font-bold uppercase tracking-widest mb-1">Pair/Prime Ratio
+                        </div>
+                        <div id="tpRatio" class="text-4xl font-black text-cyan-300">-</div>
+                    </div>
+                </div>
+
+                <div
+                    class="w-full max-w-4xl bg-black/60 border border-pink-500/20 rounded-xl p-4 h-[250px] overflow-y-auto">
+                    <div id="twinList" class="flex flex-wrap gap-2 justify-center">
+                        <div class="w-full text-center text-gray-500 italic mt-8">Click Analyze to map twin primes...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
+    <script src="script.js"></script>
     <script>
-        // Get references to the HTML elements
-        const numberInput = document.getElementById('numberInput');
-        const checkButton = document.getElementById('checkButton');
-        const resultDiv = document.getElementById('result');
+        // Tab system
+        function switchTab(id) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById('tab-' + id).classList.remove('hidden');
 
-        /**
-         * Checks if a given number is a prime number.
-         * A prime number is a natural number greater than 1 that has no positive divisors other than 1 and itself.
-         * @param {number} num - The number to check.
-         * @returns {boolean} - True if the number is prime, false otherwise.
-         */
-        function isPrime(num) {
-            // Numbers less than or equal to 1 are not prime
-            if (num <= 1) {
-                return false;
-            }
-            // 2 is the only even prime number
-            if (num === 2) {
-                return true;
-            }
-            // Even numbers greater than 2 are not prime
-            if (num % 2 === 0) {
-                return false;
-            }
-            // Check for divisibility from 3 up to the square root of the number,
-            // incrementing by 2 (only odd numbers)
-            for (let i = 3; i * i <= num; i += 2) {
-                if (num % i === 0) {
-                    return false; // Found a divisor, so it's not prime
-                }
-            }
-            return true; // No divisors found, so it's prime
+            if (id === 'ulam') drawUlam();
         }
 
-        /**
-         * Handles the click event of the check button.
-         * Retrieves the number from the input, validates it, and displays the primality result.
-         */
-        checkButton.addEventListener('click', () => {
-            const number = parseInt(numberInput.value); // Get the number from the input field
+        // Math Utils
+        function isPrime(num) {
+            if (num <= 1) return false;
+            if (num <= 3) return true;
+            if (num % 2 === 0 || num % 3 === 0) return false;
+            for (let i = 5; i * i <= num; i += 6) {
+                if (num % i === 0 || num % (i + 2) === 0) return false;
+            }
+            return true;
+        }
 
-            // Validate if the input is a valid number
-            if (isNaN(number) || numberInput.value.trim() === '') {
-                resultDiv.textContent = "Please enter a valid number.";
-                resultDiv.classList.remove('text-green-600', 'text-red-600');
-                resultDiv.classList.add('text-gray-800');
+        function createSieve(max) {
+            const sieve = new Uint8Array(max + 1);
+            sieve.fill(1);
+            sieve[0] = 0; sieve[1] = 0;
+            for (let p = 2; p * p <= max; p++) {
+                if (sieve[p]) {
+                    for (let i = p * p; i <= max; i += p) sieve[i] = 0;
+                }
+            }
+            return sieve;
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* TAB 1: Validator & Sieve                                                   */
+        /* -------------------------------------------------------------------------- */
+        function checkPrime() {
+            const val = parseInt(document.getElementById('checkInput').value);
+            const res = document.getElementById('checkResult');
+            res.classList.remove('hidden', 'bg-emerald-900/40', 'border-emerald-500', 'text-emerald-400', 'bg-rose-900/40', 'border-rose-500', 'text-rose-400');
+
+            if (isNaN(val) || val < 0) {
+                res.innerHTML = "Invalid numeric input.";
+                res.classList.add('bg-rose-900/40', 'border-rose-500', 'text-rose-400');
                 return;
             }
 
-            // Check if the number is prime using the isPrime function
-            if (isPrime(number)) {
-                resultDiv.textContent = `${number} is a prime number! 🎉`;
-                resultDiv.classList.remove('text-red-600', 'text-gray-800');
-                resultDiv.classList.add('text-green-600');
+            const isP = isPrime(val);
+            if (isP) {
+                res.innerHTML = `<i class="fas fa-check-circle mr-2"></i> ${val.toLocaleString()} is PRIME.`;
+                res.classList.add('bg-emerald-900/40', 'border-emerald-500', 'text-emerald-400');
             } else {
-                resultDiv.textContent = `${number} is NOT a prime number. 😔`;
-                resultDiv.classList.remove('text-green-600', 'text-gray-800');
-                resultDiv.classList.add('text-red-600');
+                res.innerHTML = `<i class="fas fa-times-circle mr-2"></i> ${val.toLocaleString()} is NOT prime.`;
+                res.classList.add('bg-rose-900/40', 'border-rose-500', 'text-rose-400');
             }
-        });
+        }
 
-        // Optional: Allow checking by pressing Enter key in the input field
-        numberInput.addEventListener('keypress', (event) => {
-            if (event.key === 'Enter') {
-                checkButton.click(); // Simulate a click on the button
+        function findPrimes() {
+            const max = parseInt(document.getElementById('rangeInput').value);
+            if (isNaN(max) || max > 500000) {
+                window.showToast("Limit exceeded (Max 500,000 for display safety)", "error");
+                return;
             }
-        });
+
+            const t0 = performance.now();
+            const sieve = createSieve(max);
+            const primes = [];
+            for (let i = 2; i <= max; i++) if (sieve[i]) primes.push(i);
+            const t1 = performance.now();
+
+            // Populate UI
+            const metrics = document.getElementById('primeMetrics');
+            metrics.innerHTML = `Found <span class="text-white">${primes.length.toLocaleString()}</span> in ${Math.round(t1 - t0)}ms`;
+            metrics.classList.remove('hidden');
+
+            const list = document.getElementById('primeList');
+            let html = "";
+            primes.forEach(p => {
+                html += `<span class="number-box">${p}</span>`;
+            });
+            list.innerHTML = html || "<span class='text-gray-500'>No primes found in range.</span>";
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* TAB 2: Ulam Spiral                                                         */
+        /* -------------------------------------------------------------------------- */
+        function drawUlam() {
+            const canvas = document.getElementById('ulamCanvas');
+            const ctx = canvas.getContext('2d');
+            const N = parseInt(document.getElementById('ulamN').value);
+            if (isNaN(N) || N < 10) return;
+
+            // Clear
+            ctx.fillStyle = '#050505';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const sieve = createSieve(Math.max(N, 100));
+
+            // Grid calculations to fit perfectly
+            const gridDim = Math.ceil(Math.sqrt(N));
+            const step = canvas.width / gridDim;
+            const dotRad = Math.max(0.5, step * 0.4);
+
+            let x = canvas.width / 2;
+            let y = canvas.height / 2;
+
+            let dir = 0; // 0=R, 1=U, 2=L, 3=D
+            let stepsToMove = 1;
+            let stepsMoved = 0;
+            let changes = 0;
+            let currentNum = 1;
+
+            ctx.fillStyle = '#06b6d4'; // Cyan for primes
+
+            // Highlight center (1 is not prime, draw slightly differently for reference)
+            ctx.fillStyle = '#ef4444';
+            ctx.beginPath(); ctx.arc(x, y, dotRad * 1.5, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#06b6d4';
+
+            for (let i = 1; i <= N; i++) {
+                if (sieve[i] === 1) {
+                    ctx.beginPath();
+                    ctx.arc(x, y, dotRad, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Move
+                if (dir === 0) x += step;
+                else if (dir === 1) y -= step; // Up is negative Y in coords
+                else if (dir === 2) x -= step;
+                else if (dir === 3) y += step;
+
+                stepsMoved++;
+                if (stepsMoved === stepsToMove) {
+                    stepsMoved = 0;
+                    dir = (dir + 1) % 4;
+                    changes++;
+                    if (changes % 2 === 0) {
+                        stepsToMove++;
+                    }
+                }
+            }
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* TAB 3: Twin Primes Analyzer                                                */
+        /* -------------------------------------------------------------------------- */
+        function findTwinPrimes() {
+            const max = parseInt(document.getElementById('twinLimit').value);
+            if (isNaN(max) || max < 10 || max > 500000) return window.showToast("Valid limit is 10 to 500,000", "error");
+
+            const sieve = createSieve(max);
+            const primes = [];
+            for (let i = 2; i <= max; i++) if (sieve[i]) primes.push(i);
+
+            const twinPairs = [];
+            for (let i = 0; i < primes.length - 1; i++) {
+                if (primes[i + 1] - primes[i] === 2) {
+                    twinPairs.push([primes[i], primes[i + 1]]);
+                }
+            }
+
+            document.getElementById('tpTotalPrimes').innerText = primes.length.toLocaleString();
+            document.getElementById('tpTotalPairs').innerText = twinPairs.length.toLocaleString();
+            document.getElementById('tpRatio').innerText = ((twinPairs.length / primes.length) * 100).toFixed(1) + "%";
+
+            const list = document.getElementById('twinList');
+            let html = "";
+            twinPairs.forEach(pair => {
+                html += `<div class="bg-pink-900/30 border border-pink-500/40 text-pink-200 px-3 py-1 rounded-lg font-mono text-sm shadow">(${pair[0]}, ${pair[1]})</div>`;
+            });
+            list.innerHTML = html;
+        }
+
     </script>
+    <script src="ai-chat.js"></script>
 </body>
+
 </html>

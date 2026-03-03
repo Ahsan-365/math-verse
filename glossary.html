@@ -1,0 +1,148 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Glossary - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .search-box {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            color: white;
+            border-radius: .75rem;
+            padding: .75rem 1.25rem;
+            font-size: 1rem;
+            width: 100%;
+        }
+
+        .search-box:focus {
+            border-color: #818cf8;
+            outline: none;
+            box-shadow: 0 0 16px rgba(99, 102, 241, 0.3);
+        }
+
+        .badge {
+            border-radius: 999px;
+            padding: .15rem .5rem;
+            font-size: .65rem;
+            font-weight: bold;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .term-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            border-radius: .75rem;
+            padding: 1rem;
+            transition: .2s;
+        }
+
+        .term-card:hover {
+            border-color: rgba(99, 102, 241, 0.6);
+            background: rgba(0, 0, 0, 0.7);
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-6xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-500 pb-2">
+            <i class="fas fa-book text-indigo-400"></i> Math Glossary — A to Z
+        </h2>
+        <div class="bg-gray-900/50 p-4 rounded-2xl border border-indigo-500/30 flex items-center justify-between gap-4">
+            <div>
+                <h3 class="text-indigo-300 font-bold text-base">Math Glossary AI Tutor</h3>
+                <p class="text-xs text-gray-400 mt-0.5">Search a term, then ask the AI to explain it in depth, give
+                    examples, or connect it to other concepts.</p>
+            </div>
+            <button class="mv-ai-btn flex-shrink-0" onclick="openGlossaryAI()">🤖 Ask AI</button>
+        </div>
+        <input type="text" id="search" class="search-box" placeholder="🔍  Search definitions, terms, symbols..."
+            oninput="filterTerms()">
+        <div class="flex flex-wrap gap-1.5" id="catFilters"></div>
+        <div class="text-xs text-gray-500" id="termCount"></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3" id="glossGrid"></div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        const terms = [
+            { t: "Abelian Group", c: "Algebra", s: "(G,·)", d: "A group where the binary operation is commutative: a·b = b·a for all a,b ∈ G. Named after Niels Henrik Abel." },
+            { t: "Bijection", c: "Set Theory", s: "f: A↠B", d: "A function that is both injective (one-to-one) and surjective (onto). Implies |A| = |B|." },
+            { t: "Cantor's Theorem", c: "Set Theory", s: "|P(A)| > |A|", d: "The power set of any set A has strictly greater cardinality than A. Implies no infinite set equals its power set." },
+            { t: "Cauchy Sequence", c: "Analysis", s: "xₙ", d: "A sequence where terms become arbitrarily close: ∀ε>0 ∃N: m,n>N ⟹ |xₘ−xₙ|<ε. Converges in complete metric spaces." },
+            { t: "Compact Set", c: "Topology", s: "K", d: "Every open cover has a finite subcover. In ℝⁿ: equivalent to closed and bounded (Heine-Borel theorem)." },
+            { t: "Continuity", c: "Analysis", s: "f: ℝ→ℝ", d: "f is continuous at a iff lim_{x→a} f(x) = f(a). Equivalently: for every ε>0, ∃δ>0 such that |x−a|<δ ⟹ |f(x)−f(a)|<ε." },
+            { t: "Convexity", c: "Analysis", s: "f''≥0", d: "A function f is convex if f(λx+(1-λ)y) ≤ λf(x)+(1-λ)f(y). Equivalent to f''≥0. Epigraph is a convex set." },
+            { t: "Derivative", c: "Calculus", s: "f'(x)", d: "f'(x) = lim_{h→0} [f(x+h)−f(x)]/h. Measures instantaneous rate of change. Generalizes to partial derivatives, directional derivatives, Fréchet derivative." },
+            { t: "Eigenvalue", c: "Linear Algebra", s: "Av=λv", d: "A scalar λ such that Av = λv for some non-zero vector v (eigenvector). det(A−λI)=0 gives the characteristic polynomial." },
+            { t: "Entropy (Shannon)", c: "Information Theory", s: "H(X)", d: "H(X) = −Σ p(x)·log₂p(x). Measures average information/surprise in a distribution. Max for uniform distribution." },
+            { t: "Euler's Formula", c: "Complex Analysis", s: "e^{iθ}", d: "e^{iθ} = cos(θ) + i·sin(θ). Most beautiful case: e^{iπ}+1=0 (Euler's identity). Connects exponential and trigonometric functions." },
+            { t: "Field", c: "Algebra", s: "(F,+,·)", d: "A commutative ring where every non-zero element has a multiplicative inverse. ℚ, ℝ, ℂ, GF(p) are fields." },
+            { t: "Fourier Transform", c: "Analysis", s: "F̂(ω)", d: "F̂(ω) = ∫ f(x)e^{−2πiωx}dx. Decomposes a function into frequencies. Inverse: f(x) = ∫ F̂(ω)e^{2πiωx}dω." },
+            { t: "Fundamental Theorem of Calculus", c: "Calculus", s: "∫f=F", d: "Part 1: d/dx[∫ₐˣ f(t)dt] = f(x). Part 2: ∫ₐᵇ f(x)dx = F(b)−F(a) where F'=f. Relates differentiation and integration." },
+            { t: "Galois Group", c: "Algebra", s: "Gal(E/F)", d: "The group of field automorphisms of E fixing F. The Galois correspondence relates subgroups to intermediate fields. Quintics unsolvable by radicals because S₅ is non-solvable." },
+            { t: "Gaussian Curvature", c: "Differential Geometry", s: "K", d: "K = κ₁·κ₂ = product of principal curvatures. Intrinsic by Theorema Egregium. K>0: dome; K<0: saddle; K=0: flat." },
+            { t: "Group", c: "Algebra", s: "(G,·)", d: "A set with a binary operation satisfying: closure, associativity, identity (e·g=g), inverse (g·g⁻¹=e). The foundation of modern algebra." },
+            { t: "Homotopy", c: "Topology", s: "f≃g", d: "Two continuous maps f,g: X→Y are homotopic if there's a continuous H: X×[0,1]→Y with H(x,0)=f(x) and H(x,1)=g(x)." },
+            { t: "Ideal", c: "Algebra", s: "I⊴R", d: "A subset I of ring R closed under + and satisfying rI⊆I and Ir⊆I for all r∈R. Quotient ring R/I is formed from cosets." },
+            { t: "Infimum", c: "Analysis", s: "inf S", d: "The greatest lower bound of a set S. Exists for any non-empty set bounded below in ℝ (completeness axiom)." },
+            { t: "Injective", c: "Set Theory", s: "1-1", d: "A function f: A→B is injective (one-to-one) if f(a₁)=f(a₂) ⟹ a₁=a₂. Equivalently, distinct inputs give distinct outputs." },
+            { t: "Integral", c: "Calculus", s: "∫f dx", d: "Riemann: limit of Riemann sums. Lebesgue: defined via measure theory, handles more functions. ∫ₐᵇ f dx = F(b)−F(a) (FTC)." },
+            { t: "Isomorphism", c: "Algebra", s: "G≅H", d: "A bijective homomorphism. Two structures are isomorphic if they are 'the same' up to relabeling. Key concept in all of abstract algebra." },
+            { t: "Jordan Normal Form", c: "Linear Algebra", s: "J", d: "Every square matrix over ℂ is similar to a block-diagonal matrix of Jordan blocks Jλ. Captures all information about linear transformations." },
+            { t: "Kernel", c: "Algebra", s: "ker(f)", d: "ker(f) = {x ∈ G : f(x) = e}. For a linear map: ker(T) = null space. First Isomorphism: G/ker(f) ≅ Im(f)." },
+            { t: "L² Space", c: "Functional Analysis", s: "L²(Ω)", d: "Space of square-integrable functions: L² = {f : ∫|f|² dμ < ∞}. A Hilbert space with inner product ⟨f,g⟩ = ∫f·ḡ dμ." },
+            { t: "Laplace Transform", c: "Analysis", s: "L{f}", d: "L{f}(s) = ∫₀^∞ f(t)e^{−st}dt. Converts ODEs to algebraic equations. Inverse: Bromwich integral in complex plane." },
+            { t: "Lebesgue Integral", c: "Measure Theory", s: "∫f dμ", d: "Defined by partitioning range via measure: ∫f dμ = ∫₀^∞ μ({f>t})dt. Handles limits under integral sign (DCT, MCT)." },
+            { t: "Limit", c: "Analysis", s: "lim f(x)", d: "lim_{x→a} f(x) = L iff ∀ε>0 ∃δ>0: 0<|x−a|<δ ⟹ |f(x)−L|<ε. Fundamental to all of calculus and analysis." },
+            { t: "Linear Independence", c: "Linear Algebra", s: "span", d: "Vectors v₁,...,vₙ are linearly independent if c₁v₁+...+cₙvₙ=0 ⟹ cₙ=0 for all k. Basis = maximal linearly independent set." },
+            { t: "Manifold", c: "Topology/Geometry", s: "M^n", d: "A topological space locally homeomorphic to ℝⁿ. Smooth manifold has smooth transition maps. Examples: spheres, tori, Lie groups." },
+            { t: "Measure", c: "Measure Theory", s: "μ", d: "A function μ: Σ→[0,∞] on a σ-algebra satisfying: μ(∅)=0 and countable additivity: μ(∪Aᵢ)=Σμ(Aᵢ) for disjoint Aᵢ." },
+            { t: "Metric Space", c: "Topology", s: "(X,d)", d: "A set X with distance function d: X×X→ℝ≥0 satisfying: d(x,y)≥0, d(x,y)=0⟺x=y, symmetry, triangle inequality." },
+            { t: "Modular Arithmetic", c: "Number Theory", s: "a≡b (mod n)", d: "a≡b (mod n) means n|(a−b). Forms the ring ℤ/nℤ. Fundamental in cryptography (RSA), computer science, combinatorics." },
+            { t: "Normal Distribution", c: "Statistics", s: "N(μ,σ²)", d: "PDF: (1/σ√{2π})e^{−(x−μ)²/2σ²}. Central limit theorem: sum of iid rvs with finite variance converges to N(0,1)." },
+            { t: "Open Set", c: "Topology", s: "U⊆X", d: "In metric spaces: U is open if every point has an ε-ball contained in U. Open sets define the topology on a space." },
+            { t: "Orthogonality", c: "Linear Algebra", s: "⟨u,v⟩=0", d: "Vectors u,v are orthogonal if their inner product is zero. Orthonormal basis: orthogonal + unit vectors. Gram-Schmidt constructs one." },
+            { t: "p-value", c: "Statistics", s: "P(T≥t|H₀)", d: "The probability of observing a result at least as extreme as the data under H₀. Reject H₀ if p < α (significance level, usually 0.05)." },
+            { t: "Permutation", c: "Combinatorics", s: "Sₙ", d: "A bijection from a set to itself. Number of permutations of n elements: n!. Symmmetric group Sₙ contains all n! permutations." },
+            { t: "Prime Number", c: "Number Theory", s: "p", d: "An integer p>1 with no positive divisors except 1 and p. Infinitely many (Euclid). Fundamental theorem: unique factorization into primes." },
+            { t: "Probability Space", c: "Probability", s: "(Ω,Σ,P)", d: "Sample space Ω, σ-algebra Σ of events, probability measure P: Σ→[0,1] with P(Ω)=1 and countable additivity." },
+            { t: "Quotient Group", c: "Algebra", s: "G/N", d: "Cosets {gN} of normal subgroup N form a group. |G/N| = |G|/|N| (Lagrange). First Isomorphism: G/ker(φ)≅Im(φ)." },
+            { t: "Ring", c: "Algebra", s: "(R,+,·)", d: "A set with two operations: (R,+) abelian group, (R,·) monoid (associative, 1), · distributes over +. Examples: ℤ, ℝ[x], matrix rings." },
+            { t: "Sequence", c: "Analysis", s: "(aₙ)", d: "A function N→ℝ. Converges if |aₙ−L|→0. Cauchy ↔ convergent in complete spaces. Monotone + bounded ⟹ convergent." },
+            { t: "Series", c: "Analysis", s: "Σaₙ", d: "Sum Σaₙ = lim Sₙ where Sₙ = a₁+...+aₙ. Tests: ratio, root, comparison, integral, alternating series (AST)." },
+            { t: "Sigma-algebra", c: "Measure Theory", s: "Σ", d: "A collection of sets closed under complement and countable union. Required for a measure. Generated by open sets → Borel σ-algebra ℬ(ℝ)." },
+            { t: "Spectral Theorem", c: "Functional Analysis", s: "A=UΛU*", d: "A normal matrix/operator has an orthonormal basis of eigenvectors. A = Σ λᵢ|eᵢ⟩⟨eᵢ|. Fundamental in quantum mechanics." },
+            { t: "Subgroup", c: "Algebra", s: "H≤G", d: "A subset H of group G that is itself a group. Lagrange: |H| divides |G|. Normal subgroup N if gN=Ng for all g." },
+            { t: "Taylor Series", c: "Analysis", s: "Σf^(n)(a)/n!", d: "f(x) = Σ f⁽ⁿ⁾(a)/n! · (x−a)ⁿ. Converges within radius of convergence R = 1/lim|aₙ₊₁/aₙ|. Examples: sin, cos, eˣ." },
+            { t: "Topological Space", c: "Topology", s: "(X,τ)", d: "A set X with a collection τ (topology) of 'open' sets satisfying: ∅,X∈τ; arbitrary unions; finite intersections." },
+            { t: "Uniform Continuity", c: "Analysis", s: "∀ε ∃δ", d: "f is uniformly continuous if ∀ε>0 ∃δ>0: |x−y|<δ ⟹ |f(x)−f(y)|<ε for ALL x,y. Continuous on compact sets is uniformly continuous." },
+            { t: "Vector Space", c: "Linear Algebra", s: "(V,+,·)", d: "An abelian group (V,+) with scalar multiplication satisfying distribution, association, and unit laws. Basis: minimal spanning linearly independent set." },
+            { t: "Zorn's Lemma", c: "Set Theory", s: "↔ AC", d: "Every partially ordered set where every chain has an upper bound has a maximal element. Equivalent to Axiom of Choice and Well-Ordering principle." },
+        ];
+        const cats = [...new Set(terms.map(t => t.c))].sort();
+        let activeCats = new Set();
+        document.getElementById('catFilters').innerHTML = cats.map(c => `<span class="badge bg-indigo-900/40 text-indigo-300 border-indigo-500/30 hover:bg-indigo-800/40" onclick="toggleCat('${c}',this)">${c}</span>`).join('');
+        function toggleCat(cat, el) { if (activeCats.has(cat)) { activeCats.delete(cat); el.style.fontWeight = 'normal'; el.style.background = ''; } else { activeCats.add(cat); el.style.fontWeight = 'bold'; el.style.background = 'rgba(99,102,241,0.3)'; } filterTerms(); }
+        const catColors = { Algebra: 'text-purple-300', Analysis: 'text-sky-300', 'Set Theory': 'text-teal-300', Topology: 'text-emerald-300', 'Linear Algebra': 'text-amber-300', Calculus: 'text-orange-300', 'Number Theory': 'text-pink-300', Statistics: 'text-rose-300', Probability: 'text-yellow-300', 'Information Theory': 'text-cyan-300', 'Functional Analysis': 'text-fuchsia-300', 'Measure Theory': 'text-green-300', 'Differential Geometry': 'text-lime-300', 'Complex Analysis': 'text-red-300' };
+        function filterTerms() {
+            let q = document.getElementById('search').value.toLowerCase();
+            let filtered = terms.filter(t => (t.t.toLowerCase().includes(q) || t.d.toLowerCase().includes(q) || t.c.toLowerCase().includes(q) || t.s.includes(q)) && (activeCats.size === 0 || activeCats.has(t.c)));
+            filtered.sort((a, b) => a.t.localeCompare(b.t));
+            document.getElementById('termCount').innerText = `Showing ${filtered.length} of ${terms.length} terms`;
+            document.getElementById('glossGrid').innerHTML = filtered.map(t => `<div class="term-card"><div class="flex items-start gap-2 mb-1"><span class="text-white font-bold text-sm">${t.t}</span><span class="font-mono text-indigo-400 text-xs ml-auto">${t.s}</span></div><span class="${catColors[t.c] || 'text-indigo-300'} text-xs font-bold">${t.c}</span><p class="text-gray-400 text-xs mt-1 leading-relaxed">${t.d}</p><button class="mv-ai-btn mt-2 text-[10px]" onclick="openTermAI(${JSON.stringify(t.t)},${JSON.stringify(t.c)},${JSON.stringify(t.d.slice(0, 150))})">🤖 Explain this</button></div>`).join('');
+        }
+        filterTerms();
+        function openGlossaryAI() { if (window.openMathAI) openMathAI('Math Glossary — A to Z', 'The user is browsing 50+ math definitions covering Algebra, Analysis, Set Theory, Topology, Number Theory, Calculus, and more. Help explain and connect mathematical concepts.'); }
+        function openTermAI(term, cat, desc) { if (window.openMathAI) openMathAI(term, cat + ' concept in mathematics. Definition: ' + desc); }
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

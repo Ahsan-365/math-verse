@@ -1,0 +1,261 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Partial Differential Equations - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-btn {
+            padding: .55rem 1rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .8rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(244, 63, 94, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(244, 63, 94, 0.25);
+            color: white;
+            border-color: #f43f5e;
+            box-shadow: 0 0 12px rgba(244, 63, 94, 0.4);
+        }
+
+        .pd-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(244, 63, 94, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            font-family: monospace;
+            width: 100%;
+        }
+
+        .pd-input:focus {
+            border-color: #fb7185;
+            outline: none;
+        }
+
+        .val-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(244, 63, 94, 0.4);
+            border-radius: .75rem;
+            padding: .75rem;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-pink-600 pb-2">
+            <i class="fas fa-fire text-rose-400"></i> Partial Differential Equations
+        </h2>
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-rose-500/30">
+            <button class="tab-btn active" onclick="switchTab('heat',this)">Heat Equation</button>
+            <button class="tab-btn" onclick="switchTab('wave',this)">Wave Equation</button>
+            <button class="tab-btn" onclick="switchTab('laplace',this)">Laplace / Poisson</button>
+            <button class="tab-btn" onclick="switchTab('ref',this)">PDE Reference</button>
+        </div>
+
+        <!-- Heat Equation -->
+        <div id="tab-heat" class="tab-content flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-rose-500/30 flex flex-col gap-4">
+                <h3 class="text-rose-300 font-bold text-xl">Heat Equation: ∂u/∂t = α·∂²u/∂x²</h3>
+                <p class="text-sm text-gray-400">1D heat diffusion solved numerically via explicit finite differences
+                    (FTCS scheme).</p>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div><label class="text-xs text-gray-400">Diffusivity α</label><input type="number" id="heatAlpha"
+                            class="pd-input" value="0.01" step="0.005" min="0.001" max="0.1" oninput="runHeat()"></div>
+                    <div><label class="text-xs text-gray-400">Spatial N</label><input type="number" id="heatN"
+                            class="pd-input" value="50" min="10" max="100" step="10" oninput="runHeat()"></div>
+                    <div><label class="text-xs text-gray-400">Time steps</label><input type="number" id="heatSteps"
+                            class="pd-input" value="200" min="50" max="1000" step="50" oninput="runHeat()"></div>
+                    <div><label class="text-xs text-gray-400">Initial condition</label>
+                        <select id="heatIC" class="pd-input mt-1 text-sm" onchange="runHeat()">
+                            <option value="sin">sin(πx) half-wave</option>
+                            <option value="tri">Triangle peak</option>
+                            <option value="gauss">Gaussian</option>
+                            <option value="rect">Rectangle pulse</option>
+                            <option value="step">Step function</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn bg-rose-700 hover:bg-rose-600 font-bold w-fit" onclick="runHeat()">Simulate</button>
+                <canvas id="heatCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:300px"></canvas>
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="val-card"><span class="text-xs text-gray-500 block">CFL number r=αΔt/Δx²</span><span
+                            id="heatCFL" class="text-xl font-mono text-rose-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Stable? (r ≤ 0.5)</span><span
+                            id="heatStable" class="text-xl font-mono font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Max temperature</span><span
+                            id="heatMaxT" class="text-xl font-mono text-rose-300 font-bold">—</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wave Equation -->
+        <div id="tab-wave" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-rose-500/30 flex flex-col gap-4">
+                <h3 class="text-rose-300 font-bold text-xl">Wave Equation: ∂²u/∂t² = c²·∂²u/∂x²</h3>
+                <p class="text-sm text-gray-400">1D wave propagation with Dirichlet boundary conditions. Leapfrog scheme
+                    (2nd order in space and time).</p>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div><label class="text-xs text-gray-400">Wave speed c</label><input type="number" id="waveC"
+                            class="pd-input" value="1" step="0.1" min="0.1" oninput="runWave()"></div>
+                    <div><label class="text-xs text-gray-400">Spatial N</label><input type="number" id="waveN"
+                            class="pd-input" value="60" min="10" max="100" step="10" oninput="runWave()"></div>
+                    <div><label class="text-xs text-gray-400">Time steps</label><input type="number" id="waveSteps"
+                            class="pd-input" value="300" min="50" max="1000" step="50" oninput="runWave()"></div>
+                    <div><label class="text-xs text-gray-400">Initial displacement</label>
+                        <select id="waveIC" class="pd-input mt-1 text-sm" onchange="runWave()">
+                            <option value="gauss">Gaussian pulse</option>
+                            <option value="sin">sin(πx) mode 1</option>
+                            <option value="tri">Triangle</option>
+                            <option value="sin3">sin(3πx) mode 3</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn bg-rose-700 hover:bg-rose-600 font-bold w-fit" onclick="runWave()">Simulate</button>
+                <canvas id="waveCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:300px"></canvas>
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="val-card"><span class="text-xs text-gray-500 block">CFL = cΔt/Δx</span><span
+                            id="waveCFL" class="text-xl font-mono text-rose-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Stable? (CFL ≤ 1)</span><span
+                            id="waveStable" class="text-xl font-mono font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Snapshots plotted</span><span
+                            id="waveSnap" class="text-xl font-mono text-rose-300 font-bold">—</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Laplace -->
+        <div id="tab-laplace" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-rose-500/30 flex flex-col gap-4">
+                <h3 class="text-rose-300 font-bold text-xl">Laplace Equation: ∇²u = 0 | Poisson: ∇²u = f</h3>
+                <p class="text-sm text-gray-400">2D Laplace solved iteratively (Gauss-Seidel). Boundary conditions: u=1
+                    on top, u=0 on other sides.</p>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div><label class="text-xs text-gray-400">Grid size N×N</label><input type="number" id="lapN"
+                            class="pd-input" value="30" min="10" max="60" step="5"></div>
+                    <div><label class="text-xs text-gray-400">Iterations</label><input type="number" id="lapIter"
+                            class="pd-input" value="200" min="50" max="2000" step="50"></div>
+                    <div><label class="text-xs text-gray-400">BC: top value</label><input type="number" id="lapTop"
+                            class="pd-input" value="1" step="0.1"></div>
+                    <div><label class="text-xs text-gray-400">Source f (Poisson)</label><input type="number" id="lapF"
+                            class="pd-input" value="0" step="0.5"></div>
+                </div>
+                <button class="btn bg-rose-700 hover:bg-rose-600 font-bold w-fit" onclick="runLaplace()">Solve</button>
+                <canvas id="lapCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:300px"></canvas>
+                <div class="text-xs text-gray-500 text-center">Color: blue=0 → red=1 (temperature/potential field)</div>
+            </div>
+        </div>
+
+        <!-- Reference -->
+        <div id="tab-ref" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-rose-500/30 flex flex-col gap-4">
+                <h3 class="text-rose-300 font-bold text-xl">PDE Classification & Reference</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm font-mono" id="refGrid"></div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); document.getElementById('tab-' + id).classList.remove('hidden'); if (id === 'heat') runHeat(); if (id === 'wave') runWave(); if (id === 'laplace') runLaplace(); if (id === 'ref') renderRef(); }
+        function f3(v) { return parseFloat(v.toFixed(4)).toString(); }
+
+        // ---- HEAT EQUATION ----
+        function makeIC(type, N) { let u = new Array(N).fill(0); for (let i = 0; i < N; i++) { let x = i / (N - 1); if (type === 'sin') u[i] = Math.sin(Math.PI * x); else if (type === 'tri') u[i] = x < 0.5 ? 2 * x : 2 - 2 * x; else if (type === 'gauss') u[i] = Math.exp(-50 * (x - 0.5) ** 2); else if (type === 'rect') u[i] = (x > 0.3 && x < 0.7) ? 1 : 0; else if (type === 'step') u[i] = x < 0.5 ? 1 : 0; } u[0] = 0; u[N - 1] = 0; return u; }
+
+        function heatColor(v, min, max) { let t = (v - min) / (max - min || 1); let r = Math.floor(t * 255), b = Math.floor((1 - t) * 255); return `rgb(${r},0,${b})`; }
+
+        function runHeat() {
+            let alpha = parseFloat(document.getElementById('heatAlpha').value) || 0.01;
+            let N = parseInt(document.getElementById('heatN').value) || 50;
+            let steps = parseInt(document.getElementById('heatSteps').value) || 200;
+            let ic = document.getElementById('heatIC').value;
+            let dx = 1 / (N - 1), dt = 0.4 * dx * dx / alpha;
+            let r = alpha * dt / (dx * dx);
+            document.getElementById('heatCFL').innerText = f3(r);
+            document.getElementById('heatStable').innerHTML = r <= 0.5 ? '<span class="text-green-400">Yes ✓</span>' : '<span class="text-red-400">No ✗</span>';
+            let u = makeIC(ic, N); let snapshots = [u.slice()]; let snap_every = Math.max(1, Math.floor(steps / 8));
+            for (let t2 = 0; t2 < steps; t2++) { let un = u.slice(); for (let i = 1; i < N - 1; i++)un[i] = u[i] + r * (u[i + 1] - 2 * u[i] + u[i - 1]); u = un; if ((t2 + 1) % snap_every === 0) snapshots.push(u.slice()); }
+            document.getElementById('heatMaxT').innerText = f3(Math.max(...u));
+            let cv = document.getElementById('heatCanvas'); cv.width = cv.offsetWidth; cv.height = 300;
+            let cx = cv.getContext('2d'), W = cv.width, H = 300, pad = 30;
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            cx.strokeStyle = '#334155'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(pad, H / 2); cx.lineTo(W - pad, H / 2); cx.stroke();
+            snapshots.forEach((s, si) => { let t = si / (snapshots.length - 1); cx.strokeStyle = `hsl(${350 - t * 200},80%,60%)`; cx.lineWidth = 1.5; cx.beginPath(); s.forEach((v, i) => { let x = pad + i / (N - 1) * (W - 2 * pad), y = H - pad - v * (H - 2 * pad); i === 0 ? cx.moveTo(x, y) : cx.lineTo(x, y); }); cx.stroke(); });
+            cx.fillStyle = '#94a3b8'; cx.font = '10px monospace'; cx.fillText('t=early (red) → t=late (blue)', pad, H - 8);
+        }
+
+        // ---- WAVE EQUATION ----
+        function runWave() {
+            let c = parseFloat(document.getElementById('waveC').value) || 1;
+            let N = parseInt(document.getElementById('waveN').value) || 60;
+            let steps = parseInt(document.getElementById('waveSteps').value) || 300;
+            let ic = document.getElementById('waveIC').value;
+            let dx = 1 / (N - 1), dt = 0.45 * dx / c, r2 = (c * dt / dx) ** 2;
+            document.getElementById('waveCFL').innerText = f3(c * dt / dx);
+            document.getElementById('waveStable').innerHTML = c * dt / dx <= 1 ? '<span class="text-green-400">Yes ✓</span>' : '<span class="text-red-400">No ✗</span>';
+            let u = new Array(N).fill(0), um = new Array(N).fill(0);
+            for (let i = 1; i < N - 1; i++) { let x = i / (N - 1); if (ic === 'gauss') u[i] = Math.exp(-200 * (x - 0.5) ** 2); else if (ic === 'sin') u[i] = Math.sin(Math.PI * x); else if (ic === 'tri') u[i] = x < 0.5 ? 2 * x : 2 - 2 * x; else if (ic === 'sin3') u[i] = Math.sin(3 * Math.PI * x); }
+            um = [...u]; let snapshots = [u.slice()]; let snap_every = Math.max(1, Math.floor(steps / 8));
+            for (let t = 0; t < steps; t++) { let un = new Array(N).fill(0); for (let i = 1; i < N - 1; i++)un[i] = 2 * u[i] - um[i] + r2 * (u[i + 1] - 2 * u[i] + u[i - 1]); um = [...u]; u = [...un]; if ((t + 1) % snap_every === 0) snapshots.push(u.slice()); }
+            document.getElementById('waveSnap').innerText = snapshots.length;
+            let cv = document.getElementById('waveCanvas'); cv.width = cv.offsetWidth; cv.height = 300;
+            let cx = cv.getContext('2d'), W = cv.width, H = 300, pad = 30;
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            cx.strokeStyle = '#334155'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(pad, H / 2); cx.lineTo(W - pad, H / 2); cx.stroke();
+            let maxV = Math.max(...snapshots.flat().map(Math.abs), 0.01);
+            snapshots.forEach((s, si) => { let t = si / (snapshots.length - 1); cx.strokeStyle = `hsl(${200 + t * 150},80%,60%)`; cx.lineWidth = 1.5; cx.beginPath(); s.forEach((v, i) => { let x = pad + i / (N - 1) * (W - 2 * pad), y = H / 2 - v / maxV * (H / 2 - pad); i === 0 ? cx.moveTo(x, y) : cx.lineTo(x, y); }); cx.stroke(); });
+            cx.fillStyle = '#94a3b8'; cx.font = '10px monospace'; cx.fillText('Snapshots: blue=early → purple=late', pad, H - 8);
+        }
+
+        // ---- LAPLACE ----
+        function runLaplace() {
+            let N = parseInt(document.getElementById('lapN').value) || 30;
+            let iters = parseInt(document.getElementById('lapIter').value) || 200;
+            let top = parseFloat(document.getElementById('lapTop').value) || 1;
+            let f = parseFloat(document.getElementById('lapF').value) || 0;
+            let u = Array.from({ length: N }, () => new Array(N).fill(0));
+            for (let j = 0; j < N; j++) { u[0][j] = top; u[N - 1][j] = 0; u.forEach(r => { r[0] = 0; r[N - 1] = 0; }); }
+            for (let k = 0; k < iters; k++)for (let i = 1; i < N - 1; i++)for (let j = 1; j < N - 1; j++)u[i][j] = (u[i - 1][j] + u[i + 1][j] + u[i][j - 1] + u[i][j + 1] + f * 1 / (N * N)) / 4;
+            let cv = document.getElementById('lapCanvas'); cv.width = cv.offsetWidth; cv.height = 300;
+            let cx = cv.getContext('2d'), W = cv.width, H = 300; let cw = W / N, ch = H / N;
+            for (let i = 0; i < N; i++)for (let j = 0; j < N; j++) { let t = Math.max(0, Math.min(1, u[i][j])); let r = Math.floor(t * 220), b = Math.floor((1 - t) * 220); cx.fillStyle = `rgb(${r},${Math.floor(t * 100)},${b})`; cx.fillRect(j * cw, i * ch, cw + 1, ch + 1); }
+        }
+
+        const refData = [
+            { name: 'Heat Equation', eq: '∂u/∂t = α∇²u', type: 'Parabolic', desc: 'Diffusion, heat conduction. Smooths initial data. Solutions exist for t>0.' },
+            { name: 'Wave Equation', eq: '∂²u/∂t² = c²∇²u', type: 'Hyperbolic', desc: 'Vibrations, acoustics, E&M. Finite propagation speed. Preserves singularities.' },
+            { name: 'Laplace Equation', eq: '∇²u = 0', type: 'Elliptic', desc: 'Steady-state phenomena, harmonic functions, electrostatics.' },
+            { name: 'Poisson Equation', eq: '∇²u = f', type: 'Elliptic', desc: 'Laplace with source term. Electrostatics with charge, Newtonian gravity.' },
+            { name: 'Schrödinger (time-dep.)', eq: 'iℏ∂ψ/∂t = Ĥψ', type: 'Parabolic(complex)', desc: 'Quantum mechanics. Complex-valued diffusion equation. Probability waves.' },
+            { name: 'Navier-Stokes', eq: 'ρ(∂v/∂t+v·∇v) = −∇p+μ∇²v', type: 'Nonlinear Parabolic', desc: 'Fluid dynamics. One of the Millennium Problems. Turbulence unsolved.' },
+            { name: 'Black-Scholes PDE', eq: '∂V/∂t+½σ²S²∂²V/∂S²+rS∂V/∂S−rV=0', type: 'Parabolic', desc: 'Options pricing. Reduces to heat equation. Nobel Prize 1997.' },
+            { name: 'Burgers Equation', eq: '∂u/∂t+u∂u/∂x = ν∂²u/∂x²', type: 'Nonlinear', desc: 'Shock formation, turbulence model. ν→0: inviscid Burgers / shock waves.' },
+            { name: 'KdV Equation', eq: '∂u/∂t−6u∂u/∂x+∂³u/∂x³=0', type: 'Nonlinear Dispersive', desc: 'Solitons. Waves that travel without changing shape. Russell 1834.' },
+            { name: 'Fourier 2D Heat', eq: 'u(x,y,t)=∑ Aₙₘ sin(nπx)sin(mπy)e^(−αλt)', type: 'Analytical solution', desc: 'Separation of variables for 2D heat on a rectangle with BC u=0.' },
+        ];
+        function renderRef() { document.getElementById('refGrid').innerHTML = refData.map(r => `<div class="bg-black/40 p-3 rounded-xl border border-rose-500/20"><div class="text-rose-300 font-bold">${r.name}</div><div class="text-amber-300 text-xs mb-1">${r.eq}</div><div class="text-sky-400 text-xs mb-1">[${r.type}]</div><div class="text-gray-400 text-xs">${r.desc}</div></div>`).join(''); }
+
+        runHeat();
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,614 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vector Lab - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+    <style>
+        .tab-btn {
+            padding: .55rem 1.1rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .82rem;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            background: rgba(139, 92, 246, 0.1);
+            color: #c4b5fd;
+        }
+
+        .tab-btn.active {
+            background: rgba(139, 92, 246, 0.25);
+            color: white;
+            box-shadow: 0 0 14px rgba(139, 92, 246, 0.5);
+            border-color: #8b5cf6;
+        }
+
+        .v-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(139, 92, 246, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .45rem .6rem;
+            text-align: center;
+            font-family: monospace;
+            transition: .2s;
+            width: 72px;
+        }
+
+        .v-input:focus {
+            border-color: #a78bfa;
+            outline: none;
+            box-shadow: 0 0 8px rgba(139, 92, 246, 0.4);
+        }
+
+        .v-input.fuchsia {
+            border-color: rgba(217, 70, 239, 0.4);
+        }
+
+        .stat-box {
+            background: rgba(0, 0, 0, 0.45);
+            border: 1px solid rgba(139, 92, 246, 0.25);
+            border-radius: .75rem;
+            padding: .75rem 1rem;
+        }
+
+        .stat-lbl {
+            display: block;
+            font-size: .65rem;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            font-weight: 700;
+            color: #6b7280;
+            margin-bottom: .2rem;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-6xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6 relative">
+        <h2
+            class="text-3xl md:text-5xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-500 pb-2">
+            <i class="fas fa-location-arrow text-violet-400"></i> Vector Lab
+        </h2>
+
+        <!-- Tabs -->
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-violet-500/30">
+            <button class="tab-btn active" onclick="switchTab('ops',this)">Vector Operations</button>
+            <button class="tab-btn" onclick="switchTab('plot3d',this)">3D Visualizer</button>
+            <button class="tab-btn" onclick="switchTab('fields',this)">Vector Fields</button>
+            <button class="tab-btn" onclick="switchTab('subspace',this)">Subspaces & Bases</button>
+            <button class="tab-btn" onclick="switchTab('transform',this)">Linear Maps</button>
+        </div>
+
+        <!-- ============ TAB 1: VECTOR OPERATIONS ============ -->
+        <div id="tab-ops" class="tab-content flex flex-col gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Vector A -->
+                <div class="bg-gray-900/50 p-5 rounded-2xl border border-violet-500/30 flex flex-col gap-3">
+                    <h3 class="text-violet-300 font-bold text-lg">Vector A (3D)</h3>
+                    <div class="flex items-center gap-2">
+                        <span class="text-gray-400 font-bold">[</span>
+                        <input type="number" id="vA_x" class="v-input" value="1" step="any" oninput="compute()">
+                        <span class="text-gray-500 text-sm">,</span>
+                        <input type="number" id="vA_y" class="v-input" value="2" step="any" oninput="compute()">
+                        <span class="text-gray-500 text-sm">,</span>
+                        <input type="number" id="vA_z" class="v-input" value="3" step="any" oninput="compute()">
+                        <span class="text-gray-400 font-bold">]</span>
+                    </div>
+                    <div id="magA" class="text-xs text-violet-300 font-mono">|A| = –</div>
+                </div>
+                <!-- Vector B -->
+                <div class="bg-gray-900/50 p-5 rounded-2xl border border-fuchsia-500/30 flex flex-col gap-3">
+                    <h3 class="text-fuchsia-300 font-bold text-lg">Vector B (3D)</h3>
+                    <div class="flex items-center gap-2">
+                        <span class="text-gray-400 font-bold">[</span>
+                        <input type="number" id="vB_x" class="v-input fuchsia" value="4" step="any" oninput="compute()">
+                        <span class="text-gray-500 text-sm">,</span>
+                        <input type="number" id="vB_y" class="v-input fuchsia" value="5" step="any" oninput="compute()">
+                        <span class="text-gray-500 text-sm">,</span>
+                        <input type="number" id="vB_z" class="v-input fuchsia" value="6" step="any" oninput="compute()">
+                        <span class="text-gray-400 font-bold">]</span>
+                    </div>
+                    <div id="magB" class="text-xs text-fuchsia-300 font-mono">|B| = –</div>
+                </div>
+            </div>
+
+            <!-- Results grid -->
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div class="stat-box"><span class="stat-lbl">Dot Product A · B</span><span id="outDot"
+                        class="text-2xl font-mono text-white font-bold">–</span></div>
+                <div class="stat-box"><span class="stat-lbl">Angle θ</span><span id="outAng"
+                        class="text-2xl font-mono text-white font-bold">–</span></div>
+                <div class="stat-box col-span-2 md:col-span-1"><span class="stat-lbl">Triple Scalar Product A·(B×C)
+                        <span class="text-purple-300">(C below)</span></span><span id="outTriple"
+                        class="text-xl font-mono text-purple-300 font-bold">–</span></div>
+                <div class="stat-box col-span-2"><span class="stat-lbl">Cross Product A × B</span><span id="outCross"
+                        class="text-xl font-mono text-fuchsia-400 font-bold">–</span></div>
+                <div class="stat-box col-span-2"><span class="stat-lbl">Projection of A onto B</span><span id="outProj"
+                        class="text-xl font-mono text-teal-300 font-bold">–</span></div>
+                <div class="stat-box"><span class="stat-lbl">A + B</span><span id="outAdd"
+                        class="text-lg font-mono text-sky-300 font-bold">–</span></div>
+                <div class="stat-box"><span class="stat-lbl">A − B</span><span id="outSub"
+                        class="text-lg font-mono text-amber-300 font-bold">–</span></div>
+            </div>
+
+            <!-- Vector C for triple product -->
+            <div class="bg-gray-900/50 p-4 rounded-2xl border border-purple-500/30 flex flex-col gap-2">
+                <h3 class="text-purple-300 font-bold text-sm uppercase tracking-widest">Vector C (for Triple Product)
+                </h3>
+                <div class="flex items-center gap-2">
+                    <span class="text-gray-400 font-bold">[</span>
+                    <input type="number" id="vC_x" class="v-input" style="border-color:rgba(168,85,247,.4)" value="1"
+                        step="any" oninput="compute()">
+                    <span class="text-gray-500 text-sm">,</span>
+                    <input type="number" id="vC_y" class="v-input" style="border-color:rgba(168,85,247,.4)" value="0"
+                        step="any" oninput="compute()">
+                    <span class="text-gray-500 text-sm">,</span>
+                    <input type="number" id="vC_z" class="v-input" style="border-color:rgba(168,85,247,.4)" value="0"
+                        step="any" oninput="compute()">
+                    <span class="text-gray-400 font-bold">]</span>
+                </div>
+            </div>
+
+            <!-- Mini 3D preview -->
+            <div id="opsPlot" class="w-full rounded-2xl bg-black/60 border border-gray-700" style="height:320px"></div>
+        </div>
+
+        <!-- ============ TAB 2: 3D VISUALIZER ============ -->
+        <div id="tab-plot3d" class="tab-content hidden flex flex-col gap-4">
+            <p class="text-sm text-gray-400">Add up to 6 named 3D vectors, visualize them simultaneously with
+                paralelogram plane, and see all pairwise operations.</p>
+            <div id="vecList" class="flex flex-col gap-2"></div>
+            <div class="flex gap-2 flex-wrap">
+                <button class="btn bg-violet-700 hover:bg-violet-600 font-bold" onclick="addVecRow()"><i
+                        class="fas fa-plus mr-1"></i>Add Vector</button>
+                <button class="btn bg-gray-700 hover:bg-gray-600 text-xs" onclick="resetVecs()">Reset</button>
+            </div>
+            <div id="plot3dMain" class="w-full rounded-2xl bg-black/60 border border-gray-700" style="height:450px">
+            </div>
+            <div id="pairwiseTable" class="overflow-x-auto"></div>
+        </div>
+
+        <!-- ============ TAB 3: VECTOR FIELDS ============ -->
+        <div id="tab-fields" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-teal-500/30 flex flex-col gap-4">
+                <h3 class="text-teal-300 font-bold text-xl">2D Vector Field Plotter</h3>
+                <p class="text-xs text-gray-400">Enter component functions F(x,y) = [P(x,y), Q(x,y)]. Use <code
+                        class="text-teal-200">x</code>, <code class="text-teal-200">y</code>, <code
+                        class="text-teal-200">Math.sin</code>, etc.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><label class="text-xs text-gray-400">P(x,y) — horizontal component</label>
+                        <input type="text" id="fieldP"
+                            class="mt-1 w-full bg-black/60 border border-teal-500/40 text-white rounded px-3 py-2 font-mono"
+                            value="-y">
+                    </div>
+                    <div><label class="text-xs text-gray-400">Q(x,y) — vertical component</label>
+                        <input type="text" id="fieldQ"
+                            class="mt-1 w-full bg-black/60 border border-teal-500/40 text-white rounded px-3 py-2 font-mono"
+                            value="x">
+                    </div>
+                </div>
+                <div class="flex gap-3 flex-wrap items-end">
+                    <div><label class="text-xs text-gray-400">Grid density</label>
+                        <input type="range" id="fieldDensity" min="6" max="20" value="12"
+                            class="mt-1 w-32 accent-teal-500" oninput="drawField()">
+                    </div>
+                    <div><label class="text-xs text-gray-400">Range ±</label>
+                        <input type="number" id="fieldRange"
+                            class="mt-1 bg-black/60 border border-teal-500/40 text-white rounded px-2 py-1.5 w-20"
+                            value="3" min="1" max="10">
+                    </div>
+                    <button class="btn bg-teal-700 hover:bg-teal-600 font-bold" onclick="drawField()">Plot
+                        Field</button>
+                </div>
+                <div id="fieldInfo" class="text-xs font-mono text-gray-400 flex gap-6 flex-wrap"></div>
+            </div>
+            <canvas id="fieldCanvas" class="w-full rounded-2xl bg-black border border-gray-700"
+                style="height:400px"></canvas>
+        </div>
+
+        <!-- ============ TAB 4: SUBSPACES & BASES ============ -->
+        <div id="tab-subspace" class="tab-content hidden flex flex-col gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-gray-900/50 p-5 rounded-2xl border border-emerald-500/30 flex flex-col gap-3">
+                    <h3 class="text-emerald-300 font-bold text-xl">Gram-Schmidt Orthogonalization</h3>
+                    <p class="text-xs text-gray-400">Enter up to 4 vectors in ℝ³ (comma-sep components each row).
+                        Outputs orthonormal basis.</p>
+                    <textarea id="gsInput"
+                        class="bg-black/60 border border-emerald-500/40 text-white rounded p-2 font-mono text-sm"
+                        rows="4" placeholder="1,0,0&#10;1,1,0&#10;1,1,1">1,0,0
+1,1,0
+1,1,1</textarea>
+                    <button class="btn bg-emerald-700 hover:bg-emerald-600 font-bold"
+                        onclick="runGS()">Orthogonalize</button>
+                    <div id="gsOut" class="space-y-2 text-sm font-mono"></div>
+                </div>
+                <div class="bg-gray-900/50 p-5 rounded-2xl border border-sky-500/30 flex flex-col gap-3">
+                    <h3 class="text-sky-300 font-bold text-xl">Linear Independence Check</h3>
+                    <p class="text-xs text-gray-400">Enter vectors in ℝ³ (one per line, comma-sep). Checks rank via row
+                        reduction.</p>
+                    <textarea id="liInput"
+                        class="bg-black/60 border border-sky-500/40 text-white rounded p-2 font-mono text-sm" rows="4"
+                        placeholder="1,2,3&#10;4,5,6&#10;7,8,9">1,2,3
+4,5,6
+7,8,9</textarea>
+                    <button class="btn bg-sky-700 hover:bg-sky-600 font-bold" onclick="checkLI()">Check</button>
+                    <div id="liOut"
+                        class="text-sm font-mono p-3 bg-black/40 rounded-xl border border-gray-700 min-h-16"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ TAB 5: LINEAR MAPS ============ -->
+        <div id="tab-transform" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-amber-500/30 flex flex-col gap-4">
+                <h3 class="text-amber-300 font-bold text-xl">2D Linear Transformation Visualizer</h3>
+                <p class="text-xs text-gray-400">Enter a 2×2 matrix. See how it transforms the unit square and standard
+                    basis vectors.</p>
+                <div class="flex gap-6 items-center justify-center flex-wrap">
+                    <div class="flex flex-col gap-1">
+                        <span class="text-xs text-gray-400 text-center">Matrix M</span>
+                        <div class="flex flex-col gap-1">
+                            <div class="flex gap-1">
+                                <input type="number" id="m00" class="v-input" value="2" step="any"
+                                    oninput="drawTransform()">
+                                <input type="number" id="m01" class="v-input" value="0" step="any"
+                                    oninput="drawTransform()">
+                            </div>
+                            <div class="flex gap-1">
+                                <input type="number" id="m10" class="v-input" value="0" step="any"
+                                    oninput="drawTransform()">
+                                <input type="number" id="m11" class="v-input" value="1" step="any"
+                                    oninput="drawTransform()">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-2 text-xs font-mono text-gray-300">
+                        <div>det(M) = <span id="mDet" class="text-amber-300 font-bold">–</span></div>
+                        <div>trace(M) = <span id="mTrace" class="text-amber-300 font-bold">–</span></div>
+                    </div>
+                    <div class="flex gap-2 flex-wrap">
+                        <button class="btn bg-amber-700 hover:bg-amber-600 text-xs font-bold"
+                            onclick="setPreset('id')">Identity</button>
+                        <button class="btn bg-amber-800 hover:bg-amber-700 text-xs font-bold"
+                            onclick="setPreset('rot90')">Rot 90°</button>
+                        <button class="btn bg-amber-800 hover:bg-amber-700 text-xs font-bold"
+                            onclick="setPreset('shear')">Shear</button>
+                        <button class="btn bg-amber-800 hover:bg-amber-700 text-xs font-bold"
+                            onclick="setPreset('reflect')">Reflect X</button>
+                        <button class="btn bg-rose-900 hover:bg-rose-800 text-xs font-bold"
+                            onclick="setPreset('proj')">Project</button>
+                    </div>
+                </div>
+                <canvas id="transformCanvas" class="w-full rounded-2xl bg-black/60 border border-gray-700"
+                    style="height:380px"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById('tab-' + id).classList.remove('hidden');
+            if (id === 'ops') compute();
+            if (id === 'plot3d') renderPlot3d();
+            if (id === 'fields') drawField();
+            if (id === 'transform') drawTransform();
+        }
+
+        /* ============================
+           TAB 1: VECTOR OPERATIONS
+           ============================ */
+        function getV(id) {
+            return [
+                parseFloat(document.getElementById(id + '_x').value) || 0,
+                parseFloat(document.getElementById(id + '_y').value) || 0,
+                parseFloat(document.getElementById(id + '_z').value) || 0
+            ];
+        }
+        const vmag = v => Math.sqrt(v[0] ** 2 + v[1] ** 2 + v[2] ** 2);
+        const vdot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+        const vcross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+        const vadd = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+        const vsub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+        const vfmt = v => `[${v.map(x => x.toFixed(3)).join(', ')}]`;
+
+        function compute() {
+            const A = getV('vA'), B = getV('vB'), C = getV('vC');
+            const mA = vmag(A), mB = vmag(B);
+            const d = vdot(A, B);
+            const cr = vcross(A, B);
+            const ang = mA > 0 && mB > 0 ? Math.acos(Math.max(-1, Math.min(1, d / (mA * mB)))) * 180 / Math.PI : 0;
+            const proj = mB > 0 ? B.map(v => v * d / (mB * mB)) : [0, 0, 0];
+            const triple = vdot(A, vcross(B, C));
+
+            document.getElementById('magA').innerText = `|A| = ${mA.toFixed(4)}`;
+            document.getElementById('magB').innerText = `|B| = ${mB.toFixed(4)}`;
+            document.getElementById('outDot').innerText = d.toFixed(4);
+            document.getElementById('outAng').innerText = ang.toFixed(2) + '°';
+            document.getElementById('outCross').innerText = vfmt(cr);
+            document.getElementById('outProj').innerText = vfmt(proj);
+            document.getElementById('outAdd').innerText = vfmt(vadd(A, B));
+            document.getElementById('outSub').innerText = vfmt(vsub(A, B));
+            document.getElementById('outTriple').innerText = triple.toFixed(4);
+
+            const mkLine = (v, col, nm) => ({ type: 'scatter3d', mode: 'lines+markers', x: [0, v[0]], y: [0, v[1]], z: [0, v[2]], line: { color: col, width: 6 }, marker: { size: [2, 6], color: col }, name: nm });
+            Plotly.newPlot('opsPlot', [
+                mkLine(A, '#8b5cf6', 'A'),
+                mkLine(B, '#d946ef', 'B'),
+                mkLine(cr, '#f472b6', 'A×B'),
+                mkLine(proj, '#2dd4bf', 'Proj A→B')
+            ], {
+                margin: { l: 0, r: 0, b: 0, t: 0 },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                scene: {
+                    xaxis: { title: 'X', gridcolor: '#334155', zerolinecolor: '#94a3b8', showbackground: false },
+                    yaxis: { title: 'Y', gridcolor: '#334155', zerolinecolor: '#94a3b8', showbackground: false },
+                    zaxis: { title: 'Z', gridcolor: '#334155', zerolinecolor: '#94a3b8', showbackground: false }
+                },
+                legend: { font: { color: '#cbd5e1' } }
+            }, { responsive: true, displayModeBar: false });
+        }
+
+        /* ============================
+           TAB 2: MULTI-VECTOR 3D
+           ============================ */
+        const COLORS = ['#8b5cf6', '#d946ef', '#2dd4bf', '#f59e0b', '#34d399', '#60a5fa'];
+        let vecRows = [];
+        function addVecRow() {
+            if (vecRows.length >= 6) { alert('Max 6 vectors'); return; }
+            const id = vecRows.length;
+            const col = COLORS[id];
+            const row = { id, col, x: Math.round(Math.random() * 6 - 3), y: Math.round(Math.random() * 6 - 3), z: Math.round(Math.random() * 6 - 3) };
+            vecRows.push(row);
+            renderVecList();
+        }
+        function resetVecs() { vecRows = []; renderVecList(); Plotly.purge('plot3dMain'); document.getElementById('pairwiseTable').innerHTML = ''; }
+        function renderVecList() {
+            const el = document.getElementById('vecList');
+            el.innerHTML = vecRows.map((r, i) => `
+        <div class="flex items-center gap-3 bg-gray-900/50 p-3 rounded-xl border" style="border-color:${r.col}55">
+            <span class="text-sm font-bold w-4" style="color:${r.col}">V${i + 1}</span>
+            <span class="text-gray-500">[</span>
+            <input type="number" value="${r.x}" step="any" oninput="vecRows[${i}].x=parseFloat(this.value)||0;renderPlot3d()" class="v-input" style="border-color:${r.col}88">
+            <span class="text-gray-500">,</span>
+            <input type="number" value="${r.y}" step="any" oninput="vecRows[${i}].y=parseFloat(this.value)||0;renderPlot3d()" class="v-input" style="border-color:${r.col}88">
+            <span class="text-gray-500">,</span>
+            <input type="number" value="${r.z}" step="any" oninput="vecRows[${i}].z=parseFloat(this.value)||0;renderPlot3d()" class="v-input" style="border-color:${r.col}88">
+            <span class="text-gray-500">]</span>
+            <button onclick="vecRows.splice(${i},1);renderVecList()" class="ml-auto text-rose-400 hover:text-rose-300 text-xs">✕</button>
+        </div>
+    `).join('');
+            renderPlot3d();
+        }
+        function renderPlot3d() {
+            const traces = vecRows.map((r, i) => ({
+                type: 'scatter3d', mode: 'lines+markers',
+                x: [0, r.x], y: [0, r.y], z: [0, r.z],
+                line: { color: r.col, width: 8 },
+                marker: { size: [2, 8], color: r.col },
+                name: `V${i + 1} [${r.x},${r.y},${r.z}]`
+            }));
+            if (!traces.length) { Plotly.purge('plot3dMain'); return; }
+            Plotly.newPlot('plot3dMain', traces, {
+                margin: { l: 0, r: 0, b: 0, t: 0 },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                scene: { xaxis: { title: 'X', gridcolor: '#334155', showbackground: false }, yaxis: { title: 'Y', gridcolor: '#334155', showbackground: false }, zaxis: { title: 'Z', gridcolor: '#334155', showbackground: false } },
+                legend: { font: { color: '#cbd5e1' } }
+            }, { responsive: true, displayModeBar: false });
+
+            // Pairwise table
+            if (vecRows.length >= 2) {
+                let hdr = '<tr><th class="p-1 text-xs text-gray-500"></th>' + vecRows.map((_, i) => `<th class="p-1 text-xs font-bold" style="color:${COLORS[i]}">V${i + 1}</th>`).join('') + '</tr>';
+                let rows = vecRows.map((r, i) => `<tr><td class="p-1 text-xs font-bold" style="color:${COLORS[i]}">V${i + 1}</td>` + vecRows.map((s, j) => {
+                    const a = [r.x, r.y, r.z], b = [s.x, s.y, s.z];
+                    const d = vdot(a, b), mA = vmag(a), mB = vmag(b);
+                    const ang = mA > 0 && mB > 0 ? Math.acos(Math.max(-1, Math.min(1, d / (mA * mB)))) * 180 / Math.PI : 0;
+                    return `<td class="p-1 text-[10px] font-mono text-gray-300 bg-black/30 border border-gray-700/50">${i === j ? '—' : 'dot=' + d.toFixed(1) + '<br>θ=' + ang.toFixed(1) + '°'}</td>`;
+                }).join('') + '</tr>').join('');
+                document.getElementById('pairwiseTable').innerHTML = `<table class="text-left border-collapse text-xs w-full">${hdr}${rows}</table>`;
+            }
+        }
+        // Init with 2 vectors
+        addVecRow(); addVecRow();
+
+        /* ============================
+           TAB 3: VECTOR FIELD
+           ============================ */
+        function drawField() {
+            const cvs = document.getElementById('fieldCanvas');
+            cvs.width = cvs.offsetWidth; cvs.height = Math.max(300, cvs.offsetWidth * 0.55);
+            const ctx = cvs.getContext('2d'), W = cvs.width, H = cvs.height;
+            const pStr = document.getElementById('fieldP').value || '-y';
+            const qStr = document.getElementById('fieldQ').value || 'x';
+            const n = parseInt(document.getElementById('fieldDensity').value) || 12;
+            const R = parseFloat(document.getElementById('fieldRange').value) || 3;
+            ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+
+            let maxMag = 0, pts = [];
+            const evalF = (expr, x, y) => { try { return Function('x', 'y', 'Math', `"use strict";return (${expr})`)(x, y, Math); } catch { return 0; } };
+
+            const pad = 30, cW = W - 2 * pad, cH = H - 2 * pad;
+            // Draw axes
+            ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(pad, H / 2); ctx.lineTo(W - pad, H / 2); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(W / 2, pad); ctx.lineTo(W / 2, H - pad); ctx.stroke();
+
+            for (let i = 0; i <= n; i++) for (let j = 0; j <= n; j++) {
+                const x = -R + i * (2 * R / n), y = -R + j * (2 * R / n);
+                const P = evalF(pStr, x, y), Q = evalF(qStr, x, y);
+                const m = Math.sqrt(P * P + Q * Q);
+                if (m > maxMag) maxMag = m;
+                pts.push({ x, y, P, Q, m });
+            }
+            if (maxMag === 0) maxMag = 1;
+
+            const toSx = x => pad + (x + R) / (2 * R) * cW, toSy = y => H - pad - (y + R) / (2 * R) * cH;
+            const step = (2 * R / (n)) * cW / (2 * R) * 0.45;
+
+            // Compute divergence, curl
+            const dx = 2 * R / n;
+            const dPdx = (x, y) => (evalF(pStr, x + dx, y) - evalF(pStr, x - dx, y)) / (2 * dx);
+            const dQdy = (x, y) => (evalF(qStr, x, y + dx) - evalF(qStr, x, y - dx)) / (2 * dx);
+            const dQdx = (x, y) => (evalF(qStr, x + dx, y) - evalF(qStr, x - dx, y)) / (2 * dx);
+            const dPdy = (x, y) => (evalF(pStr, x, y + dx) - evalF(pStr, x, y - dx)) / (2 * dx);
+            const sampleDiv = dPdx(0, 0) + dQdy(0, 0), sampleCurl = dQdx(0, 0) - dPdy(0, 0);
+
+            pts.forEach(({ x, y, P, Q, m }) => {
+                const t = m / maxMag;
+                const r = Math.round(t * 220 + (1 - t) * 50), g = Math.round((1 - t) * 180 + t * 50), b = Math.round(220 - t * 180);
+                const sx = toSx(x), sy = toSy(y);
+                const len = step * (m / maxMag);
+                if (len < 0.5) return;
+                const nx = P / m, ny = Q / m;
+                const ex = sx + nx * len, ey = sy - ny * len;
+                ctx.strokeStyle = `rgb(${r},${g},${b})`; ctx.lineWidth = 1.5;
+                ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
+                // Arrowhead
+                const angle = Math.atan2(ey - sy, ex - sx);
+                const arL = 5;
+                ctx.beginPath();
+                ctx.moveTo(ex, ey);
+                ctx.lineTo(ex - arL * Math.cos(angle - 0.5), ey - arL * Math.sin(angle - 0.5));
+                ctx.lineTo(ex - arL * Math.cos(angle + 0.5), ey - arL * Math.sin(angle + 0.5));
+                ctx.closePath(); ctx.fillStyle = `rgb(${r},${g},${b})`; ctx.fill();
+            });
+
+            document.getElementById('fieldInfo').innerHTML = `
+        <span>Divergence ∇·F ≈ <strong class="text-teal-300">${sampleDiv.toFixed(4)}</strong> at origin</span>
+        <span>Curl ∇×F ≈ <strong class="text-violet-300">${sampleCurl.toFixed(4)}</strong> at origin</span>
+        <span>Max |F| = <strong class="text-white">${maxMag.toFixed(4)}</strong></span>
+    `;
+        }
+
+        /* ============================
+           TAB 4: GRAM-SCHMIDT / LI
+           ============================ */
+        function parseVecList(id) {
+            return document.getElementById(id).value.trim().split('\n').map(l => l.split(',').map(Number)).filter(v => v.length === 3 && !v.some(isNaN));
+        }
+        function runGS() {
+            const vecs = parseVecList('gsInput');
+            if (vecs.length < 2) { document.getElementById('gsOut').innerHTML = '<span class="text-rose-400">Need ≥ 2 vectors</span>'; return; }
+            const orth = [], unit = [];
+            vecs.forEach(v => {
+                let u = [...v];
+                orth.forEach((oi, k) => { const s = vdot(u, oi) / vdot(oi, oi); u = u.map((ui, j) => ui - s * oi[j]); });
+                const m = vmag(u);
+                if (m < 1e-10) { return; } // linearly dependent
+                orth.push(u);
+                unit.push(u.map(x => x / m));
+            });
+            document.getElementById('gsOut').innerHTML = unit.length ?
+                unit.map((e, i) => `<div class="bg-black/40 p-2 rounded text-emerald-200">e${i + 1} = [${e.map(x => x.toFixed(6)).join(', ')}]</div>`).join('')
+                : '<span class="text-rose-400">Vectors are linearly dependent</span>';
+        }
+        function checkLI() {
+            const vecs = parseVecList('liInput');
+            if (vecs.length < 2) { document.getElementById('liOut').innerHTML = '<span class="text-rose-400">Need ≥ 2 vectors</span>'; return; }
+            // Row reduce augmented matrix
+            let M = vecs.map(v => [...v]);
+            let rank = 0, n = M[0].length;
+            for (let col = 0; col < n && rank < M.length; col++) {
+                let pivot = -1; for (let r = rank; r < M.length; r++)if (Math.abs(M[r][col]) > 1e-9) { pivot = r; break; }
+                if (pivot === -1) continue;
+                [M[rank], M[pivot]] = [M[pivot], M[rank]];
+                const sc = M[rank][col]; M[rank] = M[rank].map(x => x / sc);
+                M.forEach((r, i) => { if (i !== rank) { const f = r[col]; M[i] = r.map((x, j) => x - f * M[rank][j]); } });
+                rank++;
+            }
+            const dep = vecs.length - rank;
+            document.getElementById('liOut').innerHTML = `
+        <div class="${rank === vecs.length ? 'text-emerald-400' : 'text-amber-400'} font-bold">${rank === vecs.length ? '✓ Linearly Independent' : '✗ Linearly Dependent'}</div>
+        <div class="text-gray-400 mt-1">Rank = ${rank} / ${vecs.length} vectors</div>
+        <div class="text-gray-500 text-xs">${dep > 0 ? `${dep} vector(s) are redundant (span the same subspace)` : 'All vectors form a valid basis for their span'}</div>
+    `;
+        }
+
+        /* ============================
+           TAB 5: LINEAR MAPS
+           ============================ */
+        function setPreset(p) {
+            const v = { id: [1, 0, 0, 1], rot90: [0, -1, 1, 0], shear: [1, 0.7, 0, 1], reflect: [1, 0, 0, -1], proj: [1, 0, 0, 0] };
+            const [a, b, c, d] = v[p];
+            document.getElementById('m00').value = a; document.getElementById('m01').value = b;
+            document.getElementById('m10').value = c; document.getElementById('m11').value = d;
+            drawTransform();
+        }
+        function drawTransform() {
+            const a = parseFloat(document.getElementById('m00').value) || 0;
+            const b = parseFloat(document.getElementById('m01').value) || 0;
+            const c = parseFloat(document.getElementById('m10').value) || 0;
+            const d = parseFloat(document.getElementById('m11').value) || 0;
+            const det = a * d - b * c;
+            document.getElementById('mDet').innerText = det.toFixed(4);
+            document.getElementById('mTrace').innerText = (a + d).toFixed(4);
+
+            const cvs = document.getElementById('transformCanvas');
+            cvs.width = cvs.offsetWidth; cvs.height = Math.max(300, cvs.offsetWidth * 0.55);
+            const ctx = cvs.getContext('2d'), W = cvs.width, H = cvs.height;
+            ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+
+            const cx = W / 2, cy = H / 2, sc = Math.min(W, H) / 7;
+            const tx = v => [cx + v[0] * sc, cy - v[1] * sc];
+            const Mv = v => [a * v[0] + b * v[1], c * v[0] + d * v[1]];
+
+            const drawGrid = (col, M) => {
+                ctx.strokeStyle = col; ctx.lineWidth = 0.5;
+                for (let i = -6; i <= 6; i++) {
+                    const p1 = M ? tx(Mv([i, -6])) : tx([i, -6]), p2 = M ? tx(Mv([i, 6])) : tx([i, 6]);
+                    const q1 = M ? tx(Mv([-6, i])) : tx([-6, i]), q2 = M ? tx(Mv([6, i])) : tx([6, i]);
+                    ctx.beginPath(); ctx.moveTo(p1[0], p1[1]); ctx.lineTo(p2[0], p2[1]); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(q1[0], q1[1]); ctx.lineTo(q2[0], q2[1]); ctx.stroke();
+                }
+            };
+
+            // Original grid (dim)
+            drawGrid('rgba(100,100,150,0.2)', false);
+            // Transformed grid
+            drawGrid('rgba(139,92,246,0.3)', true);
+
+            // Unit square fill
+            const sq = [[0, 0], [1, 0], [1, 1], [0, 1]].map(v => tx(Mv(v)));
+            ctx.beginPath(); ctx.moveTo(sq[0][0], sq[0][1]); sq.slice(1).forEach(p => ctx.lineTo(p[0], p[1]));
+            ctx.closePath(); ctx.fillStyle = 'rgba(139,92,246,0.15)'; ctx.fill();
+            ctx.strokeStyle = '#8b5cf6'; ctx.lineWidth = 2; ctx.stroke();
+
+            // Axes arrows
+            const drawArrow = (from, to, col, lbl) => {
+                const [fx, fy] = tx(from), [tx2, ty2] = tx(to);
+                ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(tx2, ty2); ctx.stroke();
+                ctx.fillStyle = col; ctx.font = 'bold 12px Inter'; ctx.fillText(lbl, tx2 + 5, ty2 - 5);
+                // arrowhead
+                const ang = Math.atan2(ty2 - fy, tx2 - fx);
+                ctx.beginPath(); ctx.moveTo(tx2, ty2);
+                ctx.lineTo(tx2 - 10 * Math.cos(ang - 0.4), ty2 - 10 * Math.sin(ang - 0.4));
+                ctx.lineTo(tx2 - 10 * Math.cos(ang + 0.4), ty2 - 10 * Math.sin(ang + 0.4));
+                ctx.closePath(); ctx.fillStyle = col; ctx.fill();
+            };
+            drawArrow([0, 0], Mv([1, 0]), '#2dd4bf', 'e₁');
+            drawArrow([0, 0], Mv([0, 1]), '#f59e0b', 'e₂');
+        }
+
+        // Init
+        compute();
+        drawField();
+        drawTransform();
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

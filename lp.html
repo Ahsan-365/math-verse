@@ -1,0 +1,358 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear Programming - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-btn {
+            padding: .55rem 1rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .8rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(16, 185, 129, 0.25);
+            color: white;
+            border-color: #10b981;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+        }
+
+        .lp-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            font-family: monospace;
+            width: 100%;
+        }
+
+        .lp-input:focus {
+            border-color: #34d399;
+            outline: none;
+        }
+
+        .val-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            border-radius: .75rem;
+            padding: .75rem;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-600 pb-2">
+            <i class="fas fa-chart-area text-emerald-400"></i> Linear Programming
+        </h2>
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-emerald-500/30">
+            <button class="tab-btn active" onclick="switchTab('graphical',this)">Graphical Method (2-var)</button>
+            <button class="tab-btn" onclick="switchTab('simplex',this)">Simplex Method</button>
+            <button class="tab-btn" onclick="switchTab('sensitivity',this)">Sensitivity Analysis</button>
+            <button class="tab-btn" onclick="switchTab('examples',this)">Classic Problems</button>
+        </div>
+
+        <!-- Graphical Method -->
+        <div id="tab-graphical" class="tab-content flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-emerald-500/30 flex flex-col gap-4">
+                <h3 class="text-emerald-300 font-bold text-xl">Graphical LP Solver (2 variables x₁, x₂)</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-3">
+                        <div>
+                            <label class="text-xs text-gray-400 uppercase tracking-widest">Objective Function</label>
+                            <div class="flex gap-2 mt-1 items-center">
+                                <select id="lpObjDir" class="lp-input w-28">
+                                    <option value="max">Maximize</option>
+                                    <option value="min">Minimize</option>
+                                </select>
+                                <span class="text-gray-400 text-sm">Z =</span>
+                                <input type="number" id="lpC1" class="lp-input w-20" value="5" step="any">
+                                <span class="text-gray-400 text-sm">x₁ +</span>
+                                <input type="number" id="lpC2" class="lp-input w-20" value="4" step="any">
+                                <span class="text-gray-400 text-sm">x₂</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 uppercase tracking-widest">Constraints (a·x₁ + b·x₂ ≤
+                                c)</label>
+                            <div id="constraintList" class="flex flex-col gap-2 mt-1"></div>
+                            <button class="btn text-xs bg-emerald-800 hover:bg-emerald-700 mt-2"
+                                onclick="addConstraint()">+ Add Constraint</button>
+                        </div>
+                        <div class="flex gap-2 flex-wrap">
+                            <div class="flex items-center gap-1"><input type="checkbox" id="lpNNx1" checked><label
+                                    class="text-xs text-gray-400">x₁ ≥ 0</label></div>
+                            <div class="flex items-center gap-1"><input type="checkbox" id="lpNNx2" checked><label
+                                    class="text-xs text-gray-400">x₂ ≥ 0</label></div>
+                        </div>
+                        <button class="btn bg-emerald-700 hover:bg-emerald-600 font-bold"
+                            onclick="solveGraphical()">Solve</button>
+                        <div id="lpResult"
+                            class="bg-black/50 border border-emerald-500/40 rounded-xl p-4 text-sm leading-relaxed text-gray-300 font-mono">
+                        </div>
+                    </div>
+                    <canvas id="lpCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                        style="height:380px"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Simplex -->
+        <div id="tab-simplex" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-emerald-500/30 flex flex-col gap-4">
+                <h3 class="text-emerald-300 font-bold text-xl">Simplex Method (Standard Form)</h3>
+                <p class="text-sm text-gray-400">Maximize c·x subject to Ax ≤ b, x ≥ 0. Enter A (row=constraint,
+                    comma-per-row), b vector, c vector.</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div><label class="text-xs text-gray-400">Objective coefficients c (comma-sep)</label><input
+                            type="text" id="sxC" class="lp-input" value="5, 4"></div>
+                    <div><label class="text-xs text-gray-400">RHS b vector (one per line)</label><textarea id="sxB"
+                            class="lp-input h-20">6&#10;8&#10;4</textarea></div>
+                    <div><label class="text-xs text-gray-400">Constraint matrix A (comma rows, newline
+                            constraints)</label><textarea id="sxA"
+                            class="lp-input h-20">1, 1&#10;2, 1&#10;0, 1</textarea></div>
+                </div>
+                <button class="btn bg-emerald-700 hover:bg-emerald-600 font-bold" onclick="runSimplex()">Run
+                    Simplex</button>
+                <div id="simplexResult"
+                    class="bg-black/50 border border-emerald-500/40 rounded-xl p-4 text-sm font-mono text-gray-300 overflow-x-auto min-h-16">
+                </div>
+                <div id="simplexTableaus" class="flex flex-col gap-3 overflow-x-auto"></div>
+            </div>
+        </div>
+
+        <!-- Sensitivity -->
+        <div id="tab-sensitivity" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-emerald-500/30 flex flex-col gap-4">
+                <h3 class="text-emerald-300 font-bold text-xl">Sensitivity Analysis (Shadow Prices)</h3>
+                <p class="text-sm text-gray-400">After solving, see how the optimal solution changes as RHS or objective
+                    coefficients vary.</p>
+                <button class="btn bg-emerald-700 hover:bg-emerald-600 font-bold mb-2" onclick="runSensitivity()">Run
+                    Sensitivity on Current LP</button>
+                <div id="sensitivityResult" class="overflow-x-auto"></div>
+            </div>
+        </div>
+
+        <!-- Classic Problems -->
+        <div id="tab-examples" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-emerald-500/30 flex flex-col gap-4">
+                <h3 class="text-emerald-300 font-bold text-xl">Classic LP Problems</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button
+                        class="text-left bg-black/40 hover:bg-black/60 border border-emerald-500/30 rounded-xl p-4 transition"
+                        onclick="loadExample('production')">
+                        <div class="text-emerald-300 font-bold">Production Mix Problem</div>
+                        <div class="text-gray-400 text-xs mt-1">Two products, three resources — maximize profit.</div>
+                    </button>
+                    <button
+                        class="text-left bg-black/40 hover:bg-black/60 border border-emerald-500/30 rounded-xl p-4 transition"
+                        onclick="loadExample('diet')">
+                        <div class="text-emerald-300 font-bold">Diet Problem</div>
+                        <div class="text-gray-400 text-xs mt-1">Minimize cost meeting nutritional requirements.</div>
+                    </button>
+                    <button
+                        class="text-left bg-black/40 hover:bg-black/60 border border-emerald-500/30 rounded-xl p-4 transition"
+                        onclick="loadExample('transport')">
+                        <div class="text-emerald-300 font-bold">Blending Problem</div>
+                        <div class="text-gray-400 text-xs mt-1">Blend two ingredients to meet spec constraints.</div>
+                    </button>
+                    <button
+                        class="text-left bg-black/40 hover:bg-black/60 border border-emerald-500/30 rounded-xl p-4 transition"
+                        onclick="loadExample('knapsack')">
+                        <div class="text-emerald-300 font-bold">Resource Allocation</div>
+                        <div class="text-gray-400 text-xs mt-1">Allocate budget across two investment types.</div>
+                    </button>
+                </div>
+                <div id="exampleResult"
+                    class="bg-black/50 border border-emerald-500/40 rounded-xl p-4 text-gray-300 font-mono text-sm leading-relaxed">
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); document.getElementById('tab-' + id).classList.remove('hidden'); }
+        function f6(v) { return isFinite(v) ? parseFloat(v.toFixed(6)).toString() : '—'; }
+
+        let constraints2 = [{ a: 1, b: 1, c: 6 }, { a: 2, b: 1, c: 8 }];
+
+        function renderConstraints() {
+            document.getElementById('constraintList').innerHTML = constraints2.map((c, i) =>
+                `<div class="flex gap-2 items-center">
+            <input type="number" class="lp-input w-16" value="${c.a}" step="any" oninput="constraints2[${i}].a=parseFloat(this.value)||0">
+            <span class="text-gray-400 text-sm">x₁ +</span>
+            <input type="number" class="lp-input w-16" value="${c.b}" step="any" oninput="constraints2[${i}].b=parseFloat(this.value)||0">
+            <span class="text-gray-400 text-sm">x₂ ≤</span>
+            <input type="number" class="lp-input w-16" value="${c.c}" step="any" oninput="constraints2[${i}].c=parseFloat(this.value)||0">
+            <button class="btn text-xs bg-red-900 hover:bg-red-800" onclick="removeConstraint(${i})">✕</button>
+        </div>`).join('');
+        }
+        function addConstraint() { constraints2.push({ a: 1, b: 1, c: 10 }); renderConstraints(); }
+        function removeConstraint(i) { constraints2.splice(i, 1); renderConstraints(); }
+
+        function getFeasibleVertices() {
+            let nn1 = document.getElementById('lpNNx1').checked;
+            let nn2 = document.getElementById('lpNNx2').checked;
+            let lines = [...constraints2.map((c, i) => ({ a: c.a, b: c.b, c: c.c, i }))];
+            if (nn1) { lines.push({ a: -1, b: 0, c: 0, i: 'x1' }); }
+            if (nn2) { lines.push({ a: 0, b: -1, c: 0, i: 'x2' }); }
+            // Candidate vertices from intersection of each pair of lines
+            let vertices = [];
+            for (let i = 0; i < lines.length; i++) for (let j = i + 1; j < lines.length; j++) {
+                let l1 = lines[i], l2 = lines[j];
+                let det = l1.a * l2.b - l2.a * l1.b;
+                if (Math.abs(det) < 1e-10) continue;
+                let x = (l1.c * l2.b - l2.c * l1.b) / det, y = (l1.a * l2.c - l2.a * l1.c) / det;
+                if (!isFinite(x) || !isFinite(y)) continue;
+                // Check all constraints
+                let feasible = constraints2.every(c => c.a * x + c.b * y <= c.c + 1e-8) && (!nn1 || x >= -1e-8) && (!nn2 || y >= -1e-8);
+                if (feasible) vertices.push({ x: Math.max(0, x), y: Math.max(0, y) });
+            }
+            // Also add axis intersections
+            if (nn1 && nn2) vertices.push({ x: 0, y: 0 });
+            // Deduplicate
+            let uniq = [];
+            vertices.forEach(v => { if (!uniq.some(u => Math.hypot(u.x - v.x, u.y - v.y) < 1e-6)) uniq.push(v); });
+            return uniq;
+        }
+
+        function solveGraphical() {
+            let c1 = parseFloat(document.getElementById('lpC1').value) || 0;
+            let c2 = parseFloat(document.getElementById('lpC2').value) || 0;
+            let dir = document.getElementById('lpObjDir').value;
+            let verts = getFeasibleVertices();
+            if (!verts.length) { document.getElementById('lpResult').innerText = 'No feasible region found.'; return; }
+            let vals = verts.map(v => ({ ...v, z: c1 * v.x + c2 * v.y }));
+            let opt = dir === 'max' ? vals.reduce((a, v) => v.z > a.z ? v : a) : vals.reduce((a, v) => v.z < a.z ? v : a);
+            document.getElementById('lpResult').innerHTML = `<b class="text-emerald-400">Optimal Solution:</b><br>` +
+                `x₁ = ${f6(opt.x)}, x₂ = ${f6(opt.y)}<br>Z* = ${f6(opt.z)}<br><br>` +
+                `<b class="text-gray-400">Vertices:</b><br>${vals.map(v => `(${f6(v.x)}, ${f6(v.y)}) → Z=${f6(v.z)}`).join('<br>')}`;
+            drawLPCanvas(verts, opt, c1, c2);
+        }
+
+        function drawLPCanvas(verts, opt, c1, c2) {
+            const c = document.getElementById('lpCanvas'); c.width = c.offsetWidth; c.height = 380;
+            const cx = c.getContext('2d'), W = c.width, H = c.height, pad = 40;
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let allX = verts.map(v => v.x), allY = verts.map(v => v.y);
+            let xMax = Math.max(10, ...allX) * 1.3, yMax = Math.max(10, ...allY) * 1.3;
+            const tx = v => pad + v / xMax * (W - pad - 10), ty = v => H - pad - v / yMax * (H - pad - 20);
+            // Grid
+            cx.strokeStyle = '#1e293b'; cx.lineWidth = 1;
+            for (let i = 0; i <= 10; i++) { let x = xMax * i / 10; cx.beginPath(); cx.moveTo(tx(x), pad); cx.lineTo(tx(x), H - pad); cx.stroke(); }
+            for (let i = 0; i <= 10; i++) { let y = yMax * i / 10; cx.beginPath(); cx.moveTo(pad, ty(y)); cx.lineTo(W - pad, ty(y)); cx.stroke(); }
+            // Axes
+            cx.strokeStyle = '#64748b'; cx.lineWidth = 1.5; cx.beginPath(); cx.moveTo(tx(0), pad); cx.lineTo(tx(0), H - pad); cx.stroke(); cx.beginPath(); cx.moveTo(pad, ty(0)); cx.lineTo(W - pad, ty(0)); cx.stroke();
+            cx.fillStyle = '#94a3b8'; cx.font = '10px monospace'; cx.fillText('x₁', W - pad + 4, ty(0) + 4); cx.fillText('x₂', tx(0) + 4, pad - 4);
+            // Feasible region (convex hull of vertices)
+            if (verts.length > 2) {
+                let hull = convexHull(verts);
+                cx.beginPath(); cx.moveTo(tx(hull[0].x), ty(hull[0].y)); hull.slice(1).forEach(v => cx.lineTo(tx(v.x), ty(v.y))); cx.closePath();
+                cx.fillStyle = 'rgba(16,185,129,0.12)'; cx.fill();
+                cx.strokeStyle = '#10b981'; cx.lineWidth = 2; cx.stroke();
+            }
+            // Constraint lines
+            const colors2 = ['#60a5fa', '#f87171', '#fbbf24', '#c084fc', '#f472b6'];
+            constraints2.forEach((con, i) => {
+                cx.strokeStyle = colors2[i % colors2.length]; cx.lineWidth = 1.5; cx.setLineDash([5, 3]); cx.beginPath();
+                if (Math.abs(con.b) > 1e-8) { cx.moveTo(tx(0), ty(con.c / con.b)); cx.lineTo(tx(xMax), ty((con.c - con.a * xMax) / con.b)); }
+                else if (Math.abs(con.a) > 1e-8) { let x = con.c / con.a; cx.moveTo(tx(x), pad); cx.lineTo(tx(x), H - pad); }
+                cx.stroke(); cx.setLineDash([]);
+                cx.fillStyle = colors2[i % colors2.length]; cx.font = '9px monospace';
+                let lx = Math.min(xMax * 0.8, con.b > 0 ? con.c / con.b * 0.3 : 0); cx.fillText(`C${i + 1}`, tx(lx) + 4, ty(con.b > 0 ? (con.c - con.a * lx) / con.b : 0) - 5);
+            });
+            // Vertices
+            verts.forEach(v => { cx.beginPath(); cx.arc(tx(v.x), ty(v.y), 4, 0, Math.PI * 2); cx.fillStyle = '#94a3b8'; cx.fill(); });
+            // Optimal
+            cx.beginPath(); cx.arc(tx(opt.x), ty(opt.y), 8, 0, Math.PI * 2); cx.fillStyle = '#34d399'; cx.fill();
+            cx.fillStyle = 'white'; cx.font = 'bold 10px monospace'; cx.fillText(`(${f6(opt.x)},${f6(opt.y)})`, tx(opt.x) + 10, ty(opt.y) - 5);
+            // Objective line through optimal
+            if (Math.abs(c2) > 1e-8) { cx.strokeStyle = 'rgba(52,211,153,0.4)'; cx.lineWidth = 2; cx.setLineDash([6, 3]); cx.beginPath(); let z = c1 * opt.x + c2 * opt.y; cx.moveTo(tx(0), ty(z / c2)); cx.lineTo(tx(Math.min(xMax, z / c1 || xMax)), ty(0)); cx.stroke(); cx.setLineDash([]); }
+        }
+
+        function convexHull(pts) {
+            let sorted = [...pts].sort((a, b) => a.x !== b.x ? a.x - b.x : a.y - b.y);
+            let lower = [], upper = [];
+            for (let p of sorted) { while (lower.length >= 2 && cross2(lower[lower.length - 2], lower[lower.length - 1], p) <= 0) lower.pop(); lower.push(p); }
+            for (let i = sorted.length - 1; i >= 0; i--) { let p = sorted[i]; while (upper.length >= 2 && cross2(upper[upper.length - 2], upper[upper.length - 1], p) <= 0) upper.pop(); upper.push(p); }
+            upper.pop(); lower.pop(); return lower.concat(upper);
+        }
+        function cross2(O, A, B) { return (A.x - O.x) * (B.y - O.y) - (A.y - O.y) * (B.x - O.x); }
+
+        /* ---- SIMPLEX ---- */
+        function runSimplex() {
+            let c_in = document.getElementById('sxC').value.split(',').map(Number);
+            let b_in = document.getElementById('sxB').value.trim().split('\n').map(Number);
+            let A_in = document.getElementById('sxA').value.trim().split('\n').map(r => r.split(',').map(Number));
+            let m = b_in.length, n = c_in.length;
+            // Build tableau [A|I|b] with objective as last row
+            let T = Array.from({ length: m + 1 }, (_, i) => {
+                if (i < m) return [...A_in[i], ...Array.from({ length: m }, (_, j) => i === j ? 1 : 0), b_in[i]];
+                return [...c_in.map(v => -v), ...new Array(m).fill(0), 0];
+            });
+            let basis = Array.from({ length: m }, (_, i) => n + i);
+            let tableaus = [], iter = 0;
+            while (iter < 50) {
+                let row = T[m];
+                let pivot = -1, minVal = 0;
+                for (let j = 0; j < n + m; j++) if (row[j] < minVal) { minVal = row[j]; pivot = j; }
+                if (pivot < 0) break;
+                let ratios = T.slice(0, m).map((r, i) => r[pivot] > 1e-10 ? r[n + m] / r[pivot] : Infinity);
+                let pivotRow = ratios.indexOf(Math.min(...ratios));
+                if (!isFinite(ratios[pivotRow])) { document.getElementById('simplexResult').innerHTML = '<span class="text-red-400">Unbounded!</span>'; return; }
+                basis[pivotRow] = pivot;
+                let pv = T[pivotRow][pivot]; T[pivotRow] = T[pivotRow].map(v => v / pv);
+                for (let i = 0; i <= m; i++) if (i !== pivotRow) { let f = T[i][pivot]; T[i] = T[i].map((v, j) => v - f * T[pivotRow][j]); }
+                iter++;
+                tableaus.push({ T: T.map(r => [...r]), basis: [...basis], pivot: { row: pivotRow, col: pivot } });
+            }
+            let z = T[m][n + m]; let sol = new Array(n).fill(0);
+            basis.forEach((b, i) => { if (b < n) sol[b] = T[i][n + m]; });
+            document.getElementById('simplexResult').innerHTML = `<b class="text-emerald-400">Optimal Z = ${f6(z)}</b><br>${sol.map((v, i) => `x${i + 1} = ${f6(v)}`).join(', ')} | Iterations: ${iter}`;
+            let names = [...Array.from({ length: n }, (_, i) => `x${i + 1}`), ...Array.from({ length: m }, (_, i) => `s${i + 1}`), 'RHS'];
+            let th = `<tr class="bg-gray-900">${names.map(n2 => `<th class="px-2 py-1 text-emerald-400 border border-gray-700 text-xs">${n2}</th>`).join('')}</tr>`;
+            document.getElementById('simplexTableaus').innerHTML = tableaus.slice(-1).map(({ T: t, basis: bas }) => {
+                let rows = t.slice(0, m).map((row, i) => `<tr class="border-t border-gray-800">` + row.map((v, j) => `<td class="px-2 py-1 border border-gray-700 text-xs font-mono text-center ${j === row.length - 1 ? 'text-emerald-300' : ''}">${f6(v)}</td>`).join('') + `</tr>`).join('');
+                let last = t[m]; let objRow = `<tr class="border-t border-emerald-600">` + last.map((v, j) => `<td class="px-2 py-1 border border-gray-700 text-xs font-mono text-center text-amber-300">${f6(v)}</td>`).join('') + `</tr>`;
+                return `<div class="text-xs text-gray-500 mb-1 uppercase tracking-widest">Final Tableau</div><table class="border-collapse text-xs w-full">${th}${rows}${objRow}</table>`;
+            }).join('');
+        }
+
+        function runSensitivity() {
+            document.getElementById('sensitivityResult').innerHTML = `<div class="text-gray-400 text-sm p-4">Sensitivity: Solve main LP first via Simplex tab, then the shadow prices (dual values) appear on the RHS column of the basis rows. Each unit increase in a RHS value bᵢ increases Z by the shadow price (dual variable = T[m][sᵢ] in the optimal tableau).<br><br><span class="text-emerald-300">Tip:</span> Run Simplex, then read the objective row values under slack columns — those are shadow prices for each constraint.</div>`;
+        }
+
+        function loadExample(name) {
+            const exs = {
+                production: { title: 'Production Mix', desc: 'Max P = 5x₁ + 4x₂\ns.t. 6x₁+4x₂≤24 (machine hrs), 1x₁+2x₂≤6 (labor hrs), non-negative\nOptimal: x₁=3, x₂=1.5, P=22.5' },
+                diet: { title: 'Diet Problem', desc: 'Min C = 0.60x₁ + 0.35x₂\ns.t. 3x₁+1x₂≥6 (protein), 1x₁+1x₂≥4 (calories), x₁,x₂≥0\nMinimize cost of food 1 & 2. Optimal at corner of feasible set.' },
+                transport: { title: 'Blending', desc: 'Max Z = 3x₁ + 5x₂\ns.t. x₁≤4, 2x₂≤12, 3x₁+5x₂≤25, x₁,x₂≥0\nOptimal: x₁=0, x₂=5, Z=25 (or x₁=5/3, x₂=12/5 depending on binding constraint)' },
+                knapsack: { title: 'Investment Allocation', desc: 'Max R = 0.1x₁ + 0.15x₂ (returns)\ns.t. x₁+x₂≤10000 (budget), x₁≤6000, x₂≤8000, x₁,x₂≥0\nOptimal: x₁=2000, x₂=8000, R=1400' }
+            };
+            let ex = exs[name];
+            document.getElementById('exampleResult').innerHTML = `<b class="text-emerald-400">${ex.title}</b><br><pre class="mt-2 text-gray-300 text-sm whitespace-pre-wrap">${ex.desc}</pre>`;
+        }
+
+        renderConstraints();
+        setTimeout(() => { const c2 = document.getElementById('lpCanvas'); if (c2) { c2.width = c2.offsetWidth; c2.height = 380; solveGraphical(); } }, 200);
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

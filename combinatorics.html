@@ -1,0 +1,460 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Combinatorics Explorer - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-btn {
+            padding: .6rem 1.25rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .85rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(16, 185, 129, 0.25);
+            color: white;
+            border-color: #10b981;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+        }
+
+        .c-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            width: 100%;
+            font-family: monospace;
+            transition: .2s;
+        }
+
+        .c-input:focus {
+            border-color: #34d399;
+            outline: none;
+        }
+
+        .big-result {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(16, 185, 129, 0.5);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-5xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-500 pb-2">
+            <i class="fas fa-sitemap text-teal-400"></i> Combinatorics Explorer
+        </h2>
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-teal-500/30">
+            <button class="tab-btn active" onclick="switchTab('perms',this)">Permutations & Combinations</button>
+            <button class="tab-btn" onclick="switchTab('pascal',this)">Pascal's Triangle</button>
+            <button class="tab-btn" onclick="switchTab('stirling',this)">Stirling & Bell</button>
+            <button class="tab-btn" onclick="switchTab('partition',this)">Integer Partitions</button>
+            <button class="tab-btn" onclick="switchTab('catalan',this)">Catalan & Derangements</button>
+        </div>
+        <div
+            class="bg-gray-900/50 p-4 rounded-2xl border border-teal-500/30 flex items-center justify-between gap-4 max-w-2xl mx-auto w-full">
+            <div>
+                <h3 class="text-teal-300 font-bold text-base">Combinatorics AI Guide</h3>
+                <p class="text-xs text-gray-400 mt-0.5">Ask about counting principles, Pascal's patterns, or partition
+                    theory.</p>
+            </div>
+            <button class="mv-ai-btn flex-shrink-0" onclick="openCombinatoricsAI()">🤖 Ask AI</button>
+        </div>
+
+        <div id="tab-perms" class="tab-content flex flex-col gap-5">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-teal-500/30 flex flex-col gap-4">
+                <h3 class="text-teal-300 font-bold text-xl">Permutations P(n,r) and Combinations C(n,r)</h3>
+                <div class="flex gap-4 flex-wrap">
+                    <div class="flex-1 min-w-28"><label class="text-xs text-gray-400">n (total items)</label><input
+                            type="number" id="pn" class="c-input" value="10" oninput="runPerms()"></div>
+                    <div class="flex-1 min-w-28"><label class="text-xs text-gray-400">r (chosen items)</label><input
+                            type="number" id="pr" class="c-input" value="3" oninput="runPerms()"></div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="big-result"><span
+                            class="text-xs text-gray-500 uppercase font-bold tracking-widest block mb-1">P(n,r)
+                            ordered</span><span id="permResult"
+                            class="text-3xl font-mono text-teal-300 font-bold">—</span></div>
+                    <div class="big-result"><span
+                            class="text-xs text-gray-500 uppercase font-bold tracking-widest block mb-1">C(n,r)
+                            unordered</span><span id="combResult"
+                            class="text-3xl font-mono text-teal-300 font-bold">—</span></div>
+                    <div class="big-result"><span
+                            class="text-xs text-gray-500 uppercase font-bold tracking-widest block mb-1">Multiset
+                            C(n+r-1,r)</span><span id="multiResult"
+                            class="text-3xl font-mono text-teal-300 font-bold">—</span></div>
+                </div>
+                <div class="grid grid-cols-3 gap-3 mt-2">
+                    <div class="bg-black/40 p-3 rounded-lg border border-gray-700"><span
+                            class="text-xs text-gray-500 block">n!</span><span id="nfact"
+                            class="font-mono text-teal-200 font-bold text-sm break-all">—</span></div>
+                    <div class="bg-black/40 p-3 rounded-lg border border-gray-700"><span
+                            class="text-xs text-gray-500 block">r!</span><span id="rfact"
+                            class="font-mono text-teal-200 font-bold text-sm break-all">—</span></div>
+                    <div class="bg-black/40 p-3 rounded-lg border border-gray-700"><span
+                            class="text-xs text-gray-500 block">(n-r)!</span><span id="nrfact"
+                            class="font-mono text-teal-200 font-bold text-sm break-all">—</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-pascal" class="tab-content hidden flex flex-col gap-5">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-teal-500/30 flex flex-col gap-4">
+                <h3 class="text-teal-300 font-bold text-xl">Pascal's Triangle</h3>
+                <div class="flex gap-4 flex-wrap items-center">
+                    <div><label class="text-xs text-gray-400">Rows (max 15)</label><input type="number" id="pascRows"
+                            class="c-input w-24" value="8" min="1" max="15" oninput="runPascal()"></div>
+                    <label class="flex items-center gap-2 text-sm text-gray-400 cursor-pointer"><input type="checkbox"
+                            id="pascOdd" onchange="runPascal()"><span>Highlight Odd Numbers (Sierpiński
+                            pattern)</span></label>
+                </div>
+                <div id="pascDisplay" class="text-center font-mono text-sm leading-loose overflow-x-auto"></div>
+            </div>
+        </div>
+
+        <div id="tab-stirling" class="tab-content hidden flex flex-col gap-5">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-teal-500/30 flex flex-col gap-4">
+                <h3 class="text-teal-300 font-bold text-xl">Stirling & Bell Numbers</h3>
+                <div class="flex gap-4 flex-wrap">
+                    <div class="flex-1"><label class="text-xs text-gray-400">n</label><input type="number" id="stN"
+                            class="c-input" value="5" oninput="runStirling()"></div>
+                    <div class="flex-1"><label class="text-xs text-gray-400">k (for Stirling)</label><input
+                            type="number" id="stK" class="c-input" value="3" oninput="runStirling()"></div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="big-result"><span
+                            class="text-xs text-gray-500 uppercase tracking-widest font-bold block mb-1">S(n,k) Stirling
+                            2nd</span><span id="stirResult"
+                            class="text-3xl font-mono text-teal-300 font-bold">—</span><span
+                            class="text-xs text-gray-600 block mt-1">ways to partition n into k non-empty subsets</span>
+                    </div>
+                    <div class="big-result"><span
+                            class="text-xs text-gray-500 uppercase tracking-widest font-bold block mb-1">Bell
+                            B(n)</span><span id="bellResult"
+                            class="text-3xl font-mono text-teal-300 font-bold">—</span><span
+                            class="text-xs text-gray-600 block mt-1">total partitions of n-element set</span></div>
+                    <div class="big-result"><span
+                            class="text-xs text-gray-500 uppercase tracking-widest font-bold block mb-1">[n,k] Stirling
+                            1st</span><span id="stir1Result"
+                            class="text-3xl font-mono text-teal-300 font-bold">—</span><span
+                            class="text-xs text-gray-600 block mt-1">unsigned: perms of n with k cycles</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-partition" class="tab-content hidden flex flex-col gap-5">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-teal-500/30 flex flex-col gap-4">
+                <h3 class="text-teal-300 font-bold text-xl">Integer Partitions p(n)</h3>
+                <input type="number" id="partN" class="c-input" value="8" min="1" max="40" oninput="runPartitions()">
+                <div class="big-result">
+                    <span class="text-xs text-gray-500 uppercase tracking-widest font-bold block mb-1">p(n) = number of
+                        partitions</span>
+                    <span id="partCount" class="text-4xl font-mono text-teal-300 font-bold">—</span>
+                </div>
+                <div id="partList"
+                    class="text-sm font-mono text-gray-300 leading-relaxed max-h-64 overflow-y-auto bg-black/30 rounded-xl p-4">
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-catalan" class="tab-content hidden flex flex-col gap-5">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-teal-500/30 flex flex-col gap-4">
+                <h3 class="text-teal-300 font-bold text-xl">Catalan Numbers & Derangements</h3>
+                <div><label class="text-xs text-gray-400">n</label><input type="number" id="catN" class="c-input"
+                        value="7" oninput="runCatalan()"></div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="big-result"><span
+                            class="text-xs text-gray-500 uppercase tracking-widest font-bold block mb-1">Catalan
+                            Cₙ</span><span id="catResult"
+                            class="text-3xl font-mono text-teal-300 font-bold">—</span><span
+                            class="text-xs text-gray-600 block mt-1">C(2n,n)/(n+1)</span></div>
+                    <div class="big-result"><span
+                            class="text-xs text-gray-500 uppercase tracking-widest font-bold block mb-1">Derangement
+                            D(n)</span><span id="deranResult"
+                            class="text-3xl font-mono text-teal-300 font-bold">—</span><span
+                            class="text-xs text-gray-600 block mt-1">no fixed points permutations</span></div>
+                    <div class="big-result"><span
+                            class="text-xs text-gray-500 uppercase tracking-widest font-bold block mb-1">Probability
+                            D/n!</span><span id="deranProb"
+                            class="text-3xl font-mono text-teal-300 font-bold">—</span><span
+                            class="text-xs text-gray-600 block mt-1">→ 1/e ≈ 0.368</span></div>
+                </div>
+                <div id="catTable" class="bg-black/30 p-4 rounded-xl overflow-x-auto mt-2"></div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Generating Functions -->
+    <div id="tab-genfunc" class="tab-content hidden flex flex-col gap-4">
+        <div class="bg-gray-900/50 p-6 rounded-2xl border border-blue-500/30 flex flex-col gap-4">
+            <h3 class="text-blue-300 font-bold text-xl">Generating Functions</h3>
+            <p class="text-xs text-gray-400">A generating function encodes a sequence aₙ as coefficients of a power
+                series: G(x) = Σ aₙxⁿ. Select a sequence to see its OGF.</p>
+            <div><label class="text-xs text-gray-400">Sequence</label>
+                <select id="gfSeq"
+                    class="bg-black/60 border border-blue-500/40 text-white rounded p-2 w-full mt-1 font-mono"
+                    onchange="showGF()">
+                    <option value="geo">Geometric: aₙ = rⁿ → G(x) = 1/(1-rx)</option>
+                    <option value="fib">Fibonacci → G(x) = x/(1-x-x²)</option>
+                    <option value="catalan">Catalan → G(x) = (1-√(1-4x))/2x</option>
+                    <option value="partition">Partitions (via Euler product)</option>
+                    <option value="derange">Derangements: Dₙ = n!Σ(-1)ᵏ/k! → G(x) = e⁻ˣ/(1-x)</option>
+                </select>
+            </div>
+            <div id="gfDisplay"
+                class="bg-black/50 border border-blue-500/30 rounded-xl p-5 font-mono text-blue-200 text-sm"></div>
+            <div><label class="text-xs text-gray-400">Show first N terms (N ≤ 20)</label>
+                <div class="flex gap-2 mt-1"><input type="number" id="gfN"
+                        class="bg-black/60 border border-blue-500/40 text-white rounded p-2 w-24" value="10" min="1"
+                        max="20"><button class="btn bg-blue-700 hover:bg-blue-600 font-bold"
+                        onclick="showGFTerms()">Compute</button></div>
+            </div>
+            <div id="gfTerms" class="flex flex-wrap gap-2"></div>
+        </div>
+    </div>
+
+    <!-- Ramsey Theory -->
+    <div id="tab-ramsey" class="tab-content hidden flex flex-col gap-4">
+        <div class="bg-gray-900/50 p-6 rounded-2xl border border-rose-500/30 flex flex-col gap-4">
+            <h3 class="text-rose-300 font-bold text-xl">Ramsey Theory</h3>
+            <p class="text-xs text-gray-400">R(s,t): minimum n such that any 2-coloring of edges of Kₙ contains a red Kₛ
+                or blue Kₜ. Known exact values are rare.</p>
+            <div class="overflow-x-auto">
+                <table class="text-sm border-collapse w-full" id="ramseyTable"></table>
+            </div>
+            <div class="bg-black/50 border border-rose-500/30 rounded-xl p-4">
+                <h4 class="text-rose-300 font-bold mb-2">Key Results</h4>
+                <ul class="text-xs text-gray-400 space-y-1">
+                    <li>• R(3,3) = 6: Any 6-person party has 3 mutual friends or 3 mutual strangers</li>
+                    <li>• R(4,4) = 18 (Exact, proven 1979)</li>
+                    <li>• R(5,5): Known to be between 43 and 48 — open problem!</li>
+                    <li>• Upper bound: R(s,t) ≤ R(s-1,t) + R(s,t-1)</li>
+                    <li>• Probabilistic lower bound: R(k,k) ≥ √2 · 2^(k/2)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pólya Enumeration -->
+    <div id="tab-polya" class="tab-content hidden flex flex-col gap-4">
+        <div class="bg-gray-900/50 p-6 rounded-2xl border border-amber-500/30 flex flex-col gap-4">
+            <h3 class="text-amber-300 font-bold text-xl">Pólya Enumeration Theorem</h3>
+            <p class="text-xs text-gray-400">Counts distinct colorings of a set of objects up to symmetry using the
+                cycle index of a group.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-black/40 p-4 rounded-xl border border-amber-500/20">
+                    <h4 class="text-amber-300 font-bold mb-2">Necklace Problem</h4>
+                    <p class="text-xs text-gray-400 mb-3">Count distinct n-bead necklaces using k colors (up to
+                        rotation).</p>
+                    <div class="flex gap-3 flex-wrap">
+                        <div><label class="text-xs text-gray-400">Beads n</label><input type="number" id="polyaBeads"
+                                class="bg-black/60 border border-amber-500/40 text-white rounded p-1.5 w-20 mt-1"
+                                value="6" min="1" max="20"></div>
+                        <div><label class="text-xs text-gray-400">Colors k</label><input type="number" id="polyaColors"
+                                class="bg-black/60 border border-amber-500/40 text-white rounded p-1.5 w-20 mt-1"
+                                value="3" min="2" max="10"></div>
+                    </div>
+                    <button class="btn bg-amber-700 hover:bg-amber-600 font-bold mt-3"
+                        onclick="computePolya()">Count</button>
+                    <div id="polyaResult" class="mt-3 text-3xl font-black text-amber-300 text-center">—</div>
+                    <div id="polyaFormula" class="mt-1 text-xs text-gray-400 text-center"></div>
+                </div>
+                <div class="bg-black/40 p-4 rounded-xl border border-amber-500/20">
+                    <h4 class="text-amber-300 font-bold mb-2">Burnside's Lemma</h4>
+                    <p class="text-xs text-gray-400 mb-2">|X/G| = (1/|G|) Σ|Fix(g)|. Number of distinct objects =
+                        average number of fixed points.</p>
+                    <div class="text-xs space-y-1 text-gray-300">
+                        <div>For n-bead necklaces with k colors under Cₙ rotations:</div>
+                        <div class="font-mono bg-black/50 p-2 rounded mt-1 text-amber-200">(1/n) Σᵈ|ₙ φ(d)·k^(n/d)</div>
+                        <div class="mt-2">where φ is Euler's totient function.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Binomial Theorem (from pascal.html) -->
+    <div id="tab-binomial" class="tab-content hidden flex flex-col gap-4">
+        <div class="bg-gray-900/50 p-6 rounded-2xl border border-purple-500/30 flex flex-col gap-4">
+            <h3 class="text-purple-300 font-bold text-xl">Binomial Theorem</h3>
+            <p class="text-xs text-gray-400">(a+b)ⁿ = Σₖ C(n,k) aⁿ⁻ᵏ bᵏ. Enter a, b, and n to expand.</p>
+            <div class="flex gap-3 flex-wrap items-end">
+                <div><label class="text-xs text-gray-400">a</label><input type="text" id="binA"
+                        class="bg-black/60 border border-purple-500/40 text-white rounded p-2 w-20 mt-1 font-mono"
+                        value="x"></div>
+                <div>+</div>
+                <div><label class="text-xs text-gray-400">b</label><input type="text" id="binB"
+                        class="bg-black/60 border border-purple-500/40 text-white rounded p-2 w-20 mt-1 font-mono"
+                        value="y"></div>
+                <div><label class="text-xs text-gray-400">n (power)</label><input type="number" id="binN"
+                        class="bg-black/60 border border-purple-500/40 text-white rounded p-2 w-20 mt-1" value="5"
+                        min="0" max="20"></div>
+                <button class="btn bg-purple-700 hover:bg-purple-600 font-bold"
+                    onclick="expandBinomial()">Expand</button>
+            </div>
+            <div id="binResult"
+                class="bg-black/50 border border-purple-500/30 rounded-xl p-4 font-mono text-purple-200 text-sm break-words leading-relaxed">
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById('tab-' + id).classList.remove('hidden');
+            window._activeComboTab = id;
+            setTimeout(() => { if (window.injectAIButtons) window.injectAIButtons(); }, 100);
+        }
+        window._activeComboTab = 'perms';
+        function openCombinatoricsAI() {
+            const tabs = { 'perms': 'Permutations & Combinations', 'pascal': "Pascal's Triangle", 'stirling': 'Stirling & Bell Numbers', 'partition': 'Integer Partitions', 'catalan': 'Catalan & Derangements' };
+            const label = tabs[window._activeComboTab] || 'Combinatorics Explorer';
+            if (window.openMathAI) openMathAI(label, 'Combinatorics assistant specialized in counting, discrete patterns, and combinatorial identities.');
+        }
+        function bigFact(n) { if (n <= 1) return 1n; let r = 1n; for (let i = 2n; i <= BigInt(n); i++) r *= i; return r; }
+        function bigC(n, r) { if (r < 0 || r > n) return 0n; return bigFact(n) / (bigFact(r) * bigFact(n - r)); }
+
+        function runPerms() {
+            let n = parseInt(document.getElementById('pn').value) || 10;
+            let r = parseInt(document.getElementById('pr').value) || 3;
+            if (r > n || n < 0 || r < 0) return;
+            let P = bigFact(n) / bigFact(n - r);
+            document.getElementById('permResult').innerText = P.toString();
+            document.getElementById('combResult').innerText = bigC(n, r).toString();
+            document.getElementById('multiResult').innerText = bigC(n + r - 1, r).toString();
+            document.getElementById('nfact').innerText = bigFact(Math.min(n, 18)).toString() + (n > 18 ? '...' : '');
+            document.getElementById('rfact').innerText = bigFact(Math.min(r, 18)).toString() + (r > 18 ? '...' : '');
+            document.getElementById('nrfact').innerText = bigFact(Math.min(n - r, 18)).toString() + (n - r > 18 ? '...' : '');
+        }
+
+        function runPascal() {
+            let rows = Math.min(parseInt(document.getElementById('pascRows').value) || 8, 15);
+            let odd = document.getElementById('pascOdd').checked;
+            let tri = [[1n]];
+            for (let i = 1; i < rows; i++) { let row = [1n]; for (let j = 1; j < i; j++) row.push(tri[i - 1][j - 1] + tri[i - 1][j]); row.push(1n); tri.push(row); }
+            let html = '';
+            tri.forEach((row, i) => { let sp = '&nbsp;'.repeat((rows - i - 1) * 2); html += `<div>${sp}`; row.forEach((v, j) => { let cls = odd && v % 2n === 1n ? 'text-fuchsia-400 font-bold' : 'text-teal-300'; html += `<span class="${cls}" title="C(${i},${j})">${v} </span>`; }); html += '</div>'; });
+            document.getElementById('pascDisplay').innerHTML = html;
+        }
+
+        function s2(n, k) { let dp = Array.from({ length: n + 1 }, () => Array(k + 1).fill(0)); dp[0][0] = 1; for (let i = 1; i <= n; i++) for (let j = 1; j <= k; j++) dp[i][j] = j * dp[i - 1][j] + dp[i - 1][j - 1]; return dp[n][k]; }
+        function s1(n, k) { let dp = Array.from({ length: n + 1 }, () => Array(k + 1).fill(0)); dp[0][0] = 1; for (let i = 1; i <= n; i++) for (let j = 1; j <= k; j++) dp[i][j] = (i - 1) * dp[i - 1][j] + dp[i - 1][j - 1]; return dp[n][k]; }
+        function bell(n) { let dp = Array.from({ length: n + 2 }, () => Array(n + 2).fill(0)); dp[0][0] = 1; for (let i = 1; i <= n; i++) { dp[i][0] = dp[i - 1][i - 1]; for (let j = 1; j <= i; j++) dp[i][j] = dp[i][j - 1] + dp[i - 1][j - 1]; } return dp[n][0]; }
+
+        function runStirling() {
+            let n = Math.min(parseInt(document.getElementById('stN').value) || 5, 20);
+            let k = Math.min(parseInt(document.getElementById('stK').value) || 3, n);
+            document.getElementById('stirResult').innerText = s2(n, k).toLocaleString();
+            document.getElementById('bellResult').innerText = bell(n).toLocaleString();
+            document.getElementById('stir1Result').innerText = s1(n, k).toLocaleString();
+        }
+
+        function runPartitions() {
+            let n = Math.min(parseInt(document.getElementById('partN').value) || 8, 40);
+            let p = new Array(n + 1).fill(0); p[0] = 1;
+            for (let k = 1; k <= n; k++) for (let j = k; j <= n; j++) p[j] += p[j - k];
+            document.getElementById('partCount').innerText = p[n];
+            if (n <= 20) {
+                let result = []; function h(rem, mx, cur) { if (!rem) { result.push([...cur]); return; } for (let i = Math.min(mx, rem); i >= 1; i--) { cur.push(i); h(rem - i, i, cur); cur.pop(); if (result.length > 200) return; } } h(n, n, []);
+                document.getElementById('partList').innerHTML = result.map(p => p.join(' + ')).join('<br>');
+            } else { document.getElementById('partList').innerHTML = '<span class="text-gray-500 italic">n > 20: too many to list</span>'; }
+        }
+
+        function catalan(n) { return Number(bigC(2 * n, n)) / (n + 1); }
+        function derangement(n) { if (n === 0) return 1; let d = 0; for (let k = 0; k <= n; k++) { let fk = Number(bigFact(k)); d += (k % 2 === 0 ? 1 : -1) * Number(bigFact(n)) / fk; } return Math.round(d); }
+        function runCatalan() {
+            let n = Math.min(parseInt(document.getElementById('catN').value) || 7, 15);
+            let C = catalan(n), D = derangement(n), nf = Number(bigFact(n));
+            document.getElementById('catResult').innerText = C.toLocaleString();
+            document.getElementById('deranResult').innerText = D.toLocaleString();
+            document.getElementById('deranProb').innerText = (D / nf).toFixed(5);
+            let hd = '<tr>' + [...Array(n + 1).keys()].map(i => `<th class="text-teal-400 px-2 py-1 text-xs border border-gray-700">n=${i}</th>`).join('') + '</tr>';
+            let r1 = '<tr>' + [...Array(n + 1).keys()].map(i => `<td class="text-teal-200 font-mono px-2 py-1 text-xs border border-gray-700 text-center">${catalan(i).toLocaleString()}</td>`).join('') + '</tr>';
+            let r2 = '<tr>' + [...Array(n + 1).keys()].map(i => `<td class="text-purple-200 font-mono px-2 py-1 text-xs border border-gray-700 text-center">${derangement(i)}</td>`).join('') + '</tr>';
+            document.getElementById('catTable').innerHTML = `<table class="w-full border-collapse"><thead>${hd}</thead><tbody>${r1}${r2}</tbody></table><p class="text-xs text-gray-600 mt-1">Row 1: Catalan  |  Row 2: Derangements</p>`;
+        }
+
+        runPerms(); runPascal(); runStirling(); runPartitions(); runCatalan();
+
+        /* ===== GENERATING FUNCTIONS ===== */
+        const gfInfo = {
+            geo: { name: 'Geometric', gf: 'G(x) = 1/(1-rx)  [r=1 gives G(x)=1/(1-x) = Σxⁿ]', fn: (n) => 1, note: 'aₙ = 1, r=1' },
+            fib: { name: 'Fibonacci', gf: 'G(x) = x/(1-x-x²)', fn: (n) => fibN(n), note: 'a₀=0,a₁=1,aₙ=aₙ₋₁+aₙ₋₂' },
+            catalan: { name: 'Catalan', gf: 'G(x) = (1-√(1-4x))/(2x)', fn: (n) => catN(n), note: 'aₙ = C(2n,n)/(n+1)' },
+            partition: { name: 'Partition', gf: 'G(x) = Π 1/(1-xᵏ)', fn: (n) => partN(n), note: 'Number of integer partitions of n' },
+            derange: { name: 'Derangements', gf: 'G(x) = e⁻ˣ/(1-x)', fn: (n) => Math.round(factN(n) * Array.from({ length: n + 1 }, (_, k) => (-1) ** k / factN(k)).reduce((s, v) => s + v, 0)), note: 'Dₙ=n!Σ(-1)ᵏ/k!' }
+        };
+        function fibN(n) { if (n <= 0) return 0; if (n === 1) return 1; let a = 0, b = 1; for (let i = 2; i <= n; i++) { let c = a + b; a = b; b = c; } return b; }
+        function catN(n) { return Math.round(factN(2 * n) / (factN(n + 1) * factN(n))); }
+        function factN(n) { if (n <= 1) return 1; let f = 1; for (let i = 2; i <= n; i++)f *= i; return f; }
+        function partN(n) { let dp = new Array(n + 1).fill(0); dp[0] = 1; for (let k = 1; k <= n; k++)for (let j = k; j <= n; j++)dp[j] += dp[j - k]; return dp[n]; }
+        function showGF() { let k = document.getElementById('gfSeq').value; let info = gfInfo[k]; document.getElementById('gfDisplay').innerHTML = `<div class="text-blue-300 font-bold">${info.name}</div><div class="text-sky-200 mt-1">${info.gf}</div><div class="text-gray-500 text-xs mt-2">${info.note}</div>`; }
+        function showGFTerms() { let k = document.getElementById('gfSeq').value, N = parseInt(document.getElementById('gfN').value) || 10; let terms = Array.from({ length: N }, (_, i) => gfInfo[k].fn(i)); document.getElementById('gfTerms').innerHTML = terms.map((v, i) => `<div class="bg-black/40 px-3 py-2 rounded border border-blue-500/20 text-center"><div class="text-[10px] text-gray-500">a<sub>${i}</sub></div><div class="text-blue-200 font-mono font-bold">${v.toLocaleString()}</div></div>`).join(''); }
+
+        /* ===== RAMSEY TABLE ===== */
+        function buildRamsey() {
+            const R = [[1, 1, 1, 1, 1, 1, 1], [1, 1, 2, 3, 4, 5, 6], [1, 2, 6, 9, 14, 18, 23], [1, 3, 9, 18, 25, 35, 49], [1, 4, 14, 25, 43, 58, 80], [1, 5, 18, 35, 58, 87, 143], [1, 6, 23, 49, 80, 143, 205]];
+            let html = '<tr><td class="bg-black/40 p-2 text-xs text-gray-500 font-bold">s\\t</td>' + [1, 2, 3, 4, 5, 6, 7].map(t => `<td class="bg-black/40 p-2 text-xs text-rose-300 font-bold text-center">${t}</td>`).join('') + '</tr>';
+            R.forEach((row, si) => { html += `<tr><td class="bg-black/40 p-2 text-xs text-rose-300 font-bold">${si + 1}</td>` + row.map((v, ti) => `<td class="bg-black/30 border border-rose-500/10 p-2 text-center font-mono ${si === ti ? 'text-emerald-400 font-bold' : 'text-gray-300'} text-xs">${v}</td>`).join('') + '</tr>'; });
+            document.getElementById('ramseyTable').innerHTML = html;
+        }
+
+        /* ===== PÓLYA ===== */
+        function eulerTotient(n) { let r = n; for (let p = 2; p * p <= n; p++) { if (n % p === 0) { while (n % p === 0) n = Math.floor(n / p); r -= Math.floor(r / p); } } if (n > 1) r -= Math.floor(r / n); return r; }
+        function divisors(n) { let divs = []; for (let i = 1; i <= n; i++)if (n % i === 0) divs.push(i); return divs; }
+        function computePolya() {
+            let n = parseInt(document.getElementById('polyaBeads').value) || 6;
+            let k = parseInt(document.getElementById('polyaColors').value) || 3;
+            let divs = divisors(n);
+            let sum = divs.reduce((s, d) => s + eulerTotient(d) * Math.pow(k, Math.floor(n / d)), 0);
+            let count = Math.round(sum / n);
+            document.getElementById('polyaResult').innerText = count.toLocaleString();
+            document.getElementById('polyaFormula').innerText = `(1/${n})(${divs.map(d => `φ(${d})·${k}^${Math.floor(n / d)}`).join(' + ')}) = ${count}`;
+        }
+
+        /* ===== BINOMIAL THEOREM ===== */
+        function C(n, k) { let r = 1; for (let i = 0; i < k; i++) r = r * (n - i) / (i + 1); return Math.round(r); }
+        function expandBinomial() {
+            let a = document.getElementById('binA').value || 'x';
+            let b = document.getElementById('binB').value || 'y';
+            let n = parseInt(document.getElementById('binN').value) || 5;
+            let terms = [];
+            for (let k = 0; k <= n; k++) {
+                let coef = C(n, k);
+                let aPow = n - k, bPow = k;
+                let t = coef === 1 && (aPow > 0 || bPow > 0) ? '' : String(coef);
+                if (aPow > 0) t += (a.length > 1 ? `(${a})` : a) + (aPow > 1 ? `^${aPow}` : '');
+                if (bPow > 0) t += (b.length > 1 ? `(${b})` : b) + (bPow > 1 ? `^${bPow}` : '');
+                if (t === '') t = '1';
+                terms.push(t);
+            }
+            document.getElementById('binResult').innerHTML = `(${a}+${b})^${n} = ${terms.join(' + ')}`;
+        }
+
+        // Initialize
+        showGF(); showGFTerms(); buildRamsey(); computePolya(); expandBinomial();
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

@@ -1,265 +1,455 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to the Magical World of Mathematics</title>
-    <!-- Tailwind CSS CDN for modern styling -->
+    <title>Math Verse - The Galaxy of Tools</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome for icons (e.g., search icon) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Google Fonts - Inter for a clean, modern look -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        /* Custom styles not easily achievable with Tailwind or for overrides */
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #8A2387, #E94057, #F27121); /* Dynamic gradient background for Math World */
-            background-size: 400% 400%;
-            animation: gradientAnimation 15s ease infinite; /* Smooth gradient animation */
-            overflow-x: hidden; /* Prevent horizontal scrollbar from animations */
-        }
-
-        /* Keyframe animation for the background gradient */
-        @keyframes gradientAnimation {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        /* Hide scrollbar for a cleaner look, but allow scrolling */
-        body::-webkit-scrollbar {
-            display: none; /* For Chrome, Safari, Opera */
-        }
-        body {
-            -ms-overflow-style: none;  /* For IE and Edge */
-            scrollbar-width: none;  /* For Firefox */
-        }
-
-        /* Entry animation for elements */
-        .fade-in-up {
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeInUp 0.8s ease-out forwards;
-        }
-
-        @keyframes fadeInUp {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Specific animation delays for staggered effect */
-        .h1-animated { animation-delay: 0.2s; }
-        .search-animated { animation-delay: 0.5s; }
-        .math-container-animated { animation-delay: 0.8s; }
-
-        .math-button {
-            /* Common button styles - background will be set by JS */
-            color: white;
-            font-weight: 600;
-            padding: 1rem 1.5rem; /* py-4 px-6 */
-            border-radius: 0.75rem; /* rounded-xl */
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
-            transition: transform 0.2s ease, box-shadow 0.3s ease, scale 0.1s ease; /* Transition for non-background properties */
-            font-size: 1.125rem; /* text-lg */
-            letter-spacing: 0.025em; /* tracking-wide */
-            outline: none; /* focus:outline-none */
-            cursor: pointer;
-            border: none; /* Ensure no default button border */
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Subtle text shadow for better readability */
-        }
-        .math-button:hover {
-            transform: translateY(-8px); /* Lift button slightly more on hover */
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* hover:shadow-lg */
-        }
-        .math-button:active {
-            transform: translateY(0) scale(0.98); /* Slight press effect */
-            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.06); /* Reduced shadow when active */
-        }
-        .math-button:focus {
-            box-shadow: 0 0 0 4px rgba(66, 153, 225, 0.6); /* Consistent blue ring on focus */
-        }
-
-        /* Custom glow effect for focus */
-        .search-input-glow:focus {
-            box-shadow: 0 0 0 5px rgba(66, 153, 225, 0.6); /* Blue glow */
-        }
-    </style>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Global Space Theme -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Styles moved globally to style.css -->
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen p-5 box-border text-gray-800">
-    <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-10 text-center leading-tight tracking-wide
-               fade-in-up h1-animated drop-shadow-lg">
-        Welcome to the Magical World of Mathematics!
-    </h1>
 
-    <!-- Search Bar Section -->
-    <div class="relative w-full max-w-xl mb-8 fade-in-up search-animated">
-        <input type="text" id="mathSearch" placeholder="Search for a math tool..."
-               class="w-full pl-12 pr-4 py-3 rounded-full shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-300
-                      transition-all duration-300 ease-in-out text-lg bg-white border border-gray-100
-                      search-input-glow">
-        <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl"></i>
+<body>
+
+    <div class="hero-section fade-in-up">
+        <h1 class="hero-title">Math Verse</h1>
+        <p class="text-xl text-gray-300 font-medium tracking-wide">Explore the Galaxy of Mathematical Tools</p>
     </div>
 
-    <div class="math-container grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6 bg-white
-                rounded-2xl shadow-2xl max-w-5xl w-full fade-in-up math-container-animated">
-        <!-- Each button represents a math tool.
-             The 'onclick' event opens the specified HTML file in a new tab. -->
-
-        <button class="math-button" onclick="window.open('base cal.html', '_blank')">
-            Base Calculator
-        </button>
-
-        <button class="math-button" onclick="window.open('base con.html', '_blank')">
-            Base Converter
-        </button>
-
-        <button class="math-button" onclick="window.open('char num.html', '_blank')">
-            Number Characteristics Analyzer
-        </button>
-
-        <button class="math-button" onclick="window.open('coin.html', '_blank')">
-            Coin and Dice
-        </button>
-
-        <button class="math-button" onclick="window.open('graph.html', '_blank')">
-            Graph Plotter
-        </button>
-
-        <button class="math-button" onclick="window.open('guess.html', '_blank')">
-            Magic Number Guessing
-        </button>
-
-        <button class="math-button" onclick="window.open('num guess.html', '_blank')">
-            Number Guessing Game
-        </button>
-
-        <button class="math-button" onclick="window.open('in graph.html', '_blank')">
-            Inequality Graph
-        </button>
-
-        <button class="math-button" onclick="window.open('I gate.html', '_blank')">
-            Logic Gate Simulator
-        </button>
-
-        <button class="math-button" onclick="window.open('matrix.html', '_blank')">
-            Matrix Calculator
-        </button>
-
-        <button class="math-button" onclick="window.open('p tree.html', '_blank')">
-            Probability Tree Simulator
-        </button>
-
-        <button class="math-button" onclick="window.open('pascal.html', '_blank')">
-            Binomial Expander
-        </button>
-
-        <button class="math-button" onclick="window.open('prime.html', '_blank')">
-            Prime Number Checker
-        </button>
-
-        <button class="math-button" onclick="window.open('prime inv.html', '_blank')">
-            Prime Number Investigator
-        </button>
-
-        <button class="math-button" onclick="window.open('roman.html', '_blank')">
-            Roman Numeral Operation
-        </button>
-
-        <button class="math-button" onclick="window.open('sc cal.html', '_blank')">
-            Scientific Calculator
-        </button>
-
-        <button class="math-button" onclick="window.open('unit.html', '_blank')">
-            Universal Unit Converter
-        </button>
-
-        <button class="math-button" onclick="window.open('venn.html', '_blank')">
-            Venn Diagram Creator
-        </button>
+    <div class="search-container fade-in-up" style="animation-delay: 0.2s;">
+        <i class="fas fa-search"></i>
+        <input type="text" id="toolSearch" placeholder="Search constellations (tools)...">
     </div>
 
+    <div class="max-w-7xl mx-auto px-4 pb-20 fade-in-up" style="animation-delay: 0.4s;">
+
+        <!-- Category: Algebra & Equations -->
+        <div class="hub-category" style="animation-delay: 0.5s;">
+            <h2 class="category-title"><i class="fas fa-square-root-variable text-blue-400"></i> Algebra & Equations
+            </h2>
+            <div class="grid-container">
+                <a href="eq solver.html" class="tool-card">
+                    <i class="fas fa-equals"></i>
+                    <div class="tool-title">Equation Solver</div>
+                    <div class="tool-desc">Find real and complex roots for linear, quadratic, and cubic polynomials with
+                        graphs.</div>
+                </a>
+                <a href="calculus.html" class="tool-card" style="border-color: rgba(168,85,247,0.5)">
+                    <i class="fas fa-wave-square"></i>
+                    <div class="tool-title text-purple-400">Calculus Engine <span
+                            class="text-xs bg-purple-500 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                    <div class="tool-desc">Advanced symbolic computation for derivatives and definite integrals.
+                    </div>
+                </a>
+                <a href="vectors.html" class="tool-card" style="border-color: rgba(139,92,246,0.5)">
+                    <i class="fas fa-location-arrow text-violet-400"></i>
+                    <div class="tool-title text-violet-300">Vector Lab <span
+                            class="text-xs bg-violet-600 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                    <div class="tool-desc">3D vector ops (dot, cross, angle, projection), multi-vector visualizer, 2D
+                        field plotter with div/curl, Gram-Schmidt, and linear maps.</div>
+                </a>
+                <a href="fractions.html" class="tool-card" style="border-color: rgba(255,0,85,0.5)">
+                    <i class="fas fa-divide"></i>
+                    <div class="tool-title text-pink-400">Fraction Math <span
+                            class="text-xs bg-pink-500 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                    <div class="tool-desc">Advanced calculator for mixed/improper fractions with step-by-step
+                        simplifications.</div>
+                </a>
+
+            </div>
+        </div>
+
+        <!-- Category: Graphing & Geometry -->
+        <div class="hub-category" style="animation-delay: 0.6s;">
+            <h2 class="category-title"><i class="fas fa-draw-polygon text-purple-400"></i> Geometry & Graphs</h2>
+            <div class="grid-container">
+                <a href="graph.html" class="tool-card">
+                    <i class="fas fa-chart-line"></i>
+                    <div class="tool-title">Graph Plotter</div>
+                    <div class="tool-desc">High-performance 2D multi-plot and 3D surface graphing engine.</div>
+                </a>
+                <a href="in graph.html" class="tool-card">
+                    <i class="fas fa-layer-group"></i>
+                    <div class="tool-title">Inequality Shader</div>
+                    <div class="tool-desc">Custom pixel-shader plotting arbitrary non-linear mathematical boundaries.
+                    </div>
+                </a>
+
+                <a href="geometry.html" class="tool-card" style="border-color: rgba(255,0,85,0.5)">
+                    <i class="fas fa-cubes"></i>
+                    <div class="tool-title text-pink-400">Geometry Studio <span
+                            class="text-xs bg-pink-500 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                    <div class="tool-desc">Interactive 2D/3D shape dimensions, volume, area, and parameter computation.
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Category: Data & Statistics -->
+        <div class="hub-category" style="animation-delay: 0.7s;">
+            <h2 class="category-title"><i class="fas fa-chart-bar text-green-400"></i> Probability & Statistics</h2>
+            <div class="grid-container">
+                <a href="finance.html" class="tool-card" style="border-color: rgba(255,0,85,0.5)">
+                    <i class="fas fa-coins"></i>
+                    <div class="tool-title text-pink-400">Financial Math <span
+                            class="text-xs bg-pink-500 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                    <div class="tool-desc">Compound interest, loan amortization, and ROI forecasting models.</div>
+                </a>
+                <a href="probability.html" class="tool-card">
+                    <i class="fas fa-dice"></i>
+                    <div class="tool-title">Coin & Dice Sim</div>
+                    <div class="tool-desc">Interactive physics simulations plotting large-number probability
+                        distributions.</div>
+                </a>
+                <a href="venn.html" class="tool-card">
+                    <i class="fas fa-circle-notch"></i>
+                    <div class="tool-title">Set Theory (Venn)</div>
+                    <div class="tool-desc">Drag-and-drop interactive set visualizer matching elements across groups.
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Category: Number Theory -->
+        <div class="hub-category" style="animation-delay: 0.8s;">
+            <h2 class="category-title"><i class="fas fa-hashtag text-yellow-400"></i> Number Theory</h2>
+            <div class="grid-container">
+                <a href="prime.html" class="tool-card">
+                    <i class="fas fa-atom"></i>
+                    <div class="tool-title">Prime Generator</div>
+                    <div class="tool-desc">Sieve of Eratosthenes optimized generator for massive prime listings.</div>
+                </a>
+                <a href="numeral.html" class="tool-card">
+                    <i class="fas fa-hashtag"></i>
+                    <div class="tool-title">Number Systems</div>
+                    <div class="tool-desc">Base calculator, converter (2–64 + negabinary + phinary), Roman numerals,
+                        Egyptian fractions, Abacus simulator.</div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Category: Advanced Math Tools -->
+        <div class="hub-category" style="animation-delay: 0.85s;">
+            <h2 class="category-title"><i class="fas fa-atom text-fuchsia-400"></i> Advanced Math Tools</h2>
+            <div class="grid-container">
+
+                <a href="matrix.html" class="tool-card" style="border-color: rgba(236,72,153,0.5)">
+                    <i class="fas fa-th text-pink-400"></i>
+                    <div class="tool-title text-pink-300">Matrix Engine <span
+                            class="text-xs bg-pink-600 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                    <div class="tool-desc">Determinants, inverses, eigenvalues, matrix ops (A+B, A-B, A×B) up to 4x4.
+                    </div>
+                </a>
+                <a href="complex.html" class="tool-card" style="border-color: rgba(251,191,36,0.5)">
+                    <i class="fas fa-project-diagram text-amber-400"></i>
+                    <div class="tool-title text-amber-300">Complex Numbers <span
+                            class="text-xs bg-amber-600 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                    <div class="tool-desc">Complex arithmetic, polar form, roots of unity, Argand diagram canvas
+                        visualizer.</div>
+                </a>
+                <a href="fourierseries.html" class="tool-card" style="border-color: rgba(99,102,241,0.5)">
+                    <i class="fas fa-wave-square text-indigo-400"></i>
+                    <div class="tool-title text-indigo-300">Fourier Series <span
+                            class="text-xs bg-indigo-600 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                    <div class="tool-desc">Animate Square, Sawtooth, Triangle wave approximations with harmonic spectrum
+                        bar chart.</div>
+                </a>
+                <a href="fractal.html" class="tool-card" style="border-color: rgba(52,211,153,0.5)">
+                    <i class="fas fa-mandalorian text-emerald-400"></i>
+                    <div class="tool-title text-emerald-300">Fractal Explorer <span
+                            class="text-xs bg-emerald-600 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                    <div class="tool-desc">Interactive Mandelbrot, Julia Set, Burning Ship, and Sierpiński Triangle —
+                        zoom & pan support.</div>
+                </a>
+                <a href="chaos.html" class="tool-card" style="border-color: rgba(248,113,113,0.5)">
+                    <i class="fas fa-infinity text-rose-400"></i>
+                    <div class="tool-title text-rose-300">Chaos Theory <span
+                            class="text-xs bg-rose-600 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                    <div class="tool-desc">Lorenz attractor 3D, bifurcation logistic map, and animated double pendulum
+                        simulation.</div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Category: Pure Math & Data Science -->
+        <div class="hub-category" style="animation-delay: 0.88s;">
+            <h2 class="category-title"><i class="fas fa-brain text-sky-400"></i> Pure Math & Data Science</h2>
+            <div class="grid-container">
+                <a href="numtheory.html" class="tool-card" style="border-color: rgba(251,191,36,0.5)">
+                    <i class="fas fa-hashtag text-amber-400"></i>
+                    <div class="tool-title text-amber-300">Number Theory Lab <span
+                            class="text-xs bg-amber-600 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                    <div class="tool-desc">GCD/LCM, prime factorization, modular arithmetic, Euler's totient, Extended
+                        Euclidean, Miller-Rabin primality.</div>
+                </a>
+                <a href="combinatorics.html" class="tool-card" style="border-color: rgba(16,185,129,0.5)">
+                    <i class="fas fa-sitemap text-teal-400"></i>
+                    <div class="tool-title text-teal-300">Combinatorics <span
+                            class="text-xs bg-teal-600 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                    <div class="tool-desc">P(n,r), C(n,r), Pascal's triangle, Stirling & Bell numbers, integer
+                        partitions, Catalan numbers & derangements.</div>
+                </a>
+                <a href="sequences.html" class="tool-card" style="border-color: rgba(168,85,247,0.5)">
+                    <i class="fas fa-ellipsis-h text-purple-400"></i>
+                    <div class="tool-title text-purple-300">Sequences & Series <span
+                            class="text-xs bg-purple-600 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                    <div class="tool-desc">Arithmetic, geometric, Fibonacci, Lucas, special sequences, and famous
+                        infinite series (Basel, Leibniz, ζ(3), etc.).</div>
+                </a>
+                <a href="numerics.html" class="tool-card" style="border-color: rgba(251,146,60,0.5)">
+                    <i class="fas fa-calculator text-orange-400"></i>
+                    <div class="tool-title text-orange-300">Numerical Methods <span
+                            class="text-xs bg-orange-600 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                    <div class="tool-desc">Newton-Raphson, Bisection, Secant, Gaussian elimination + LU decomp, and
+                        Lagrange interpolation with step-by-step tables.</div>
+                </a>
+                <a href="stats.html" class="tool-card" style="border-color: rgba(56,189,248,0.5)">
+                    <i class="fas fa-chart-line text-sky-400"></i>
+                    <div class="tool-title text-sky-300">Regression & Stats <span
+                            class="text-xs bg-sky-600 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                    <div class="tool-desc">Linear & polynomial regression, descriptive statistics (skewness, kurtosis,
+                        IQR), and probability distributions (Normal, Binomial, Poisson).</div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Category: Cryptography & Logic -->
+
+        <div class="hub-category" style="animation-delay: 0.9s;">
+            <h2 class="category-title"><i class="fas fa-lock text-emerald-400"></i> Cryptography & Logic</h2>
+            <div class="grid-container">
+                <a href="cryptography.html" class="tool-card" style="border-color: rgba(16,185,129,0.5)">
+                    <i class="fas fa-key text-emerald-400"></i>
+                    <div class="tool-title text-emerald-300">Crypto Lab <span
+                            class="text-xs bg-emerald-600 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                    <div class="tool-desc">Caesar, Vigenère, Base64, XOR, SHA-256/SHA-1 hash, and RSA key generation.
+                    </div>
+                </a>
+                <a href="booleangates.html" class="tool-card" style="border-color: rgba(245,158,11,0.5)">
+                    <i class="fas fa-microchip text-amber-400"></i>
+                    <div class="tool-title text-amber-300">Logic Gates <span
+                            class="text-xs bg-amber-600 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                    <div class="tool-desc">AND, OR, NAND, NOR, XOR, XNOR — visually simulate gates, evaluate Boolean
+                        expressions, and view truth tables.</div>
+                </a>
+                <a href="set.html" class="tool-card" style="border-color: rgba(139,92,246,0.5)">
+                    <i class="fas fa-circle-half-stroke text-violet-400"></i>
+                    <div class="tool-title text-violet-300">Set Theory <span
+                            class="text-xs bg-violet-600 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                    <div class="tool-desc">Set operations (∪, ∩, −, complement, ×, power set) with dynamic 2-set and
+                        3-set Venn diagrams.</div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Category: Analysis & Simulation -->
+        <div class="hub-category" style="animation-delay: 0.92s;">
+            <h2 class="category-title"><i class="fas fa-wave-square text-yellow-400"></i> Analysis & Simulation</h2>
+            <div class="grid-container">
+                <a href="trig.html" class="tool-card" style="border-color: rgba(52,211,153,0.5)">
+                    <i class="fas fa-circle-notch text-green-400"></i>
+                    <div class="tool-title text-green-300">Trigonometry Explorer <span
+                            class="text-xs bg-green-600 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                    <div class="tool-desc">Interactive Unit Circle, Triangle Solver (SSS/SAS/ASA/AAS), wave plotter
+                        (A·f(Bx+C)+D), identity verifier, and hyperbolic functions.</div>
+                </a>
+                <a href="taylor.html" class="tool-card" style="border-color: rgba(234,179,8,0.5)">
+                    <i class="fas fa-superscript text-yellow-400"></i>
+                    <div class="tool-title text-yellow-300">Taylor Series <span
+                            class="text-xs bg-yellow-600 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                    <div class="tool-desc">Famous Maclaurin series (sin, cos, eˣ, ln), custom Taylor expansion,
+                        truncation error analysis, and radius of convergence.</div>
+                </a>
+                <a href="stochastic.html" class="tool-card" style="border-color: rgba(20,184,166,0.5)">
+                    <i class="fas fa-random text-teal-400"></i>
+                    <div class="tool-title text-teal-300">Markov Chains <span
+                            class="text-xs bg-teal-600 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                    <div class="tool-desc">Transition matrix builder, steady-state distribution (power iteration), chain
+                        path simulator, and Gambler's Ruin absorbing chain.</div>
+                </a>
+                <a href="gametheory.html" class="tool-card" style="border-color: rgba(124,58,237,0.5)">
+                    <i class="fas fa-chess text-violet-400"></i>
+                    <div class="tool-title text-violet-300">Game Theory <span
+                            class="text-xs bg-violet-600 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                    <div class="tool-desc">Nash Equilibrium finder, Minimax/Zero-Sum solver, classic games (Prisoner's
+                        Dilemma, Stag Hunt, Chicken), and Shapley Values.</div>
+                </a>
+                <a href="cellular.html" class="tool-card" style="border-color: rgba(236,72,153,0.5)">
+                    <i class="fas fa-th text-pink-400"></i>
+                    <div class="tool-title text-pink-300">Cellular Automata <span
+                            class="text-xs bg-pink-600 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                    <div class="tool-desc">Conway's Game of Life (interactive, 6 patterns), 1D Wolfram Rules 0–255
+                        visualizer, and Langton's Ant simulation.</div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Category: Advanced Math & Science -->
+        <div class="hub-category" style="animation-delay: 0.94s;">
+            <h2 class="category-title"><i class="fas fa-flask text-cyan-400"></i> Advanced Math & Science</h2>
+            <div class="grid-container">
+                <a href="specialfunc.html" class="tool-card" style="border-color: rgba(6,182,212,0.5)">
+                    <i class="fas fa-infinity text-cyan-400"></i>
+                    <div class="tool-title text-cyan-300">Special Functions <span
+                            class="text-xs bg-cyan-600 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                    <div class="tool-desc">Gamma Γ(z), Beta B(x,y), Riemann Zeta ζ(s), Bessel J_n/I_n, Error function,
+                        Fresnel, Lambert W, and Polygamma functions.</div>
+                </a>
+                <a href="graphtheory.html" class="tool-card" style="border-color: rgba(251,146,60,0.5)">
+                    <i class="fas fa-project-diagram text-orange-400"></i>
+                    <div class="tool-title text-orange-300">Graph Theory <span
+                            class="text-xs bg-orange-600 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                    <div class="tool-desc">Interactive graph builder (directed/weighted), BFS, DFS, Dijkstra SSSP,
+                        Prim's MST, graph coloring, topological sort, and properties analyzer.</div>
+                </a>
+                <a href="ode.html" class="tool-card" style="border-color: rgba(34,197,94,0.5)">
+                    <i class="fas fa-wind text-green-400"></i>
+                    <div class="tool-title text-green-300">ODE Solver <span
+                            class="text-xs bg-green-600 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                    <div class="tool-desc">Direction field visualizer with IVP curves, Euler vs RK4 solver with
+                        comparison table, 2D Phase Plane (Lotka-Volterra, Pendulum), and Separable ODE family plotter.
+                    </div>
+                </a>
+                <a href="information.html" class="tool-card" style="border-color: rgba(139,92,246,0.5)">
+                    <i class="fas fa-network-wired text-violet-400"></i>
+                    <div class="tool-title text-violet-300">Information Theory <span
+                            class="text-xs bg-violet-600 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                    <div class="tool-desc">Shannon Entropy (distributions & text), Huffman lossless coding with
+                        compression ratio, Channel Capacity / BSC, and KL/JS Divergence.</div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Category: Utilities & Calculators -->
+        <div class="hub-category" style="animation-delay: 0.95s;">
+
+            <h2 class="category-title"><i class="fas fa-wrench text-gray-400"></i> Utilities & Calculators</h2>
+            <div class="grid-container">
+                <a href="sc cal.html" class="tool-card">
+                    <i class="fas fa-calculator"></i>
+                    <div class="tool-title">Scientific Engine</div>
+                    <div class="tool-desc">Dual-mode ALG + RPN calculator with persistent memory registers, trig, logs,
+                        and more.</div>
+                </a>
+                <a href="unit.html" class="tool-card">
+                    <i class="fas fa-balance-scale"></i>
+                    <div class="tool-title">Dimensional Engine</div>
+                    <div class="tool-desc">Universal unit converter + dimensional analysis validator + Planck scale
+                        physics.</div>
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Category: Pure Mathematics (Advanced) -->
+    <div class="hub-category" style="animation-delay: 1.0s;">
+        <h2 class="category-title"><i class="fas fa-infinity text-violet-400"></i> Pure Mathematics — Advanced</h2>
+        <div class="grid-container">
+            <a href="algebra2.html" class="tool-card" style="border-color: rgba(168,85,247,0.5)">
+                <i class="fas fa-ring" style="color:#a855f7"></i>
+                <div class="tool-title" style="color:#c084fc">Abstract Algebra II <span
+                        class="text-xs bg-purple-500 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                <div class="tool-desc">Rings, fields, ideals, quotient rings, polynomial rings, GF(pⁿ) finite fields.
+                </div>
+            </a>
+            <a href="measure.html" class="tool-card" style="border-color: rgba(20,184,166,0.5)">
+                <i class="fas fa-ruler-combined" style="color:#14b8a6"></i>
+                <div class="tool-title" style="color:#2dd4bf">Measure Theory <span
+                        class="text-xs bg-teal-600 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                <div class="tool-desc">σ-algebras, Lebesgue measure, Lebesgue vs Riemann integration, MCT/DCT/Fubini
+                    theorems.</div>
+            </a>
+            <a href="functional.html" class="tool-card" style="border-color: rgba(139,92,246,0.5)">
+                <i class="fas fa-wave-square" style="color:#8b5cf6"></i>
+                <div class="tool-title" style="color:#a78bfa">Functional Analysis <span
+                        class="text-xs bg-violet-600 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                <div class="tool-desc">Lᵖ norms, Hilbert spaces, Gram-Schmidt, bounded operators, Hahn-Banach, spectral
+                    theorem.</div>
+            </a>
+            <a href="tensors.html" class="tool-card" style="border-color: rgba(16,185,129,0.5)">
+                <i class="fas fa-cube" style="color:#10b981"></i>
+                <div class="tool-title" style="color:#34d399">Tensor Calculus <span
+                        class="text-xs bg-emerald-600 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                <div class="tool-desc">Einstein summation, metric tensors (spherical, Minkowski, Schwarzschild),
+                    Christoffel symbols, covariant derivatives.</div>
+            </a>
+            <a href="proofs.html" class="tool-card" style="border-color: rgba(234,179,8,0.5)">
+                <i class="fas fa-scroll" style="color:#eab308"></i>
+                <div class="tool-title" style="color:#fde047">Proof Strategies <span
+                        class="text-xs bg-yellow-700 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                <div class="tool-desc">Direct proof, contrapositive, induction (with live verifier), contradiction,
+                    counting, AM-GM inequality.</div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Category: Math Universe -->
+    <div class="hub-category" style="animation-delay: 1.05s;">
+        <h2 class="category-title"><i class="fas fa-telescope text-pink-400"></i> Math Universe</h2>
+        <div class="grid-container">
+            <a href="explorations.html" class="tool-card" style="border-color: rgba(239,68,68,0.5)">
+                <i class="fas fa-telescope" style="color:#ef4444"></i>
+                <div class="tool-title" style="color:#f87171">Mathematical Explorations <span
+                        class="text-xs bg-red-600 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                <div class="tool-desc">Collatz conjecture, Goldbach's conjecture, twin prime counter, Riemann zeta
+                    function.</div>
+            </a>
+            <a href="visualproofs.html" class="tool-card" style="border-color: rgba(244,114,182,0.5)">
+                <i class="fas fa-eye" style="color:#f472b6"></i>
+                <div class="tool-title" style="color:#f9a8d4">Visual Proofs <span
+                        class="text-xs bg-pink-600 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                <div class="tool-desc">Animated canvas proofs: Pythagoras, sum of squares, geometric series, Euler's
+                    formula, AM-GM.</div>
+            </a>
+            <a href="glossary.html" class="tool-card" style="border-color: rgba(99,102,241,0.5)">
+                <i class="fas fa-book" style="color:#6366f1"></i>
+                <div class="tool-title" style="color:#818cf8">Math Glossary <span
+                        class="text-xs bg-indigo-600 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                <div class="tool-desc">50+ searchable math definitions A–Z with symbols, categories, and
+                    cross-references.</div>
+            </a>
+            <a href="mathhistory.html" class="tool-card" style="border-color: rgba(251,146,60,0.5)">
+                <i class="fas fa-landmark" style="color:#fb923c"></i>
+                <div class="tool-title" style="color:#fdba74">History of Mathematics <span
+                        class="text-xs bg-orange-600 text-white px-2 py-1 rounded ml-2">NEW</span></div>
+                <div class="tool-desc">Timeline of 25 milestones from ancient Egypt to Perelman — searchable by era and
+                    mathematician.</div>
+            </a>
+        </div>
+    </div>
+
+    </div>
+
+    <!-- Search Script -->
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const searchInput = document.getElementById('mathSearch');
-            const mathButtons = document.querySelectorAll('.math-button');
+        document.getElementById('search').addEventListener('input', function (e) {
+            const term = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.tool-card');
 
-            // Function to generate a random hex color that is generally dark
-            function getRandomDarkColor() {
-                // Generate RGB values between 0 and 150 to ensure darker colors
-                const r = Math.floor(Math.random() * 151);
-                const g = Math.floor(Math.random() * 151);
-                const b = Math.floor(Math.random() * 151);
-                return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-            }
-
-            // Function to slightly darken a hex color for hover effect
-            function darkenColor(hex, percent) {
-                let f = parseInt(hex.slice(1), 16),
-                    t = percent < 0 ? 0 : 255,
-                    p = percent < 0 ? percent * -1 : percent,
-                    R = f >> 16,
-                    G = (f >> 8) & 0x00ff,
-                    B = f & 0x0000ff;
-                return "#" + (
-                    0x1000000 +
-                    (Math.round((t - R) * p) + R) * 0x10000 +
-                    (Math.round((t - G) * p) + G) * 0x100 +
-                    (Math.round((t - B) * p) + B)
-                ).toString(16).slice(1);
-            }
-
-            // Apply random gradients to each button
-            mathButtons.forEach(button => {
-                const color1 = getRandomDarkColor();
-                const color2 = getRandomDarkColor();
-                button.style.background = `linear-gradient(to bottom right, ${color1}, ${color2})`;
-
-                // Add hover and active background transitions
-                button.addEventListener('mouseenter', () => {
-                    const hoverColor1 = darkenColor(color1, 0.1); // Darken by 10%
-                    const hoverColor2 = darkenColor(color2, 0.1); // Darken by 10%
-                    button.style.background = `linear-gradient(to bottom right, ${hoverColor1}, ${hoverColor2})`;
-                });
-
-                button.addEventListener('mouseleave', () => {
-                    button.style.background = `linear-gradient(to bottom right, ${color1}, ${color2})`; // Revert to original
-                });
-
-                button.addEventListener('mousedown', () => {
-                    const activeColor1 = darkenColor(color1, 0.2); // Darken by 20%
-                    const activeColor2 = darkenColor(color2, 0.2); // Darken by 20%
-                    button.style.background = `linear-gradient(to bottom right, ${activeColor1}, ${activeColor2})`;
-                });
-
-                button.addEventListener('mouseup', () => {
-                    // Revert to hover state if still hovering, else to original
-                    if (button.matches(':hover')) {
-                        const hoverColor1 = darkenColor(color1, 0.1);
-                        const hoverColor2 = darkenColor(color2, 0.1);
-                        button.style.background = `linear-gradient(to bottom right, ${hoverColor1}, ${hoverColor2})`;
-                    } else {
-                        button.style.background = `linear-gradient(to bottom right, ${color1}, ${color2})`;
-                    }
-                });
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                if (text.includes(term)) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
             });
 
-            // Function to filter math tools based on search input
-            searchInput.addEventListener('input', (event) => {
-                const searchTerm = event.target.value.toLowerCase(); // Get search term and convert to lowercase
-
-                mathButtons.forEach(button => {
-                    const toolName = button.textContent.toLowerCase(); // Get tool name and convert to lowercase
-                    if (toolName.includes(searchTerm)) {
-                        button.style.display = 'block'; // Show the button if it matches
-                    } else {
-                        button.style.display = 'none'; // Hide the button if it doesn't match
-                    }
-                });
+            // Hide empty categories
+            document.querySelectorAll('.hub-category').forEach(cat => {
+                const visibleCards = cat.querySelectorAll('.tool-card[style="display: flex;"]');
+                // If there's no inline display style, it means it's visible by default.
+                const allHidden = Array.from(cat.querySelectorAll('.tool-card')).every(c => c.style.display === 'none');
+                cat.style.display = allHidden ? 'none' : 'block';
             });
         });
     </script>
 </body>
+
 </html>

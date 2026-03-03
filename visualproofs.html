@@ -1,0 +1,308 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Proofs - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-btn {
+            padding: .55rem 1rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .8rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(244, 114, 182, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(244, 114, 182, 0.25);
+            color: white;
+            border-color: #f472b6;
+            box-shadow: 0 0 12px rgba(244, 114, 182, 0.4);
+        }
+
+        .vp-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(244, 114, 182, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            font-family: monospace;
+        }
+
+        .vp-input:focus {
+            border-color: #f9a8d4;
+            outline: none;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-rose-500 pb-2">
+            <i class="fas fa-eye text-pink-400"></i> Visual Proofs
+        </h2>
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-pink-500/30">
+            <button class="tab-btn active" onclick="switchTab('pythagoras',this)">Pythagorean Theorem</button>
+            <button class="tab-btn" onclick="switchTab('sumsquares',this)">Sum of Squares</button>
+            <button class="tab-btn" onclick="switchTab('geomsum',this)">Geometric Series</button>
+            <button class="tab-btn" onclick="switchTab('euler',this)">Euler's Identity</button>
+            <button class="tab-btn" onclick="switchTab('amgm',this)">AM-GM Visual</button>
+        </div>
+        <div class="bg-gray-900/50 p-4 rounded-2xl border border-pink-500/30 flex items-center justify-between gap-4">
+            <div>
+                <h3 class="text-pink-300 font-bold text-base">Visual Proofs AI Guide</h3>
+                <p class="text-xs text-gray-400 mt-0.5">Ask the AI to explain the geometry, derivation, or historical
+                    context of these visual proofs.</p>
+            </div>
+            <button class="mv-ai-btn flex-shrink-0" onclick="openActiveVisualAI()">🤖 Ask AI</button>
+        </div>
+
+        <!-- Pythagoras -->
+        <div id="tab-pythagoras" class="tab-content flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-pink-500/30 flex flex-col gap-4">
+                <h3 class="text-pink-300 font-bold text-xl">Pythagorean Theorem — a² + b² = c²</h3>
+                <div class="flex gap-3 items-center flex-wrap">
+                    <div><label class="text-xs text-gray-400">a</label><input type="range" id="pytha" min="1" max="10"
+                            value="3" step="0.5" oninput="drawPythagoras()"></div>
+                    <div><label class="text-xs text-gray-400">b</label><input type="range" id="pythb" min="1" max="10"
+                            value="4" step="0.5" oninput="drawPythagoras()"></div>
+                    <span id="pythaLabel" class="text-pink-300 font-mono font-bold text-sm"></span>
+                </div>
+                <canvas id="pythaCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:320px"></canvas>
+                <div class="bg-black/40 p-3 rounded-xl text-xs font-mono text-gray-400">
+                    <b class="text-pink-300">Proof by rearrangement:</b> Place 4 congruent right triangles inside a
+                    square of side (a+b). The inner square (rotated) has side c. Area equation: (a+b)² = 4·(½ab) + c² ⟹
+                    a²+b²=c². Over 370 proofs exist.
+                </div>
+            </div>
+        </div>
+
+        <!-- Sum of Squares -->
+        <div id="tab-sumsquares" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-pink-500/30 flex flex-col gap-4">
+                <h3 class="text-pink-300 font-bold text-xl">1² + 2² + ... + n² = n(n+1)(2n+1)/6</h3>
+                <div class="flex gap-3 items-center">
+                    <div><label class="text-xs text-gray-400">n</label><input type="range" id="ssN" min="1" max="12"
+                            value="5" oninput="drawSumSquares()"></div>
+                    <span id="ssLabel" class="text-pink-300 font-mono font-bold"></span>
+                </div>
+                <canvas id="ssCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:300px"></canvas>
+                <div class="bg-black/40 p-3 rounded-xl text-xs font-mono text-gray-400">
+                    <b class="text-pink-300">Visual proof:</b> Three copies of the staircase (k² blocks at height k) fit
+                    together to form a rectangle of dimensions n × (n+1) × (2n+1)/6. Equivalently proven by induction or
+                    telescoping.
+                </div>
+            </div>
+        </div>
+
+        <!-- Geometric Series -->
+        <div id="tab-geomsum" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-pink-500/30 flex flex-col gap-4">
+                <h3 class="text-pink-300 font-bold text-xl">Geometric Series: 1 + r + r² + ... = 1/(1−r) for |r| &lt; 1
+                </h3>
+                <div class="flex gap-3 items-center flex-wrap">
+                    <div><label class="text-xs text-gray-400">Ratio r</label><input type="range" id="gsR" min="0.05"
+                            max="0.95" step="0.05" value="0.5" oninput="drawGeoSeries()"></div>
+                    <div><label class="text-xs text-gray-400">Terms shown</label><input type="range" id="gsN" min="2"
+                            max="10" value="6" oninput="drawGeoSeries()"></div>
+                    <span id="gsLabel" class="text-pink-300 font-mono font-bold text-sm"></span>
+                </div>
+                <canvas id="gsCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:300px"></canvas>
+                <div class="bg-black/40 p-3 rounded-xl text-xs font-mono text-gray-400">
+                    <b class="text-pink-300">Visual proof (r=1/2):</b> Divide unit square. First half = 1/2, half of
+                    remainder = 1/4, etc. After infinitely many steps, area = 1. S = 1/(1−r): multiply both sides by
+                    (1−r): S−rS = 1.
+                </div>
+            </div>
+        </div>
+
+        <!-- Euler Identity -->
+        <div id="tab-euler" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-pink-500/30 flex flex-col gap-4">
+                <h3 class="text-pink-300 font-bold text-xl">Euler's Formula: e^{iθ} = cos θ + i sin θ</h3>
+                <div class="flex gap-3 items-center flex-wrap">
+                    <div><label class="text-xs text-gray-400">θ (radians)</label><input type="range" id="eulerTheta"
+                            min="0" max="6.283" step="0.05" value="1.047" oninput="drawEuler()"></div>
+                    <span id="eulerLabel" class="text-pink-300 font-mono font-bold text-sm"></span>
+                </div>
+                <canvas id="eulerCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:320px"></canvas>
+                <div class="bg-black/40 p-3 rounded-xl text-xs font-mono text-gray-400">
+                    <b class="text-pink-300">e^{iπ} + 1 = 0:</b> At θ=π, point reaches (−1, 0i). Hence e^{iπ} = −1 ⟹
+                    e^{iπ}+1=0. Connects e, π, i, 1, 0. Taylor series: e^{iθ} = Σ(iθ)ⁿ/n! = (1−θ²/2!+θ⁴/4!−...) +
+                    i(θ−θ³/3!+...) = cosθ + i sinθ.
+                </div>
+            </div>
+        </div>
+
+        <!-- AM-GM Visual -->
+        <div id="tab-amgm" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-pink-500/30 flex flex-col gap-4">
+                <h3 class="text-pink-300 font-bold text-xl">AM ≥ GM — Geometric Proof for 2 Variables</h3>
+                <div class="flex gap-3 items-center flex-wrap">
+                    <div><label class="text-xs text-gray-400">a</label><input type="range" id="amgmA" min="0.5" max="8"
+                            step="0.5" value="3" oninput="drawAMGM()"></div>
+                    <div><label class="text-xs text-gray-400">b</label><input type="range" id="amgmB" min="0.5" max="8"
+                            step="0.5" value="5" oninput="drawAMGM()"></div>
+                    <span id="amgmLabel" class="text-pink-300 font-mono font-bold text-sm"></span>
+                </div>
+                <canvas id="amgmVCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:300px"></canvas>
+                <div class="bg-black/40 p-3 rounded-xl text-xs font-mono text-gray-400">
+                    <b class="text-pink-300">Proof:</b> The diameter of the circle = a+b. The height at the junction =
+                    √(ab) (geometric mean, by the altitude theorem). The radius = (a+b)/2 (arithmetic mean). Since
+                    radius ≥ height: AM ≥ GM. Equality iff a = b.
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById('tab-' + id).classList.remove('hidden');
+            if (id === 'pythagoras') drawPythagoras();
+            if (id === 'sumsquares') drawSumSquares();
+            if (id === 'geomsum') drawGeoSeries();
+            if (id === 'euler') drawEuler();
+            if (id === 'amgm') drawAMGM();
+            window._activeVisualTab = id;
+            setTimeout(() => { if (window.injectAIButtons) window.injectAIButtons(); }, 100);
+        }
+        window._activeVisualTab = 'pythagoras';
+        const vpTabInfo = {
+            pythagoras: { label: 'Pythagorean Theorem', ctx: 'Visual Proof of a²+b²=c² using rearrangement of 4 triangles.' },
+            sumsquares: { label: 'Sum of Squares', ctx: 'Visual Proof of Σk² = n(n+1)(2n+1)/6 using staircase blocks mapping to a rectangle.' },
+            geomsum: { label: 'Geometric Series', ctx: 'Visual Proof of 1+r+r²+... = 1/(1-r) using nested area division of a unit square.' },
+            euler: { label: 'Euler\'s Identity', ctx: 'Visual representation of e^{iθ} on the complex unit circle and the identity e^{iπ}+1=0.' },
+            amgm: { label: 'AM-GM Visual', ctx: 'Geometric Proof of AM≥GM using a circle diameter and altitude theorem.' },
+        };
+        function openActiveVisualAI() {
+            const tab = window._activeVisualTab || 'pythagoras';
+            const info = vpTabInfo[tab] || vpTabInfo['pythagoras'];
+            if (window.openMathAI) openMathAI(info.label, info.ctx);
+        }
+
+        function drawPythagoras() {
+            let a = +document.getElementById('pytha').value, b = +document.getElementById('pythb').value, c = Math.sqrt(a * a + b * b);
+            document.getElementById('pythaLabel').innerText = `a=${a}, b=${b}, c=${c.toFixed(3)}  →  ${a}²+${b}²=${(a * a + b * b).toFixed(1)}=${c.toFixed(3)}²`;
+            let cv = document.getElementById('pythaCanvas'); cv.width = cv.offsetWidth; cv.height = 320;
+            let cx = cv.getContext('2d'), W = cv.width, H = 320; cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let scale = Math.min(W, H) / (2 * (a + b) + 4) * 0.7, ox = W / 2, oy = H / 2;
+            let s = (a + b) * scale; let cx0 = ox - s / 2, cy0 = oy - s / 2;
+            // Outer square
+            cx.strokeStyle = 'rgba(244,114,182,0.4)'; cx.lineWidth = 1; cx.strokeRect(cx0, cy0, s, s);
+            // 4 right triangles
+            let cols = ['rgba(244,114,182,0.4)', 'rgba(56,189,248,0.4)', 'rgba(52,211,153,0.4)', 'rgba(251,191,36,0.4)'];
+            let pts = [[cx0, cy0 + a * scale], [cx0 + a * scale, cy0], [cx0 + s, cy0 + b * scale], [cx0 + b * scale, cy0 + s]];
+            let corners = [[cx0, cy0], [cx0 + s, cy0], [cx0 + s, cy0 + s], [cx0, cy0 + s]];
+            for (let i = 0; i < 4; i++) { cx.fillStyle = cols[i]; cx.beginPath(); cx.moveTo(corners[i][0], corners[i][1]); cx.lineTo(pts[i][0], pts[i][1]); cx.lineTo(pts[(i + 1) % 4][0], pts[(i + 1) % 4][1]); cx.closePath(); cx.fill(); }
+            // Inner square (c²)
+            cx.fillStyle = 'rgba(244,114,182,0.2)'; cx.beginPath(); pts.forEach(([x, y], i) => i === 0 ? cx.moveTo(x, y) : cx.lineTo(x, y)); cx.closePath(); cx.fill(); cx.strokeStyle = '#f472b6'; cx.lineWidth = 2; cx.stroke();
+            cx.fillStyle = '#f472b6'; cx.font = 'bold 13px monospace'; cx.textAlign = 'center'; cx.fillText('c²', ox, oy + 5);
+            cx.fillStyle = '#38bdf8'; cx.fillText('a²', cx0 + a * scale / 2, cy0 + a * scale / 2 + 5);
+            cx.fillStyle = '#34d399'; cx.fillText('b²', cx0 + a * scale + b * scale * 0.7, cy0 + b * scale + 5);
+        }
+
+        function drawSumSquares() {
+            let n = parseInt(document.getElementById('ssN').value) || 5;
+            let sum = n * (n + 1) * (2 * n + 1) / 6, exact = Array.from({ length: n }, (_, k) => (k + 1) * (k + 1)).reduce((a, b) => a + b, 0);
+            document.getElementById('ssLabel').innerText = `n=${n}: sum=${exact} = ${n}·${n + 1}·${2 * n + 1}/6 = ${sum}`;
+            let cv = document.getElementById('ssCanvas'); cv.width = cv.offsetWidth; cv.height = 300;
+            let cx = cv.getContext('2d'), W = cv.width, H = 300, pad = 20; cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let cell = Math.min((W - 2 * pad) / (2 * n + 1), (H - 2 * pad) / (n + 1));
+            let ox = pad, oy = H - pad;
+            for (let k = 1; k <= n; k++) { let hue = 200 + k * (150 / n); for (let r = 0; r < k; r++)for (let c2 = 0; c2 < k; c2++) { cx.fillStyle = `hsla(${hue},70%,50%,0.7)`; cx.fillRect(ox + (k - 1) * cell + c2 * cell / k * 0.5, oy - (k) * cell + r * cell / k, cell / k - 0.5, cell / k - 0.5); } }
+            // Simple stacked bar representation
+            cx = cv.getContext('2d'); cx.clearRect(0, 0, W, H); cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let bw = Math.min((W - 2 * pad) / (n), 40), maxH2 = n * n;
+            for (let k = 1; k <= n; k++) { let bh = k * k / maxH2 * (H - 2 * pad); let hue = 200 + (k - 1) * (130 / n); cx.fillStyle = `hsl(${hue},70%,55%)`; cx.fillRect(pad + (k - 1) * (bw + 4), H - pad - bh, bw, bh); cx.fillStyle = 'white'; cx.font = '9px monospace'; cx.textAlign = 'center'; cx.fillText(k + '²=' + k * k, pad + (k - 1) * (bw + 4) + bw / 2, H - pad - bh - 4); }
+            cx.fillStyle = '#f472b6'; cx.font = 'bold 11px monospace'; cx.textAlign = 'left'; cx.fillText(`Σk²=${exact} = n(n+1)(2n+1)/6`, pad, 16);
+        }
+
+        function drawGeoSeries() {
+            let r = +document.getElementById('gsR').value, N2 = parseInt(document.getElementById('gsN').value) || 6;
+            let sum = 1 / (1 - r), partial = (1 - Math.pow(r, N2)) / (1 - r);
+            document.getElementById('gsLabel').innerText = `r=${r.toFixed(2)}, S∞=${sum.toFixed(4)}, partial S${N2}=${partial.toFixed(4)}`;
+            let cv = document.getElementById('gsCanvas'); cv.width = cv.offsetWidth; cv.height = 300;
+            let cx = cv.getContext('2d'), W = cv.width, H = 300, pad = 30; cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            // Draw nested rectangles
+            let maxW = W - 2 * pad, maxH = H - 2 * pad, curX = pad, curY = pad, curW = maxW, curH = maxH, term = 1;
+            for (let k = 0; k < Math.min(N2, 8); k++) {
+                let hue = 300 - k * 25; cx.fillStyle = `hsla(${hue},70%,50%,0.4)`; cx.fillRect(curX, curY, curW * r, curH); cx.strokeStyle = `hsl(${hue},70%,60%)`; cx.lineWidth = 1; cx.strokeRect(curX, curY, curW, curH);
+                cx.fillStyle = 'white'; cx.font = '9px monospace'; cx.textAlign = 'center'; if (curW * r > 18) cx.fillText(term === 1 ? '1' : r.toFixed(2) + '^' + k, curX + curW * r / 2, curY + curH / 2);
+                curX += curW * r; curW = curW * (1 - r); term *= r;
+            }
+            cx.strokeStyle = '#f472b6'; cx.lineWidth = 2; cx.strokeRect(pad, pad, maxW, maxH);
+            cx.fillStyle = '#f472b6'; cx.font = '10px monospace'; cx.textAlign = 'left'; cx.fillText(`1/(1-${r.toFixed(2)}) = ${sum.toFixed(4)}`, pad, 20);
+        }
+
+        function drawEuler() {
+            let theta = +document.getElementById('eulerTheta').value;
+            let re = Math.cos(theta), im = Math.sin(theta);
+            document.getElementById('eulerLabel').innerText = `θ=${theta.toFixed(2)} rad = e^{i·${theta.toFixed(2)}} = ${re.toFixed(3)}+${im.toFixed(3)}i`;
+            let cv = document.getElementById('eulerCanvas'); cv.width = cv.offsetWidth; cv.height = 320;
+            let cx = cv.getContext('2d'), W = cv.width, H = 320, R = Math.min(W, H) / 2 - 30, ox = W / 2, oy = H / 2;
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            // Axes
+            cx.strokeStyle = '#1e293b'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(pad, oy); cx.lineTo(W - pad, oy); cx.moveTo(ox, pad); cx.lineTo(ox, H - pad); cx.stroke();
+            let pad = 0;
+            cx.strokeStyle = 'rgba(244,114,182,0.2)'; cx.lineWidth = 1; cx.beginPath(); cx.arc(ox, oy, R, 0, Math.PI * 2); cx.stroke();
+            cx.strokeStyle = '#38bdf8'; cx.lineWidth = 2; cx.beginPath(); cx.moveTo(ox, oy); cx.lineTo(ox + re * R, oy - im * R); cx.stroke();
+            cx.strokeStyle = 'rgba(52,211,153,0.5)'; cx.lineWidth = 1; cx.setLineDash([4, 4]); cx.beginPath(); cx.moveTo(ox + re * R, oy); cx.lineTo(ox + re * R, oy - im * R); cx.moveTo(ox, oy - im * R); cx.lineTo(ox + re * R, oy - im * R); cx.stroke(); cx.setLineDash([]);
+            cx.beginPath(); cx.arc(ox + re * R, oy - im * R, 5, 0, Math.PI * 2); cx.fillStyle = '#f472b6'; cx.fill();
+            cx.strokeStyle = '#fbbf24'; cx.lineWidth = 1.5; cx.beginPath(); cx.arc(ox, oy, R * 0.18, 0, -theta, true); cx.stroke();
+            cx.fillStyle = '#38bdf8'; cx.font = '11px monospace'; cx.textAlign = 'center'; cx.fillText(`cos θ = ${re.toFixed(3)}`, ox + re * R / 2, oy + 14);
+            cx.fillStyle = '#34d399'; cx.fillText(`sin θ = ${im.toFixed(3)}`, ox - 44, oy - im * R / 2);
+            cx.fillStyle = '#f472b6'; cx.font = 'bold 12px monospace'; cx.fillText(`e^{iθ}`, ox + re * R + 8, oy - im * R - 5);
+            cx.fillStyle = '#fbbf24'; cx.font = '10px monospace'; cx.fillText(`θ`, ox + R * 0.22, oy - R * 0.1);
+            // Mark π
+            cx.beginPath(); cx.arc(ox - R, oy, 4, 0, Math.PI * 2); cx.fillStyle = '#ef4444'; cx.fill();
+            cx.fillStyle = '#ef4444'; cx.font = '9px monospace'; cx.textAlign = 'center'; cx.fillText('e^{iπ}=−1', ox - R, oy - 8);
+        }
+
+        function drawAMGM() {
+            let a = +document.getElementById('amgmA').value, b = +document.getElementById('amgmB').value;
+            let AM = (a + b) / 2, GM = Math.sqrt(a * b);
+            document.getElementById('amgmLabel').innerText = `a=${a}, b=${b} → AM=${AM.toFixed(3)} ≥ GM=${GM.toFixed(3)}  (diff=${(AM - GM).toFixed(3)})`;
+            let cv = document.getElementById('amgmVCanvas'); cv.width = cv.offsetWidth; cv.height = 300;
+            let cx = cv.getContext('2d'), W = cv.width, H = 300; cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let total = a + b, scale = (W - 60) / total, cx0 = 30, cy0 = H / 2, R = total * scale / 2;
+            cx.strokeStyle = '#f472b6'; cx.lineWidth = 2; cx.beginPath(); cx.arc(cx0 + R, cy0, R, 0, Math.PI); cx.stroke();
+            cx.strokeStyle = '#334155'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(cx0, cy0); cx.lineTo(cx0 + total * scale, cy0); cx.stroke();
+            cx.strokeStyle = '#38bdf8'; cx.lineWidth = 2; cx.beginPath(); cx.arc(cx0, cy0, 2, 0, Math.PI * 2); cx.fillStyle = '#38bdf8'; cx.fill(); cx.beginPath(); cx.arc(cx0 + total * scale, cy0, 2, 0, Math.PI * 2); cx.fill();
+            // AM = radius
+            cx.strokeStyle = '#fbbf24'; cx.lineWidth = 2; cx.setLineDash([4, 4]); cx.beginPath(); cx.moveTo(cx0 + (a * scale), cy0); cx.lineTo(cx0 + R, cy0); cx.stroke(); cx.setLineDash([]);
+            // Junction point at a
+            let jx = cx0 + a * scale;
+            // GM = geometric mean = altitude from junction
+            let gmH = GM * scale;
+            cx.strokeStyle = '#34d399'; cx.lineWidth = 2; cx.beginPath(); cx.moveTo(jx, cy0); cx.lineTo(jx, cy0 - gmH); cx.stroke();
+            cx.beginPath(); cx.arc(jx, cy0 - gmH, 5, 0, Math.PI * 2); cx.fillStyle = '#34d399'; cx.fill();
+            cx.fillStyle = '#fbbf24'; cx.font = '11px monospace'; cx.textAlign = 'center'; cx.fillText(`AM = (a+b)/2 = ${AM.toFixed(2)}`, cx0 + R, cy0 + 20);
+            cx.fillStyle = '#34d399'; cx.fillText(`GM = √(ab) = ${GM.toFixed(2)}`, jx, cy0 - gmH - 10);
+            cx.fillStyle = '#f472b6'; cx.fillText(`a = ${a}`, cx0 + a * scale / 2, cy0 - 10); cx.fillText(`b = ${b}`, cx0 + a * scale + b * scale / 2, cy0 - 10);
+            cx.fillStyle = 'white'; cx.font = 'bold 12px monospace'; cx.fillText(AM >= GM ? 'AM ≥ GM ✓' : 'AM < GM?', W / 2, H - 15);
+        }
+        drawPythagoras();
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

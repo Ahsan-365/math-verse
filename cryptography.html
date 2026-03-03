@@ -1,0 +1,317 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cryptography Lab - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-btn {
+            padding: 0.6rem 1.25rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: 0.3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: 0.85rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(16, 185, 129, 0.25);
+            color: white;
+            border-color: #10b981;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+        }
+
+        .ct {
+            font-family: 'Courier New', monospace;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: #34d399;
+            border-radius: 0.5rem;
+            padding: 0.6rem;
+            width: 100%;
+            outline: none;
+            resize: vertical;
+        }
+
+        .ct:focus {
+            border-color: #34d399;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+        }
+
+        .crypto-btn {
+            background: #059669;
+            color: white;
+            font-weight: bold;
+            padding: 0.6rem 1.25rem;
+            border-radius: 0.5rem;
+            transition: 0.2s;
+        }
+
+        .crypto-btn:hover {
+            background: #047857;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6 relative">
+        <h2
+            class="text-3xl md:text-5xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-500 pb-2">
+            <i class="fas fa-lock text-emerald-400"></i> Cryptography Lab
+        </h2>
+
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-emerald-500/30">
+            <button class="tab-btn active" onclick="switchTab('caesar', this)">Caesar Cipher</button>
+            <button class="tab-btn" onclick="switchTab('vigenere', this)">VigenÃ¨re</button>
+            <button class="tab-btn" onclick="switchTab('base64', this)">Base64</button>
+            <button class="tab-btn" onclick="switchTab('xor', this)">XOR Cipher</button>
+            <button class="tab-btn" onclick="switchTab('hash', this)">Hash (SHA/MD5)</button>
+            <button class="tab-btn" onclick="switchTab('rsa', this)">
+            <button class="tab-btn" onclick="switchTab('rsamath')">RSA Math</button>
+            <button class="tab-btn" onclick="switchTab('primality')">Primality Tests</button>
+            <button class="tab-btn" onclick="switchTab('modarith')">Modular Arithmetic</button>
+            <button class="tab-btn" onclick="switchTab('ecc')">Elliptic Curves</button></div>
+
+        <!-- Caesar -->
+        <div id="tab-caesar" class="tab-content flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-emerald-500/30 flex flex-col gap-4">
+                <div class="flex items-center gap-4 flex-wrap">
+                    <label class="text-gray-400 font-bold">Shift: <input type="number" id="caesarShift"
+                            class="ct w-16 inline-block text-center" value="13" min="0" max="25"></label>
+                    <div class="flex gap-2"><button class="crypto-btn" onclick="caesarRun(1)">Encrypt â†’</button><button
+                            class="crypto-btn bg-gray-700 hover:bg-gray-600" onclick="caesarRun(-1)">â† Decrypt</button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><label
+                            class="text-xs text-gray-500 uppercase tracking-widest block mb-1">Input</label><textarea
+                            id="caesarIn" class="ct h-32">Hello, World!</textarea></div>
+                    <div><label
+                            class="text-xs text-gray-500 uppercase tracking-widest block mb-1">Output</label><textarea
+                            id="caesarOut" class="ct h-32 !border-green-500/50 !text-green-300" readonly></textarea>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 italic">Classic Caesar cipher â€” shifts each letter by the given amount.
+                    ROT13 = shift 13.</p>
+            </div>
+        </div>
+
+        <!-- VigenÃ¨re -->
+        <div id="tab-vigenere" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-emerald-500/30 flex flex-col gap-4">
+                <div class="flex items-center gap-4 flex-wrap">
+                    <label class="text-gray-400">Key: <input type="text" id="vigKey"
+                            class="ct w-40 inline-block !text-xs" value="SECRET" placeholder="Keyword"></label>
+                    <div class="flex gap-2"><button class="crypto-btn" onclick="vigRun(1)">Encrypt â†’</button><button
+                            class="crypto-btn bg-gray-700 hover:bg-gray-600" onclick="vigRun(-1)">â† Decrypt</button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><label
+                            class="text-xs text-gray-500 uppercase tracking-widest block mb-1">Input</label><textarea
+                            id="vigIn" class="ct h-32">Attack at dawn</textarea></div>
+                    <div><label
+                            class="text-xs text-gray-500 uppercase tracking-widest block mb-1">Output</label><textarea
+                            id="vigOut" class="ct h-32 !border-green-500/50 !text-green-300" readonly></textarea></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Base64 -->
+        <div id="tab-base64" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-emerald-500/30 flex flex-col gap-4">
+                <div class="flex gap-2">
+                    <button class="crypto-btn" onclick="b64Run(1)">Encode â†’</button>
+                    <button class="crypto-btn bg-gray-700 hover:bg-gray-600" onclick="b64Run(-1)">â† Decode</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><label
+                            class="text-xs text-gray-500 uppercase tracking-widest block mb-1">Input</label><textarea
+                            id="b64In" class="ct h-32">Hello, World!</textarea></div>
+                    <div><label
+                            class="text-xs text-gray-500 uppercase tracking-widest block mb-1">Output</label><textarea
+                            id="b64Out" class="ct h-32 !border-green-500/50 !text-green-300" readonly></textarea></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- XOR -->
+        <div id="tab-xor" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-emerald-500/30 flex flex-col gap-4">
+                <div class="flex items-center gap-4 flex-wrap">
+                    <label class="text-gray-400">Key: <input type="text" id="xorKey" class="ct w-32 inline-block"
+                            value="key"></label>
+                    <button class="crypto-btn" onclick="xorRun()">XOR (Symmetric)</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><label
+                            class="text-xs text-gray-500 uppercase tracking-widest block mb-1">Input</label><textarea
+                            id="xorIn" class="ct h-32">Secret message</textarea></div>
+                    <div><label class="text-xs text-gray-500 uppercase tracking-widest block mb-1">Output
+                            (hex)</label><textarea id="xorOut" class="ct h-32 !border-green-500/50 !text-green-300"
+                            readonly></textarea></div>
+                </div>
+                <p class="text-xs text-gray-500 italic">XOR is its own inverse â€” XOR the output again with the same key
+                    to recover the original.</p>
+            </div>
+        </div>
+
+        <!-- Hash -->
+        <div id="tab-hash" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-emerald-500/30 flex flex-col gap-4">
+                <div class="flex gap-3 flex-wrap">
+                    <button class="crypto-btn" onclick="hashRun('sha256')">SHA-256</button>
+                    <button class="crypto-btn" onclick="hashRun('sha1')">SHA-1</button>
+                    <button class="crypto-btn bg-gray-700 hover:bg-gray-600" onclick="hashRun('md5')">MD5 (pure
+                        JS)</button>
+                </div>
+                <div><label class="text-xs text-gray-500 uppercase tracking-widest block mb-1">Input</label><textarea
+                        id="hashIn" class="ct h-24">Hello, World!</textarea></div>
+                <div><label class="text-xs text-gray-500 uppercase tracking-widest block mb-1">Hash
+                        Output</label><textarea id="hashOut"
+                        class="ct h-16 !border-green-500/50 !text-green-300 text-xs" readonly></textarea></div>
+                <p class="text-xs text-gray-500 italic">SHA-256 and SHA-1 use the Web Crypto API (secure). MD5 uses a JS
+                    implementation.</p>
+            </div>
+        </div>
+
+        <!-- RSA -->
+        <div id="tab-rsa" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-emerald-500/30 flex flex-col gap-4">
+                <div class="flex gap-3 flex-wrap items-center">
+                    <label class="text-gray-400 text-sm">Bit Length:</label>
+                    <select id="rsaBits" class="ct w-24 !text-sm">
+                        <option value="512">512</option>
+                        <option value="1024" selected>1024</option>
+                        <option value="2048">2048</option>
+                    </select>
+                    <button class="crypto-btn" onclick="genRSA()"><i class="fas fa-key mr-2"></i>Generate Keys</button>
+                    <div id="rsaSpinner" class="hidden text-emerald-400 text-sm"><i
+                            class="fas fa-circle-notch fa-spin mr-1"></i> Generatingâ€¦</div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><label class="text-xs text-gray-500 uppercase tracking-widest block mb-1">Public Key (n,
+                            e)</label><textarea id="rsaPub"
+                            class="ct h-40 text-xs !border-blue-500/50 !text-blue-300 overflow-auto"
+                            readonly></textarea></div>
+                    <div><label class="text-xs text-gray-500 uppercase tracking-widest block mb-1">Private Key (n,
+                            d)</label><textarea id="rsaPriv"
+                            class="ct h-40 text-xs !border-amber-500/50 !text-amber-300" readonly></textarea></div>
+                </div>
+                <p class="text-xs text-gray-500 italic">Uses the Web Crypto API (RSA-OAEP / SHA-256). Keys rendered in
+                    PEM-like format.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById('tab-' + id).classList.remove('hidden');
+        }
+
+        /* Caesar */
+        function caesarRun(dir) {
+            let shift = (parseInt(document.getElementById('caesarShift').value) || 0) * dir;
+            let txt = document.getElementById('caesarIn').value;
+            let out = txt.replace(/[a-zA-Z]/g, c => {
+                let base = c < 'a' ? 65 : 97;
+                return String.fromCharCode((c.charCodeAt(0) - base + shift % 26 + 26) % 26 + base);
+            });
+            document.getElementById('caesarOut').value = out;
+        }
+
+        /* VigenÃ¨re */
+        function vigRun(dir) {
+            let key = document.getElementById('vigKey').value.toUpperCase().replace(/[^A-Z]/g, '');
+            if (!key) key = 'A';
+            let txt = document.getElementById('vigIn').value;
+            let ki = 0;
+            let out = txt.replace(/[a-zA-Z]/g, c => {
+                let base = c < 'a' ? 65 : 97;
+                let shift = (key.charCodeAt(ki % key.length) - 65) * dir;
+                ki++;
+                return String.fromCharCode((c.charCodeAt(0) - base + shift % 26 + 26) % 26 + base);
+            });
+            document.getElementById('vigOut').value = out;
+        }
+
+        /* Base64 */
+        function b64Run(dir) {
+            let txt = document.getElementById('b64In').value;
+            try {
+                document.getElementById('b64Out').value = dir === 1 ? btoa(unescape(encodeURIComponent(txt))) : decodeURIComponent(escape(atob(txt)));
+            } catch (e) { document.getElementById('b64Out').value = 'Error: ' + e.message; }
+        }
+
+        /* XOR */
+        function xorRun() {
+            let key = document.getElementById('xorKey').value;
+            let txt = document.getElementById('xorIn').value;
+            let out = '';
+            for (let i = 0; i < txt.length; i++) {
+                let xored = txt.charCodeAt(i) ^ key.charCodeAt(i % key.length);
+                out += xored.toString(16).padStart(2, '0') + ' ';
+            }
+            document.getElementById('xorOut').value = out.trim();
+        }
+
+        /* Hash */
+        async function hashRun(algo) {
+            let txt = document.getElementById('hashIn').value;
+            let outEl = document.getElementById('hashOut');
+            if (algo === 'md5') { outEl.value = md5(txt); return; }
+
+            let encoder = new TextEncoder();
+            let data = encoder.encode(txt);
+            let hashBuf = await crypto.subtle.digest(algo === 'sha256' ? 'SHA-256' : 'SHA-1', data);
+            let hashArr = Array.from(new Uint8Array(hashBuf));
+            outEl.value = hashArr.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        /* Tiny MD5 implementation */
+        function md5(input) { function cmn(q, a, b, x, s, t) { a = add32(add32(a, q), add32(x, t)); return add32((a << s) | (a >>> (32 - s)), b) } function ff(a, b, c, d, x, s, t) { return cmn((b & c) | ((~b) & d), a, b, x, s, t) } function gg(a, b, c, d, x, s, t) { return cmn((b & d) | (c & (~d)), a, b, x, s, t) } function hh(a, b, c, d, x, s, t) { return cmn(b ^ c ^ d, a, b, x, s, t) } function ii(a, b, c, d, x, s, t) { return cmn(c ^ (b | (~d)), a, b, x, s, t) } function md5cycle(x, k) { let a = x[0], b = x[1], c = x[2], d = x[3]; a = ff(a, b, c, d, k[0], 7, -680876936); d = ff(d, a, b, c, k[1], 12, -389564586); c = ff(c, d, a, b, k[2], 17, 606105819); b = ff(b, c, d, a, k[3], 22, -1044525330); a = ff(a, b, c, d, k[4], 7, -176418897); d = ff(d, a, b, c, k[5], 12, 1200080426); c = ff(c, d, a, b, k[6], 17, -1473231341); b = ff(b, c, d, a, k[7], 22, -45705983); a = ff(a, b, c, d, k[8], 7, 1770035416); d = ff(d, a, b, c, k[9], 12, -1958414417); c = ff(c, d, a, b, k[10], 17, -42063); b = ff(b, c, d, a, k[11], 22, -1990404162); a = ff(a, b, c, d, k[12], 7, 1804603682); d = ff(d, a, b, c, k[13], 12, -40341101); c = ff(c, d, a, b, k[14], 17, -1502002290); b = ff(b, c, d, a, k[15], 22, 1236535329); a = gg(a, b, c, d, k[1], 5, -165796510); d = gg(d, a, b, c, k[6], 9, -1069501632); c = gg(c, d, a, b, k[11], 14, 643717713); b = gg(b, c, d, a, k[0], 20, -373897302); a = gg(a, b, c, d, k[5], 5, -701558691); d = gg(d, a, b, c, k[10], 9, 38016083); c = gg(c, d, a, b, k[15], 14, -660478335); b = gg(b, c, d, a, k[4], 20, -405537848); a = gg(a, b, c, d, k[9], 5, 568446438); d = gg(d, a, b, c, k[14], 9, -1019803690); c = gg(c, d, a, b, k[3], 14, -187363961); b = gg(b, c, d, a, k[8], 20, 1163531501); a = gg(a, b, c, d, k[13], 5, -1444681467); d = gg(d, a, b, c, k[2], 9, -51403784); c = gg(c, d, a, b, k[7], 14, 1735328473); b = gg(b, c, d, a, k[12], 20, -1926607734); a = hh(a, b, c, d, k[5], 4, -378558); d = hh(d, a, b, c, k[8], 11, -2022574463); c = hh(c, d, a, b, k[11], 16, 1839030562); b = hh(b, c, d, a, k[14], 23, -35309556); a = hh(a, b, c, d, k[1], 4, -1530992060); d = hh(d, a, b, c, k[4], 11, 1272893353); c = hh(c, d, a, b, k[7], 16, -155497632); b = hh(b, c, d, a, k[10], 23, -1094730640); a = hh(a, b, c, d, k[13], 4, 681279174); d = hh(d, a, b, c, k[0], 11, -358537222); c = hh(c, d, a, b, k[3], 16, -722521979); b = hh(b, c, d, a, k[6], 23, 76029189); a = hh(a, b, c, d, k[9], 4, -640364487); d = hh(d, a, b, c, k[12], 11, -421815835); c = hh(c, d, a, b, k[15], 16, 530742520); b = hh(b, c, d, a, k[2], 23, -995338651); a = ii(a, b, c, d, k[0], 6, -198630844); d = ii(d, a, b, c, k[7], 10, 1126891415); c = ii(c, d, a, b, k[14], 15, -1416354905); b = ii(b, c, d, a, k[5], 21, -57434055); a = ii(a, b, c, d, k[12], 6, 1700485571); d = ii(d, a, b, c, k[3], 10, -1894986606); c = ii(c, d, a, b, k[10], 15, -1051523); b = ii(b, c, d, a, k[1], 21, -2054922799); a = ii(a, b, c, d, k[8], 6, 1873313359); d = ii(d, a, b, c, k[15], 10, -30611744); c = ii(c, d, a, b, k[6], 15, -1560198380); b = ii(b, c, d, a, k[13], 21, 1309151649); a = ii(a, b, c, d, k[4], 6, -145523070); d = ii(d, a, b, c, k[11], 10, -1120210379); c = ii(c, d, a, b, k[2], 15, 718787259); b = ii(b, c, d, a, k[9], 21, -343485551); x[0] = add32(a, x[0]); x[1] = add32(b, x[1]); x[2] = add32(c, x[2]); x[3] = add32(d, x[3]) } function md5blk(s) { let md5blks = [], i; for (i = 0; i < 64; i += 4) { md5blks[i >> 2] = s.charCodeAt(i) + (s.charCodeAt(i + 1) << 8) + (s.charCodeAt(i + 2) << 16) + (s.charCodeAt(i + 3) << 24) } return md5blks } function rhex(n) { let s = '', j = 0; for (; j < 4; j++)s += ('0' + ((n >> (j * 8 + 4)) & 0x0F).toString(16)) + ('0' + ((n >> (j * 8)) & 0x0F).toString(16)); return s } function hex(x) { for (let i = 0; i < x.length; i++)x[i] = rhex(x[i]); return x.join('') } function add32(a, b) { return (a + b) & 0xFFFFFFFF } let n = input.length, state = [1732584193, -271733879, -1732584194, 271733878], i; for (i = 64; i <= n; i += 64)md5cycle(state, md5blk(input.substring(i - 64, i))); input = input.substring(i - 64); let tail = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], tlen = input.length; for (i = 0; i < tlen; i++)tail[i >> 2] |= input.charCodeAt(i) << ((i % 4) * 8); tail[i >> 2] |= 0x80 << ((i % 4) * 8); if (i > 55) { md5cycle(state, tail); for (i = 0; i < 16; i++)tail[i] = 0 } tail[14] = n * 8; md5cycle(state, tail); return hex(state) }
+
+        /* RSA */
+        async function genRSA() {
+            let bits = parseInt(document.getElementById('rsaBits').value) || 1024;
+            document.getElementById('rsaSpinner').classList.remove('hidden');
+            document.getElementById('rsaPub').value = '';
+            document.getElementById('rsaPriv').value = '';
+
+            try {
+                let kp = await crypto.subtle.generateKey(
+                    { name: 'RSA-OAEP', modulusLength: bits, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' },
+                    true, ['encrypt', 'decrypt']
+                );
+                let pub = await crypto.subtle.exportKey('spki', kp.publicKey);
+                let priv = await crypto.subtle.exportKey('pkcs8', kp.privateKey);
+                let pubStr = btoa(String.fromCharCode(...new Uint8Array(pub)));
+                let privStr = btoa(String.fromCharCode(...new Uint8Array(priv)));
+                document.getElementById('rsaPub').value = `-----BEGIN PUBLIC KEY-----\n${pubStr.match(/.{1,64}/g).join('\n')}\n-----END PUBLIC KEY-----`;
+                document.getElementById('rsaPriv').value = `-----BEGIN PRIVATE KEY-----\n${privStr.match(/.{1,64}/g).join('\n')}\n-----END PRIVATE KEY-----`;
+            } catch (e) {
+                document.getElementById('rsaPub').value = 'Error: ' + e.message;
+            } finally {
+                document.getElementById('rsaSpinner').classList.add('hidden');
+            }
+        }
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>
+

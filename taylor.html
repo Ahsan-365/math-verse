@@ -1,0 +1,314 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taylor Series - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mathjs@11.11.2/lib/browser/math.min.js"></script>
+    <style>
+        .tab-btn {
+            padding: .6rem 1.25rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .85rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(234, 179, 8, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(234, 179, 8, 0.25);
+            color: white;
+            border-color: #eab308;
+            box-shadow: 0 0 12px rgba(234, 179, 8, 0.4);
+        }
+
+        .y-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(234, 179, 8, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            width: 100%;
+            font-family: monospace;
+            transition: .2s;
+        }
+
+        .y-input:focus {
+            border-color: #fde047;
+            outline: none;
+        }
+
+        .coeff-item {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(234, 179, 8, 0.3);
+            border-radius: .4rem;
+            padding: .3rem .6rem;
+            font-family: monospace;
+            font-size: .8rem;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-5xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-500 pb-2">
+            <i class="fas fa-superscript text-yellow-400"></i> Taylor & Maclaurin Series
+        </h2>
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-yellow-500/30">
+            <button class="tab-btn active" onclick="switchTab('builtin',this)">Famous Series</button>
+            <button class="tab-btn" onclick="switchTab('custom',this)">Custom Function</button>
+            <button class="tab-btn" onclick="switchTab('error',this)">Error Analysis</button>
+            <button class="tab-btn" onclick="switchTab('radius',this)">Radius of Convergence</button>
+        </div>
+
+        <!-- Famous Series -->
+        <div id="tab-builtin" class="tab-content flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-yellow-500/30 flex flex-col gap-4">
+                <h3 class="text-yellow-300 font-bold text-xl">Famous Maclaurin Series (centered at a=0)</h3>
+                <div class="flex gap-3 flex-wrap items-center">
+                    <select id="builtinFn" class="y-input w-40" onchange="drawBuiltin()">
+                        <option value="sin">sin(x)</option>
+                        <option value="cos">cos(x)</option>
+                        <option value="exp">eˣ</option>
+                        <option value="ln1px">ln(1+x)</option>
+                        <option value="geom">1/(1-x)</option>
+                        <option value="atan">arctan(x)</option>
+                        <option value="sinh">sinh(x)</option>
+                        <option value="cosh">cosh(x)</option>
+                    </select>
+                    <div><label class="text-xs text-gray-400">Terms N</label><input type="range" id="biN" min="1"
+                            max="15" value="5" class="w-28"
+                            oninput="document.getElementById('biNval').innerText=this.value;drawBuiltin()"><span
+                            id="biNval" class="text-yellow-300 font-bold ml-1">5</span></div>
+                </div>
+                <div class="bg-black/50 border border-yellow-500/40 rounded-xl p-4">
+                    <p class="text-xs text-gray-500 uppercase font-bold tracking-widest mb-1">Series Formula</p>
+                    <p id="builtinFormula" class="font-mono text-yellow-200 text-sm break-all"></p>
+                </div>
+                <div class="flex flex-wrap gap-2" id="biCoeffs"></div>
+                <canvas id="biCanvas" class="w-full rounded-xl bg-black/60 border border-gray-700"
+                    style="height:280px"></canvas>
+            </div>
+        </div>
+
+        <!-- Custom Function -->
+        <div id="tab-custom" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-yellow-500/30 flex flex-col gap-4">
+                <h3 class="text-yellow-300 font-bold text-xl">Taylor Expansion of Custom f(x)</h3>
+                <p class="text-sm text-gray-400">Numerically computes Taylor coefficients using automatic
+                    differentiation (math.js).</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div><label class="text-xs text-gray-400">f(x)</label><input type="text" id="custFx" class="y-input"
+                            value="sin(x) + x^2" oninput="drawCustom()"></div>
+                    <div><label class="text-xs text-gray-400">Center a</label><input type="number" id="custA"
+                            class="y-input" value="0" step="any" oninput="drawCustom()"></div>
+                    <div><label class="text-xs text-gray-400">Terms N</label><input type="range" id="custN" min="1"
+                            max="12" value="6" class="w-full mt-3"
+                            oninput="document.getElementById('custNval').innerText=this.value;drawCustom()"><span
+                            id="custNval" class="text-yellow-300 font-bold">6</span></div>
+                </div>
+                <div class="bg-black/50 border border-yellow-500/40 rounded-xl p-4 flex flex-col gap-2">
+                    <p class="text-xs text-gray-500 uppercase font-bold tracking-widest">Polynomial Terms</p>
+                    <p id="custPoly" class="font-mono text-yellow-200 text-sm break-all"></p>
+                </div>
+                <canvas id="custCanvas" class="w-full rounded-xl bg-black/60 border border-gray-700"
+                    style="height:280px"></canvas>
+            </div>
+        </div>
+
+        <!-- Error Analysis -->
+        <div id="tab-error" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-yellow-500/30 flex flex-col gap-4">
+                <h3 class="text-yellow-300 font-bold text-xl">Truncation Error Analysis</h3>
+                <p class="text-sm text-gray-400">Compare the N-term Taylor approximation to the true value at x, showing
+                    absolute and relative error.</p>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div><label class="text-xs text-gray-400">Function</label>
+                        <select id="errFn" class="y-input" onchange="runError()">
+                            <option>sin</option>
+                            <option>cos</option>
+                            <option>exp</option>
+                            <option>ln1px</option>
+                        </select>
+                    </div>
+                    <div><label class="text-xs text-gray-400">Evaluate at x</label><input type="number" id="errX"
+                            class="y-input" value="0.5" step="any" oninput="runError()"></div>
+                    <div><label class="text-xs text-gray-400">Max terms</label><input type="number" id="errMaxN"
+                            class="y-input" value="15" min="1" max="30" oninput="runError()"></div>
+                </div>
+                <div id="errTable" class="overflow-x-auto max-h-80 overflow-y-auto">
+                    <table class="w-full text-xs font-mono border-collapse" id="errTableEl"></table>
+                </div>
+                <canvas id="errCanvas" class="w-full rounded-xl bg-black/60 border border-gray-700"
+                    style="height:200px"></canvas>
+            </div>
+        </div>
+
+        <!-- Radius of Convergence -->
+        <div id="tab-radius" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-yellow-500/30 flex flex-col gap-4">
+                <h3 class="text-yellow-300 font-bold text-xl">Radius of Convergence</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="flex flex-col gap-4">
+                        <h4 class="text-yellow-200 font-bold">Power Series Σ aₙxⁿ</h4>
+                        <p class="text-xs text-gray-400">Enter coefficients a₀, a₁, a₂, … (comma-separated)</p>
+                        <textarea id="rcCoeffs" class="y-input h-20"
+                            oninput="runRC()">1, -1, 1, -1, 1, -1, 1, -1</textarea>
+                        <div class="bg-black/50 border border-yellow-500/40 rounded-xl p-4">
+                            <p class="text-xs text-gray-500 uppercase font-bold tracking-widest mb-1">Radius R (Ratio
+                                Test)</p>
+                            <p id="rcR" class="text-3xl font-mono text-yellow-300 font-bold">—</p>
+                        </div>
+                        <p id="rcDesc" class="text-sm text-gray-400"></p>
+                    </div>
+                    <div class="flex flex-col gap-4">
+                        <h4 class="text-yellow-200 font-bold">Famous Convergence Data</h4>
+                        <div class="flex flex-col gap-2 text-sm font-mono text-gray-300">
+                            <div class="bg-black/30 p-2 rounded">sin(x): R = ∞ (converges everywhere)</div>
+                            <div class="bg-black/30 p-2 rounded">cos(x): R = ∞</div>
+                            <div class="bg-black/30 p-2 rounded">eˣ: R = ∞</div>
+                            <div class="bg-black/30 p-2 rounded">ln(1+x): R = 1 (converges |x|≤1, x≠-1)</div>
+                            <div class="bg-black/30 p-2 rounded">1/(1-x): R = 1 (converges |x|&lt;1)</div>
+                            <div class="bg-black/30 p-2 rounded">arctan(x): R = 1 (converges |x|≤1)</div>
+                            <div class="bg-black/30 p-2 rounded">Binomial (1+x)^α: R = 1</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); document.getElementById('tab-' + id).classList.remove('hidden'); if (id === 'error') runError(); if (id === 'radius') runRC(); }
+        function f8(v) { return isFinite(v) ? parseFloat(v.toFixed(8)).toString() : '∄'; }
+
+        /* ---- BUILT-IN SERIES ---- */
+        function fact(n) { let r = 1; for (let i = 2; i <= n; i++)r *= i; return r; }
+        const builtins = {
+            sin: { true: Math.sin, coeffsFn: (n, a) => n % 2 === 0 ? null : (n % 4 === 1 ? 1 : -1) / fact(n), formula: 'x - x³/3! + x⁵/5! - x⁷/7! + …' },
+            cos: { true: Math.cos, coeffsFn: (n, a) => n % 2 !== 0 ? null : (n % 4 === 0 ? 1 : -1) / fact(n), formula: '1 - x²/2! + x⁴/4! - x⁶/6! + …' },
+            exp: { true: Math.exp, coeffsFn: (n, a) => 1 / fact(n), formula: '1 + x + x²/2! + x³/3! + …' },
+            ln1px: { true: x => Math.log(1 + x), coeffsFn: (n, a) => n === 0 ? 0 : (n % 2 === 0 ? -1 : 1) / n, formula: 'x - x²/2 + x³/3 - x⁴/4 + …' },
+            geom: { true: x => 1 / (1 - x), coeffsFn: (n, a) => 1, formula: '1 + x + x² + x³ + … (|x|<1)' },
+            atan: { true: Math.atan, coeffsFn: (n, a) => n % 2 === 0 ? null : (n % 4 === 1 ? 1 : -1) / n, formula: 'x - x³/3 + x⁵/5 - x⁷/7 + …' },
+            sinh: { true: Math.sinh, coeffsFn: (n, a) => n % 2 === 0 ? null : 1 / fact(n), formula: 'x + x³/3! + x⁵/5! + …' },
+            cosh: { true: Math.cosh, coeffsFn: (n, a) => n % 2 !== 0 ? null : 1 / fact(n), formula: '1 + x²/2! + x⁴/4! + …' },
+        };
+
+        function biApprox(fn, x, N) { let s = 0, c; for (let n = 0; n < N * 2 + 2; n++) { c = builtins[fn].coeffsFn(n); if (c !== null && c !== undefined) s += c * Math.pow(x, n); } return s; }
+
+        function drawBuiltin() {
+            let fn = document.getElementById('builtinFn').value;
+            let N = parseInt(document.getElementById('biN').value) || 5;
+            let b = builtins[fn];
+            document.getElementById('builtinFormula').innerText = b.formula;
+            let coeffs = []; for (let n = 0; n < N * 2 + 2; n++) { let c = b.coeffsFn(n); if (c != null && c !== undefined) coeffs.push({ n, c }); }
+            document.getElementById('biCoeffs').innerHTML = coeffs.slice(0, N).map(({ n, c }) => `<div class="coeff-item text-yellow-200">a<sub>${n}</sub> = ${c.toFixed(5)}</div>`).join('');
+            drawSeries(fn, N);
+        }
+
+        function drawSeries(fn, N) {
+            const c = document.getElementById('biCanvas'); c.width = c.offsetWidth; c.height = 280;
+            const cx = c.getContext('2d'), W = c.width, H = 280, pad = 35;
+            cx.fillStyle = '#0f172a'; cx.fillRect(0, 0, W, H);
+            let xMin = -3, xMax = 3, yMin = -2.5, yMax = 2.5;
+            const tx = v => pad + (v - xMin) / (xMax - xMin) * (W - pad - 10), ty = v => H - pad - (v - yMin) / (yMax - yMin) * (H - pad - 20);
+            cx.strokeStyle = '#1e293b'; cx.lineWidth = 1; for (let i = -3; i <= 3; i++) { cx.beginPath(); cx.moveTo(tx(i), pad); cx.lineTo(tx(i), H - pad); cx.stroke(); cx.beginPath(); cx.moveTo(pad, ty(i)); cx.lineTo(W - 10, ty(i)); cx.stroke(); }
+            cx.strokeStyle = '#334155'; cx.lineWidth = 1.5; cx.beginPath(); cx.moveTo(tx(0), pad); cx.lineTo(tx(0), H - pad); cx.stroke(); cx.beginPath(); cx.moveTo(pad, ty(0)); cx.lineTo(W - 10, ty(0)); cx.stroke();
+            const tf = builtins[fn].true;
+            cx.strokeStyle = 'rgba(248,113,113,0.5)'; cx.lineWidth = 2; cx.beginPath(); let first = true;
+            for (let px = 0; px < W - pad; px++) { let x = xMin + px / (W - pad - 10) * (xMax - xMin); let y = tf(x); if (!isFinite(y) || Math.abs(y) > 5) { first = true; continue; } let py = ty(y); if (first) { cx.moveTo(tx(x), py); first = false; } else cx.lineTo(tx(x), py); }
+            cx.stroke();
+            cx.strokeStyle = '#fbbf24'; cx.lineWidth = 2; cx.beginPath(); first = true;
+            for (let px = 0; px < W - pad; px++) { let x = xMin + px / (W - pad - 10) * (xMax - xMin); let y = biApprox(fn, x, N); if (!isFinite(y) || Math.abs(y) > 5) { first = true; continue; } let py = ty(y); if (first) { cx.moveTo(tx(x), py); first = false; } else cx.lineTo(tx(x), py); }
+            cx.stroke();
+            cx.fillStyle = '#f87171'; cx.font = '11px sans-serif'; cx.fillText(`True ${fn}(x)`, W - 100, pad + 12);
+            cx.fillStyle = '#fbbf24'; cx.fillText(`T${N}(x)`, W - 100, pad + 24);
+        }
+
+        /* ---- CUSTOM ---- */
+        function taylorCoeffs(expr, a, N) {
+            let coeffs = [];
+            try {
+                let fn = x => math.evaluate(expr, { x });
+                let h = 1e-5;
+                // Numerically compute nth derivative at a using finite differences
+                function nthDeriv(n, x0) {
+                    if (n === 0) return fn(x0);
+                    return (nthDeriv(n - 1, x0 + h) - nthDeriv(n - 1, x0 - h)) / (2 * h);
+                }
+                for (let n = 0; n < N; n++) coeffs.push(nthDeriv(n, a) / fact(n));
+            } catch (e) { coeffs = new Array(N).fill(0); }
+            return coeffs;
+        }
+
+        function drawCustom() {
+            let expr = document.getElementById('custFx').value;
+            let a = parseFloat(document.getElementById('custA').value) || 0;
+            let N = parseInt(document.getElementById('custN').value) || 6;
+            let coeffs = taylorCoeffs(expr, a, N);
+            let poly = coeffs.map((c, n) => { if (Math.abs(c) < 1e-9) return ''; if (n === 0) return c.toFixed(4); if (n === 1) return `${c.toFixed(4)}(x-${a})`; return `${c.toFixed(4)}(x-${a})^${n}`; }).filter(Boolean).join(' + ').replace(/\+ -/g, '- ') || '0';
+            document.getElementById('custPoly').innerText = `P(x) = ${poly}`;
+            const cv = document.getElementById('custCanvas'); cv.width = cv.offsetWidth; cv.height = 280;
+            const cx = cv.getContext('2d'), W = cv.width, H = 280, pad = 35;
+            cx.fillStyle = '#0f172a'; cx.fillRect(0, 0, W, H);
+            let xMin = a - 3, xMax = a + 3;
+            let fn2 = x => math.evaluate(expr, { x });
+            let pts = [], ptsT = [];
+            for (let px = 0; px <= W - pad; px++) { let x = xMin + px / (W - pad) * (xMax - xMin); let y = fn2(x); let yT = coeffs.reduce((s, c, n) => s + c * Math.pow(x - a, n), 0); pts.push({ x, y }); ptsT.push({ x, y: yT }); }
+            let ys = [...pts.map(p => p.y), ...ptsT.map(p => p.y)].filter(isFinite);
+            let yMin = Math.max(Math.min(...ys) - 1, -20), yMax = Math.min(Math.max(...ys) + 1, 20);
+            const tx = v => pad + (v - xMin) / (xMax - xMin) * (W - pad - 10), ty = v => H - pad - (v - yMin) / (yMax - yMin) * (H - pad - 20);
+            cx.strokeStyle = '#334155'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(tx(0), pad); cx.lineTo(tx(0), H - pad); cx.stroke(); cx.beginPath(); cx.moveTo(pad, ty(0)); cx.lineTo(W - 10, ty(0)); cx.stroke();
+            [[pts, '#f87171'], [ptsT, '#fbbf24']].forEach(([arr, col]) => { cx.strokeStyle = col; cx.lineWidth = 2; cx.beginPath(); let f = true; arr.forEach(p => { if (!isFinite(p.y) || p.y < yMin || p.y > yMax) { f = true; return; } if (f) { cx.moveTo(tx(p.x), ty(p.y)); f = false; } else cx.lineTo(tx(p.x), ty(p.y)); }); cx.stroke(); });
+            cx.fillStyle = '#f87171'; cx.font = '11px sans-serif'; cx.fillText('f(x)', W - 80, pad + 12); cx.fillStyle = '#fbbf24'; cx.fillText(`T${N}(x)`, W - 80, pad + 24);
+        }
+
+        /* ---- ERROR ---- */
+        function fnTrue(fnName, x) { const m = { sin: Math.sin, cos: Math.cos, exp: Math.exp, ln1px: x => Math.log(1 + x) }; return m[fnName](x); }
+        function fnApprox(fnName, x, N) { return biApprox(fnName, x, N); }
+        function runError() {
+            let fn = document.getElementById('errFn').value;
+            let x = parseFloat(document.getElementById('errX').value) || 0.5;
+            let maxN = parseInt(document.getElementById('errMaxN').value) || 15;
+            let tv = fnTrue(fn, x);
+            let rows = '<tr class="bg-gray-900"><th class="px-3 py-1 text-yellow-400 border border-gray-700">N</th><th class="px-3 py-1 text-yellow-400 border border-gray-700">Approx</th><th class="px-3 py-1 text-yellow-400 border border-gray-700">True</th><th class="px-3 py-1 text-yellow-400 border border-gray-700">|Error|</th><th class="px-3 py-1 text-yellow-400 border border-gray-700">Rel Error</th></tr>';
+            let errors = [];
+            for (let n = 1; n <= maxN; n++) { let app = fnApprox(fn, x, n); let err = Math.abs(app - tv); let rel = Math.abs(err / tv); errors.push(err); rows += `<tr class="border-t border-gray-800"><td class="px-3 py-1 border border-gray-700 text-center">${n}</td><td class="px-3 py-1 border border-gray-700">${f8(app)}</td><td class="px-3 py-1 border border-gray-700">${f8(tv)}</td><td class="px-3 py-1 border border-gray-700 ${err < 1e-6 ? 'text-green-400' : 'text-amber-300'}">${err.toExponential(4)}</td><td class="px-3 py-1 border border-gray-700">${(rel * 100).toFixed(6)}%</td></tr>`; }
+            document.getElementById('errTableEl').innerHTML = rows;
+            const c = document.getElementById('errCanvas'); c.width = c.offsetWidth; c.height = 200;
+            const cx = c.getContext('2d'), W = c.width, H = 200, pad = 30;
+            cx.fillStyle = '#0f172a'; cx.fillRect(0, 0, W, H);
+            let logErr = errors.map(e => e > 0 ? Math.log10(e) : -15);
+            let minL = Math.min(...logErr) - 1, maxL = Math.max(...logErr) + 1;
+            cx.strokeStyle = '#334155'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(pad, H - pad); cx.lineTo(W - 10, H - pad); cx.stroke();
+            cx.strokeStyle = '#fbbf24'; cx.lineWidth = 2; cx.beginPath();
+            logErr.forEach((l, i) => { let px = pad + i / (maxN - 1) * (W - pad - 10), py = H - pad - (l - minL) / (maxL - minL) * (H - 2 * pad); i === 0 ? cx.moveTo(px, py) : cx.lineTo(px, py); }); cx.stroke();
+            cx.fillStyle = '#64748b'; cx.font = '10px monospace'; cx.fillText('log|error|', pad + 2, pad + 10); cx.fillText('N →', W - 40, H - pad + 12);
+        }
+
+        /* ---- RADIUS ---- */
+        function runRC() {
+            let coeffs = document.getElementById('rcCoeffs').value.split(',').map(Number).filter((_, i, arr) => i < arr.length);
+            let ratios = []; for (let i = 1; i < coeffs.length; i++) { let r = Math.abs(coeffs[i - 1]) / Math.abs(coeffs[i]); if (isFinite(r) && r > 0) ratios.push(r); }
+            let R = ratios.length ? ratios[ratios.length - 1] : Infinity;
+            document.getElementById('rcR').innerText = isFinite(R) ? R.toFixed(6) : '∞';
+            document.getElementById('rcDesc').innerText = `Series converges for |x| < ${isFinite(R) ? R.toFixed(4) : '∞'} (diverges for |x| > R).`;
+        }
+
+        drawBuiltin(); drawCustom(); runRC();
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

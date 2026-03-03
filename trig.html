@@ -1,0 +1,437 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trigonometry Explorer - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-btn {
+            padding: .6rem 1.25rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .85rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(52, 211, 153, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(52, 211, 153, 0.25);
+            color: white;
+            border-color: #34d399;
+            box-shadow: 0 0 12px rgba(52, 211, 153, 0.4);
+        }
+
+        .t-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(52, 211, 153, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            width: 100%;
+            font-family: monospace;
+            transition: .2s;
+        }
+
+        .t-input:focus {
+            border-color: #6ee7b7;
+            outline: none;
+        }
+
+        .stat-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(52, 211, 153, 0.4);
+            border-radius: .75rem;
+            padding: .75rem;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-5xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500 pb-2">
+            <i class="fas fa-circle-notch text-green-400"></i> Trigonometry Explorer
+        </h2>
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-green-500/30">
+            <button class="tab-btn active" onclick="switchTab('circle',this)">Unit Circle</button>
+            <button class="tab-btn" onclick="switchTab('solver',this)">Triangle Solver</button>
+            <button class="tab-btn" onclick="switchTab('identities',this)">Identities</button>
+            <button class="tab-btn" onclick="switchTab('waves',this)">Wave Plotter</button>
+            <button class="tab-btn" onclick="switchTab('inverse',this)">Inverse Trig</button>
+        </div>
+
+        <!-- Unit Circle -->
+        <div id="tab-circle" class="tab-content flex flex-col gap-4">
+            <div class="flex flex-col lg:flex-row gap-5">
+                <div class="flex-1 bg-gray-900/50 p-5 rounded-2xl border border-green-500/30 flex flex-col gap-4">
+                    <h3 class="text-green-300 font-bold text-xl">Interactive Unit Circle</h3>
+                    <div class="flex gap-4 flex-wrap items-center">
+                        <div class="flex-1"><label class="text-xs text-gray-400">Angle (degrees)</label><input
+                                type="range" id="ucAngle" min="0" max="360" value="45" class="w-full"
+                                oninput="updateUC()">
+                            <div class="text-xs text-green-300 mt-1"><span id="ucDegVal">45</span>°</div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 flex-wrap">
+                        <button class="btn text-xs bg-green-800 hover:bg-green-700" onclick="setAngle(0)">0°</button>
+                        <button class="btn text-xs bg-green-800 hover:bg-green-700" onclick="setAngle(30)">30°</button>
+                        <button class="btn text-xs bg-green-800 hover:bg-green-700" onclick="setAngle(45)">45°</button>
+                        <button class="btn text-xs bg-green-800 hover:bg-green-700" onclick="setAngle(60)">60°</button>
+                        <button class="btn text-xs bg-green-800 hover:bg-green-700" onclick="setAngle(90)">90°</button>
+                        <button class="btn text-xs bg-green-800 hover:bg-green-700"
+                            onclick="setAngle(120)">120°</button>
+                        <button class="btn text-xs bg-green-800 hover:bg-green-700"
+                            onclick="setAngle(135)">135°</button>
+                        <button class="btn text-xs bg-green-800 hover:bg-green-700"
+                            onclick="setAngle(150)">150°</button>
+                        <button class="btn text-xs bg-green-800 hover:bg-green-700"
+                            onclick="setAngle(180)">180°</button>
+                        <button class="btn text-xs bg-green-800 hover:bg-green-700"
+                            onclick="setAngle(270)">270°</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="stat-card"><span class="text-xs text-gray-500 block">sin θ</span><span id="ucSin"
+                                class="text-xl font-mono text-green-300 font-bold">—</span></div>
+                        <div class="stat-card"><span class="text-xs text-gray-500 block">cos θ</span><span id="ucCos"
+                                class="text-xl font-mono text-green-300 font-bold">—</span></div>
+                        <div class="stat-card"><span class="text-xs text-gray-500 block">tan θ</span><span id="ucTan"
+                                class="text-xl font-mono text-green-300 font-bold">—</span></div>
+                        <div class="stat-card"><span class="text-xs text-gray-500 block">cot θ</span><span id="ucCot"
+                                class="text-xl font-mono text-green-300 font-bold">—</span></div>
+                        <div class="stat-card"><span class="text-xs text-gray-500 block">sec θ</span><span id="ucSec"
+                                class="text-xl font-mono text-green-300 font-bold">—</span></div>
+                        <div class="stat-card"><span class="text-xs text-gray-500 block">csc θ</span><span id="ucCsc"
+                                class="text-xl font-mono text-green-300 font-bold">—</span></div>
+                        <div class="stat-card col-span-2"><span class="text-xs text-gray-500 block">Radians
+                                (θ·π/180)</span><span id="ucRad"
+                                class="text-xl font-mono text-green-200 font-bold">—</span></div>
+                    </div>
+                </div>
+                <div class="flex-1 bg-black/60 rounded-2xl border border-gray-700 p-2 flex items-center justify-center">
+                    <canvas id="ucCanvas" width="320" height="320"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Triangle Solver -->
+        <div id="tab-solver" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-green-500/30 flex flex-col gap-4">
+                <h3 class="text-green-300 font-bold text-xl">Triangle Solver (SSS, SAS, ASA, AAS, SSA)</h3>
+                <p class="text-sm text-gray-400">Enter any 3 values (leave unknowns blank). Uses Law of Sines & Cosines.
+                </p>
+                <div class="grid grid-cols-3 gap-3 mb-2">
+                    <div><label class="text-xs text-gray-400">Side a</label><input type="number" id="ta" class="t-input"
+                            placeholder="—" step="any"></div>
+                    <div><label class="text-xs text-gray-400">Side b</label><input type="number" id="tb" class="t-input"
+                            placeholder="—" step="any"></div>
+                    <div><label class="text-xs text-gray-400">Side c</label><input type="number" id="tc" class="t-input"
+                            placeholder="—" step="any"></div>
+                    <div><label class="text-xs text-gray-400">Angle A (°)</label><input type="number" id="tA"
+                            class="t-input" placeholder="—" step="any"></div>
+                    <div><label class="text-xs text-gray-400">Angle B (°)</label><input type="number" id="tB"
+                            class="t-input" placeholder="—" step="any"></div>
+                    <div><label class="text-xs text-gray-400">Angle C (°)</label><input type="number" id="tC"
+                            class="t-input" placeholder="—" step="any"></div>
+                </div>
+                <button class="btn bg-green-700 hover:bg-green-600 font-bold" onclick="solveTri()">Solve
+                    Triangle</button>
+                <div class="bg-black/50 border border-green-500/30 rounded-xl p-5">
+                    <div id="triResult" class="text-gray-300 font-mono text-sm leading-loose"></div>
+                </div>
+                <canvas id="triCanvas" class="w-full rounded-xl border border-gray-700 bg-black/60"
+                    style="height:220px"></canvas>
+            </div>
+        </div>
+
+        <!-- Identities -->
+        <div id="tab-identities" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-green-500/30 flex flex-col gap-4">
+                <h3 class="text-green-300 font-bold text-xl">Trig Identity Verifier & Reference</h3>
+                <div class="flex gap-3 items-center flex-wrap">
+                    <input type="number" id="idTheta" class="t-input w-32" value="45" oninput="runIdent()">
+                    <span class="text-gray-400">degrees</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="identContainer"></div>
+            </div>
+        </div>
+
+        <!-- Wave Plotter -->
+        <div id="tab-waves" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-green-500/30 flex flex-col gap-4">
+                <h3 class="text-green-300 font-bold text-xl">Trigonometric Wave Plotter</h3>
+                <p class="text-sm text-gray-400">y = A · func(Bx + C) + D</p>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    <div><label class="text-xs text-gray-400">Function</label>
+                        <select id="wFunc" class="t-input" onchange="drawWave()">
+                            <option>sin</option>
+                            <option>cos</option>
+                            <option>tan</option>
+                            <option>sec</option>
+                            <option>csc</option>
+                            <option>cot</option>
+                        </select>
+                    </div>
+                    <div><label class="text-xs text-gray-400">A (amp)</label><input type="number" id="wA"
+                            class="t-input" value="1" step="any" oninput="drawWave()"></div>
+                    <div><label class="text-xs text-gray-400">B (period mult)</label><input type="number" id="wB"
+                            class="t-input" value="1" step="any" oninput="drawWave()"></div>
+                    <div><label class="text-xs text-gray-400">C (phase shift)</label><input type="number" id="wC"
+                            class="t-input" value="0" step="any" oninput="drawWave()"></div>
+                    <div><label class="text-xs text-gray-400">D (vertical shift)</label><input type="number" id="wD"
+                            class="t-input" value="0" step="any" oninput="drawWave()"></div>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="stat-card"><span class="text-xs text-gray-500 block">Period</span><span id="wPeriod"
+                            class="text-xl font-mono text-green-300 font-bold">—</span></div>
+                    <div class="stat-card"><span class="text-xs text-gray-500 block">Amplitude</span><span id="wAmp"
+                            class="text-xl font-mono text-green-300 font-bold">—</span></div>
+                    <div class="stat-card"><span class="text-xs text-gray-500 block">Phase Shift</span><span id="wPhase"
+                            class="text-xl font-mono text-green-300 font-bold">—</span></div>
+                </div>
+                <canvas id="waveCanvas" class="w-full rounded-xl bg-black/60 border border-gray-700"
+                    style="height:260px"></canvas>
+            </div>
+        </div>
+
+        <!-- Inverse Trig -->
+        <div id="tab-inverse" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-green-500/30 flex flex-col gap-4">
+                <h3 class="text-green-300 font-bold text-xl">Inverse Trigonometric Functions</h3>
+                <div><label class="text-xs text-gray-400">Input value x</label><input type="number" id="invX"
+                        class="t-input" value="0.5" step="any" oninput="runInverse()"></div>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div class="stat-card"><span class="text-xs text-gray-500 block">arcsin(x)</span><span id="invAsin"
+                            class="text-xl font-mono text-green-300 font-bold">—</span></div>
+                    <div class="stat-card"><span class="text-xs text-gray-500 block">arccos(x)</span><span id="invAcos"
+                            class="text-xl font-mono text-green-300 font-bold">—</span></div>
+                    <div class="stat-card"><span class="text-xs text-gray-500 block">arctan(x)</span><span id="invAtan"
+                            class="text-xl font-mono text-green-300 font-bold">—</span></div>
+                    <div class="stat-card"><span class="text-xs text-gray-500 block">arccot(x) = arctan(1/x)</span><span
+                            id="invAcot" class="text-xl font-mono text-green-300 font-bold">—</span></div>
+                    <div class="stat-card"><span class="text-xs text-gray-500 block">arcsec(x) = arccos(1/x)</span><span
+                            id="invAsec" class="text-xl font-mono text-green-300 font-bold">—</span></div>
+                    <div class="stat-card"><span class="text-xs text-gray-500 block">arccsc(x) = arcsin(1/x)</span><span
+                            id="invAcsc" class="text-xl font-mono text-green-300 font-bold">—</span></div>
+                </div>
+                <p class="text-xs text-gray-500 italic">Results shown in both degrees and radians.</p>
+                <!-- Hyperbolic too -->
+                <h4 class="text-green-400 font-bold mt-2">Hyperbolic Functions</h4>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div class="stat-card"><span class="text-xs text-gray-500 block">sinh(x)</span><span id="hSinh"
+                            class="text-xl font-mono text-green-200 font-bold">—</span></div>
+                    <div class="stat-card"><span class="text-xs text-gray-500 block">cosh(x)</span><span id="hCosh"
+                            class="text-xl font-mono text-green-200 font-bold">—</span></div>
+                    <div class="stat-card"><span class="text-xs text-gray-500 block">tanh(x)</span><span id="hTanh"
+                            class="text-xl font-mono text-green-200 font-bold">—</span></div>
+                    <div class="stat-card"><span class="text-xs text-gray-500 block">arcsinh(x)</span><span id="hAsinh"
+                            class="text-xl font-mono text-green-200 font-bold">—</span></div>
+                    <div class="stat-card"><span class="text-xs text-gray-500 block">arccosh(x)</span><span id="hAcosh"
+                            class="text-xl font-mono text-green-200 font-bold">—</span></div>
+                    <div class="stat-card"><span class="text-xs text-gray-500 block">arctanh(x)</span><span id="hAtanh"
+                            class="text-xl font-mono text-green-200 font-bold">—</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); document.getElementById('tab-' + id).classList.remove('hidden'); if (id === 'circle') setTimeout(updateUC, 50); if (id === 'identities') setTimeout(runIdent, 50); if (id === 'waves') setTimeout(drawWave, 50); }
+        function f6(v) { if (!isFinite(v)) return '∄'; return parseFloat(v.toFixed(6)).toString(); }
+        function setAngle(a) { document.getElementById('ucAngle').value = a; updateUC(); }
+
+        /* ---- UNIT CIRCLE ---- */
+        function updateUC() {
+            let deg = parseFloat(document.getElementById('ucAngle').value) || 0;
+            document.getElementById('ucDegVal').innerText = deg;
+            let rad = deg * Math.PI / 180;
+            let s = Math.sin(rad), c = Math.cos(rad), t = Math.tan(rad);
+            document.getElementById('ucSin').innerText = f6(s);
+            document.getElementById('ucCos').innerText = f6(c);
+            document.getElementById('ucTan').innerText = f6(t);
+            document.getElementById('ucCot').innerText = f6(1 / t);
+            document.getElementById('ucSec').innerText = f6(1 / c);
+            document.getElementById('ucCsc').innerText = f6(1 / s);
+            document.getElementById('ucRad').innerText = `${f6(rad)} rad (${deg}·π/180)`;
+            drawUC(deg, s, c);
+        }
+        function drawUC(deg, s, c) {
+            const canvas = document.getElementById('ucCanvas'), cx = canvas.getContext('2d');
+            const W = canvas.width, H = canvas.height, ox = W / 2, oy = H / 2, R = Math.min(W, H) * 0.38;
+            cx.clearRect(0, 0, W, H); cx.fillStyle = '#0f172a'; cx.fillRect(0, 0, W, H);
+            // Grid
+            for (let i = -3; i <= 3; i++) { cx.strokeStyle = '#1e293b'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(ox + i * R / 2, 0); cx.lineTo(ox + i * R / 2, H); cx.stroke(); cx.beginPath(); cx.moveTo(0, oy + i * R / 2); cx.lineTo(W, oy + i * R / 2); cx.stroke(); }
+            // Axes
+            cx.strokeStyle = '#334155'; cx.lineWidth = 1.5; cx.beginPath(); cx.moveTo(0, oy); cx.lineTo(W, oy); cx.stroke(); cx.beginPath(); cx.moveTo(ox, 0); cx.lineTo(ox, H); cx.stroke();
+            // Circle
+            cx.beginPath(); cx.arc(ox, oy, R, 0, Math.PI * 2); cx.strokeStyle = 'rgba(52,211,153,0.4)'; cx.lineWidth = 1.5; cx.stroke();
+            // Angle arc
+            let rad = deg * Math.PI / 180;
+            cx.beginPath(); cx.moveTo(ox, oy); cx.arc(ox, oy, R * 0.25, 0, -rad, true); cx.strokeStyle = '#fbbf24'; cx.lineWidth = 2; cx.stroke();
+            cx.fillStyle = '#fbbf24'; cx.font = '12px monospace'; cx.fillText(`${deg}°`, ox + R * 0.28, oy - 8);
+            // Radius
+            let px = ox + c * R, py = oy - s * R;
+            cx.beginPath(); cx.moveTo(ox, oy); cx.lineTo(px, py); cx.strokeStyle = '#34d399'; cx.lineWidth = 2.5; cx.stroke();
+            // sin & cos lines
+            cx.beginPath(); cx.moveTo(px, py); cx.lineTo(px, oy); cx.strokeStyle = '#f87171'; cx.lineWidth = 2; cx.setLineDash([4, 3]); cx.stroke(); cx.setLineDash([]);
+            cx.beginPath(); cx.moveTo(ox, oy); cx.lineTo(px, oy); cx.strokeStyle = '#60a5fa'; cx.lineWidth = 2; cx.setLineDash([4, 3]); cx.stroke(); cx.setLineDash([]);
+            // Labels
+            cx.fillStyle = '#f87171'; cx.font = 'bold 11px sans-serif'; cx.fillText(`sin=${f6(s)}`, px + 5, py + (py < oy ? -5 : 15));
+            cx.fillStyle = '#60a5fa'; cx.fillText(`cos=${f6(c)}`, ox + 5, oy + (c >= 0 ? -12 : -12));
+            // Point
+            cx.beginPath(); cx.arc(px, py, 6, 0, Math.PI * 2); cx.fillStyle = '#34d399'; cx.fill();
+            // Standard angles labels
+            [[0, '1,0'], [Math.PI / 6, '√3/2,½'], [Math.PI / 4, '√2/2,√2/2'], [Math.PI / 3, '½,√3/2'], [Math.PI / 2, '0,1'], [Math.PI, '-1,0'], [3 * Math.PI / 2, '0,-1']].forEach(([a, lbl]) => { let ax = ox + Math.cos(a) * R * 1.12, ay = oy - Math.sin(a) * R * 1.12; cx.fillStyle = 'rgba(148,163,184,0.6)'; cx.font = '9px monospace'; cx.fillText(lbl, ax - 14, ay + 3); });
+        }
+
+        /* ---- TRIANGLE SOLVER ---- */
+        function solveTri() {
+            let a = parseFloat(document.getElementById('ta').value), b = parseFloat(document.getElementById('tb').value), c = parseFloat(document.getElementById('tc').value);
+            let A = parseFloat(document.getElementById('tA').value) * Math.PI / 180, B = parseFloat(document.getElementById('tB').value) * Math.PI / 180, C = parseFloat(document.getElementById('tC').value) * Math.PI / 180;
+            let known = { a: !isNaN(a), b: !isNaN(b), c: !isNaN(c), A: !isNaN(A), B: !isNaN(B), C: !isNaN(C) };
+            let kn = Object.values(known).filter(Boolean).length;
+            if (kn < 3) { document.getElementById('triResult').innerHTML = '<span class="text-rose-400">Need at least 3 values (3 sides, or 2 sides+angle, or 2 angles+side)</span>'; return; }
+            // Fill angles if 2 known
+            if (known.A && known.B && !known.C) { C = Math.PI - A - B; known.C = true; }
+            if (known.A && known.C && !known.B) { B = Math.PI - A - C; known.B = true; }
+            if (known.B && known.C && !known.A) { A = Math.PI - B - C; known.A = true; }
+            // Law of Cosines
+            if (known.a && known.b && known.c) { C = Math.acos((a * a + b * b - c * c) / (2 * a * b)); B = Math.acos((a * a + c * c - b * b) / (2 * a * c)); A = Math.PI - B - C; }
+            // Law of Sines
+            let ratio = known.A ? a / Math.sin(A) : known.B ? b / Math.sin(B) : c / Math.sin(C);
+            if (!known.a && known.A) a = ratio * Math.sin(A);
+            if (!known.b && known.B) b = ratio * Math.sin(B);
+            if (!known.c && known.C) c = ratio * Math.sin(C);
+            if (!known.A && known.a) A = Math.asin(a / ratio);
+            if (!known.B && known.b) B = Math.asin(b / ratio);
+            if (!known.C && known.c) C = Math.asin(c / ratio);
+            let area = 0.5 * a * b * Math.sin(C);
+            let s = (a + b + c) / 2, areaH = Math.sqrt(s * (s - a) * (s - b) * (s - c));
+            let R2 = a / (2 * Math.sin(A));
+            let r = areaH / s;
+            let html = `<span class="text-green-400 font-bold">✓ Solved!</span><br>
+            Sides: a=${f6(a)}, b=${f6(b)}, c=${f6(c)}<br>
+            Angles: A=${f6(A * 180 / Math.PI)}°, B=${f6(B * 180 / Math.PI)}°, C=${f6(C * 180 / Math.PI)}°<br>
+            Area = ${f6(areaH)}<br>
+            Perimeter = ${f6(a + b + c)}<br>
+            Circumradius R = ${f6(R2)}<br>
+            Inradius r = ${f6(r)}`;
+            document.getElementById('triResult').innerHTML = html;
+            drawTri(a, b, c, A, B, C);
+        }
+        function drawTri(a, b, c, A, B, C) {
+            const canvas = document.getElementById('triCanvas'); canvas.width = canvas.offsetWidth; canvas.height = 220;
+            const cx = canvas.getContext('2d'), W = canvas.width, H = 220;
+            cx.fillStyle = '#0f172a'; cx.fillRect(0, 0, W, H);
+            // Place vertices
+            let scale = Math.min(W, H) * 0.6 / Math.max(a, b, c);
+            let Bx = W * 0.15, By = H * 0.75;
+            let Cx = Bx + a * scale, Cy = By;
+            let Ax = Bx + b * Math.cos(A) * scale, Ay = By - b * Math.sin(A) * scale;
+            cx.strokeStyle = '#34d399'; cx.lineWidth = 2.5; cx.beginPath(); cx.moveTo(Bx, By); cx.lineTo(Cx, Cy); cx.lineTo(Ax, Ay); cx.closePath(); cx.stroke();
+            cx.fillStyle = 'rgba(52,211,153,0.06)'; cx.fill();
+            cx.fillStyle = '#6ee7b7'; cx.font = 'bold 13px sans-serif';
+            cx.fillText('A', Ax - 16, Ay - 5); cx.fillText('B', Bx - 18, By + 4); cx.fillText('C', Cx + 6, Cy + 4);
+            cx.fillStyle = '#94a3b8'; cx.font = '11px monospace';
+            cx.fillText(`a=${f6(a)}`, (Bx + Cx) / 2 - 15, (By + Cy) / 2 + 14);
+            cx.fillText(`b=${f6(b)}`, (Ax + Cx) / 2 + 5, (Ay + Cy) / 2);
+            cx.fillText(`c=${f6(c)}`, (Ax + Bx) / 2 - 20, (Ay + By) / 2 - 5);
+        }
+
+        /* ---- IDENTITIES ---- */
+        function runIdent() {
+            let deg = parseFloat(document.getElementById('idTheta').value) || 45;
+            let t = deg * Math.PI / 180, s = Math.sin(t), c = Math.cos(t), tn = Math.tan(t);
+            const ids = [
+                { name: 'sin²θ + cos²θ = 1', lhs: s * s + c * c, rhs: 1 },
+                { name: '1 + tan²θ = sec²θ', lhs: 1 + tn * tn, rhs: 1 / (c * c) },
+                { name: '1 + cot²θ = csc²θ', lhs: 1 + 1 / (tn * tn), rhs: 1 / (s * s) },
+                { name: 'sin(2θ) = 2sinθcosθ', lhs: Math.sin(2 * t), rhs: 2 * s * c },
+                { name: 'cos(2θ) = cos²θ - sin²θ', lhs: Math.cos(2 * t), rhs: c * c - s * s },
+                { name: 'cos(2θ) = 1 - 2sin²θ', lhs: Math.cos(2 * t), rhs: 1 - 2 * s * s },
+                { name: 'tan(2θ) = 2tanθ/(1-tan²θ)', lhs: Math.tan(2 * t), rhs: 2 * tn / (1 - tn * tn) },
+                { name: 'sin²θ = (1-cos2θ)/2', lhs: s * s, rhs: (1 - Math.cos(2 * t)) / 2 },
+                { name: 'cos²θ = (1+cos2θ)/2', lhs: c * c, rhs: (1 + Math.cos(2 * t)) / 2 },
+                { name: 'sinθ = cos(90°-θ)', lhs: s, rhs: Math.cos(Math.PI / 2 - t) },
+            ];
+            document.getElementById('identContainer').innerHTML = ids.map(id => {
+                let ok = Math.abs(id.lhs - id.rhs) < 1e-8;
+                return `<div class="bg-black/40 border ${ok ? 'border-green-500/40' : 'border-red-500/40'} rounded-xl p-3">
+                <p class="text-xs font-bold ${ok ? 'text-green-400' : 'text-red-400'} mb-1">${ok ? '✓' : '✗'} ${id.name}</p>
+                <p class="text-xs font-mono text-gray-300">LHS=${f6(id.lhs)}  RHS=${f6(id.rhs)}</p></div>`;
+            }).join('');
+        }
+
+        /* ---- WAVE ---- */
+        function drawWave() {
+            let func = document.getElementById('wFunc').value;
+            let A = parseFloat(document.getElementById('wA').value) || 1;
+            let B = parseFloat(document.getElementById('wB').value) || 1;
+            let C = parseFloat(document.getElementById('wC').value) || 0;
+            let D = parseFloat(document.getElementById('wD').value) || 0;
+            let period = 2 * Math.PI / Math.abs(B);
+            document.getElementById('wPeriod').innerText = f6(period) + ' rad';
+            document.getElementById('wAmp').innerText = Math.abs(A);
+            document.getElementById('wPhase').innerText = f6(-C / B) + ' rad';
+            const canvas = document.getElementById('waveCanvas'); canvas.width = canvas.offsetWidth; canvas.height = 260;
+            const cx = canvas.getContext('2d'), W = canvas.width, H = 260, padL = 30, padB = 25, padT = 20, padR = 10;
+            cx.fillStyle = '#0f172a'; cx.fillRect(0, 0, W, H);
+            const fnMap = { sin: Math.sin, cos: Math.cos, tan: Math.tan, sec: x => 1 / Math.cos(x), csc: x => 1 / Math.sin(x), cot: x => 1 / Math.tan(x) };
+            let fn = fnMap[func];
+            let xMin = -2 * Math.PI, xMax = 2 * Math.PI;
+            cx.strokeStyle = '#334155'; cx.lineWidth = 1;
+            let mid = padT + (H - padT - padB) / 2;
+            cx.beginPath(); cx.moveTo(padL, mid); cx.lineTo(W - padR, mid); cx.stroke();
+            cx.beginPath(); cx.moveTo(padL, padT); cx.lineTo(padL, H - padB); cx.stroke();
+            cx.fillStyle = '#475569'; cx.font = '9px monospace';
+            cx.fillText('π', padL + (Math.PI - xMin) / (xMax - xMin) * (W - padL - padR) - 3, H - padB + 10);
+            cx.fillText('-π', padL + (-Math.PI - xMin) / (xMax - xMin) * (W - padL - padR) - 8, H - padB + 10);
+            cx.strokeStyle = '#34d399'; cx.lineWidth = 2.5; cx.beginPath();
+            let first = true;
+            for (let px = 0; px <= W - padL - padR; px++) {
+                let x = xMin + px / (W - padL - padR) * (xMax - xMin);
+                let y = A * fn(B * x + C) + D;
+                let py = mid - y * (H - padT - padB) * 0.3;
+                if (!isFinite(y) || Math.abs(y) > 10) { first = true; continue; }
+                if (first) { cx.moveTo(padL + px, py); first = false; } else cx.lineTo(padL + px, py);
+            }
+            cx.stroke();
+            cx.fillStyle = '#64748b'; cx.font = '11px monospace';
+            cx.fillText(`y = ${A}·${func}(${B}x + ${C}) + ${D}`, padL + 5, padT + 12);
+        }
+
+        /* ---- INVERSE ---- */
+        function runInverse() {
+            let x = parseFloat(document.getElementById('invX').value) || 0.5;
+            function fd(v) { if (!isFinite(v)) return '∄ (out of domain)'; return `${f6(v * 180 / Math.PI)}° (${f6(v)} rad)`; }
+            document.getElementById('invAsin').innerText = fd(Math.asin(x));
+            document.getElementById('invAcos').innerText = fd(Math.acos(x));
+            document.getElementById('invAtan').innerText = fd(Math.atan(x));
+            document.getElementById('invAcot').innerText = fd(Math.atan(1 / x));
+            document.getElementById('invAsec').innerText = fd(Math.acos(1 / x));
+            document.getElementById('invAcsc').innerText = fd(Math.asin(1 / x));
+            function fh(v) { return isFinite(v) ? f6(v) : '∄'; }
+            document.getElementById('hSinh').innerText = fh(Math.sinh(x));
+            document.getElementById('hCosh').innerText = fh(Math.cosh(x));
+            document.getElementById('hTanh').innerText = fh(Math.tanh(x));
+            document.getElementById('hAsinh').innerText = fh(Math.asinh(x));
+            document.getElementById('hAcosh').innerText = fh(Math.acosh(x));
+            document.getElementById('hAtanh').innerText = fh(Math.atanh(x));
+        }
+
+        updateUC(); runIdent(); drawWave(); runInverse();
+        document.getElementById('ucAngle').addEventListener('input', updateUC);
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

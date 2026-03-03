@@ -1,856 +1,737 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scientific Calculator</title>
+    <title>Scientific Engine - Math Verse</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background-color: #f0f2f5;
-            margin: 0;
-            color: #333;
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            font-weight: bold;
+            border-radius: 999px;
+            transition: all 0.3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
         }
 
-        .calculator-container {
-            background-color: #fff;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-            padding: 20px;
-            width: 350px;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+        .tab-btn:hover {
+            background: rgba(56, 189, 248, 0.1);
+            color: #7dd3fc;
         }
 
-        .display {
-            background-color: #222;
-            border-radius: 10px;
-            padding: 15px;
-            color: #fff;
+        .tab-btn.active {
+            background: rgba(56, 189, 248, 0.25);
+            color: white;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
+            border-color: #38bdf8;
+        }
+
+        .calc-body {
+            background: linear-gradient(135deg, rgba(17, 24, 39, 0.9), rgba(31, 41, 55, 0.95));
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: 1.5rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            max-width: 480px;
+            width: 100%;
+        }
+
+        .calc-screen {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 1rem;
+            padding: 1rem;
             text-align: right;
             position: relative;
+            box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.6);
+            margin-bottom: 1rem;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
-        .history-display {
-            font-size: 0.8em;
-            color: #aaa;
-            min-height: 1.2em;
-            overflow: hidden;
+        .screen-top {
+            min-height: 1.5rem;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .screen-mid {
+            min-height: 2rem;
+            font-size: 1.25rem;
+            color: #cbd5e1;
             white-space: nowrap;
-            text-overflow: ellipsis;
-        }
-
-        .input-display {
-            font-size: 1.5em;
-            min-height: 1.5em;
             overflow-x: auto;
-            white-space: nowrap;
-            padding-right: 20px;
-            box-sizing: border-box;
             scrollbar-width: none;
-            -ms-overflow-style: none;
         }
 
-        .input-display::-webkit-scrollbar {
-            display: none;
-        }
-
-        .output-display {
-            font-size: 2.5em;
-            min-height: 1.2em;
-            font-weight: bold;
-            color: #0f0;
-            overflow: hidden;
+        .screen-bot {
+            min-height: 3rem;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #38bdf8;
             white-space: nowrap;
-            text-overflow: ellipsis;
+            overflow-x: auto;
+            scrollbar-width: none;
         }
 
-        .output-display.error-message {
-            color: #f00;
-        }
-
-        .mode-indicator {
-            position: absolute;
-            top: 10px;
-            left: 15px;
-            font-size: 0.7em;
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 3px 6px;
-            border-radius: 5px;
-            color: #bbb;
-        }
-
-        .history-indicator {
-            position: absolute;
-            bottom: 10px;
-            left: 15px;
-            font-size: 0.7em;
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 3px 6px;
-            border-radius: 5px;
-            color: #bbb;
-            display: none;
-        }
-
-        .display-scroll-indicator {
-            position: absolute;
-            top: 50%;
-            right: 5px;
-            transform: translateY(-50%);
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.3);
-            display: none;
-        }
-
-        .buttons-grid {
+        .btn-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
+            gap: 0.5rem;
         }
 
-        .calculator-button {
-            background-color: #eee;
-            border: none;
-            border-radius: 8px;
-            padding: 15px 0;
-            font-size: 1.2em;
-            cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+        .cbtn {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #f8fafc;
+            border-radius: 0.5rem;
+            padding: 0.75rem 0;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.1s;
             display: flex;
-            justify-content: center;
             align-items: center;
-            color: #333;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            justify-content: center;
+            user-select: none;
         }
 
-        .calculator-button:hover {
-            background-color: #e0e0e0;
-        }
-
-        .calculator-button.button-press {
+        .cbtn:active {
             transform: scale(0.95);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         }
 
-        .btn-func {
-            background-color: #d6f2ff;
-            color: #007bff;
+        .cbtn:hover {
+            background: #334155;
         }
 
-        .btn-func:hover {
-            background-color: #c0eaff;
+        .cbtn-func {
+            background: #0f172a;
+            color: #7dd3fc;
+            border-color: #1e293b;
+            font-size: 0.9rem;
         }
 
-        .btn-num {
-            background-color: #f7f7f7;
+        .cbtn-func:hover {
+            background: #1e293b;
         }
 
-        .btn-num:hover {
-            background-color: #ebebeb;
+        .cbtn-mem {
+            background: rgba(245, 158, 11, 0.1);
+            color: #fcd34d;
+            border-color: rgba(245, 158, 11, 0.3);
+            font-size: 0.9rem;
         }
 
-        .btn-equals {
-            background-color: #4CAF50;
+        .cbtn-mem:hover {
+            background: rgba(245, 158, 11, 0.2);
+        }
+
+        .cbtn-action {
+            background: rgba(239, 68, 68, 0.1);
+            color: #f87171;
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .cbtn-action:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        .cbtn-eq {
+            background: #0284c7;
             color: white;
-            grid-column: span 1;
+            border-color: #0369a1;
+            grid-column: span 2;
         }
 
-        .btn-equals:hover {
-            background-color: #45a049;
+        .cbtn-eq:hover {
+            background: #0369a1;
         }
 
-        .calculator-button#shiftButton.active-shift {
-            background-color: #007bff;
+        .cbtn-rpn-ent {
+            background: #059669;
             color: white;
+            border-color: #047857;
+            grid-column: span 2;
         }
-        .calculator-button#shiftButton.active-shift:hover {
-            background-color: #0056b3;
+
+        .rpn-stack-view {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 0.25rem;
+            font-family: monospace;
+            color: #38bdf8;
+            text-align: right;
+            font-size: 1.1rem;
+            min-height: 120px;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .rpn-stack-item {
+            border-bottom: 1px dashed #334155;
+            padding-bottom: 0.25rem;
+        }
+
+        .rpn-stack-item:last-child {
+            border-bottom: none;
+        }
+
+        .rpn-stack-item span.idx {
+            float: left;
+            color: #64748b;
+            font-size: 0.8rem;
+            padding-top: 0.2rem;
+        }
+
+        .shift-active {
+            background: #38bdf8 !important;
+            color: #0f172a !important;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
         }
     </style>
 </head>
-<body>
-    <div class="calculator-container">
-        <div class="display">
-            <div class="display-scroll-indicator"></div>
-            <div id="historyDisplay" class="history-display"></div>
-            <div id="inputDisplay" class="input-display">0</div>
-            <div id="outputDisplay" class="output-display">0</div>
-            <div class="mode-indicator" id="modeIndicator">DEG</div>
-            <div class="history-indicator" id="calculationHistoryIndicator">Hist</div>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6 relative">
+        <h2
+            class="text-3xl md:text-5xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-500 pb-2">
+            <i class="fas fa-calculator text-sky-400"></i> Scientific Engine
+        </h2>
+
+        <!-- Tabs -->
+        <div
+            class="flex flex-wrap justify-center gap-4 bg-black/40 p-2 rounded-full border border-sky-500/30 mx-auto w-full max-w-2xl mb-4">
+            <button class="tab-btn active" onclick="switchTab('alg')">Algebraic Mode (ALG)</button>
+            <button class="tab-btn" onclick="switchTab('rpn')">Reverse Polish Notation (RPN)</button>
         </div>
 
-        <div class="buttons-grid">
-            <button class="calculator-button btn-func" data-value="shift" id="shiftButton">Shift</button>
-            <button class="calculator-button btn-func" data-value="pi">π</button>
-            <button class="calculator-button btn-func" data-value="e">e</button>
-            <button class="calculator-button btn-func" data-value="(">(</button>
-            <button class="calculator-button btn-func" data-value=")">)</button>
+        <div class="flex flex-col lg:flex-row gap-8 justify-center items-start w-full">
 
-            <button class="calculator-button btn-func" data-value="x_squared">x²</button>
-            <button class="calculator-button btn-func" data-value="one_over_x">X⁻¹</button>
-            <button class="calculator-button btn-func" data-value="abs">|x|</button>
-            <button class="calculator-button btn-func" data-value="AC">AC</button>
-            <button class="calculator-button btn-func" data-value="DEL">DEL</button>
+            <!-- Standard Algebraic Calculator -->
+            <div id="tab-alg" class="tab-content calc-body mx-auto">
+                <div class="calc-screen">
+                    <div class="screen-top">
+                        <span id="algModeIndicator">DEG</span>
+                        <span id="algMemIndicator" class="text-amber-400 hidden">M</span>
+                    </div>
+                    <div class="screen-mid" id="algInput"></div>
+                    <div class="screen-bot" id="algOutput">0</div>
+                </div>
 
-            <button class="calculator-button btn-func" data-value="sqrt">√</button>
-            <button class="calculator-button btn-func" data-value="cbrt">³√</button>
-            <button class="calculator-button btn-func" data-value="ln">ln</button>
-            <button class="calculator-button btn-func" data-value="log">log</button>
-            <button class="calculator-button btn-num" data-value="÷">÷</button>
+                <div class="btn-grid">
+                    <!-- Row 1: Memory & Modes -->
+                    <button class="cbtn cbtn-func" id="algShiftBtn" onclick="algHandle('SHIFT')">SHIFT</button>
+                    <button class="cbtn cbtn-mem" onclick="algHandle('MC')">MC</button>
+                    <button class="cbtn cbtn-mem" onclick="algHandle('MR')">MR</button>
+                    <button class="cbtn cbtn-mem" onclick="algHandle('M+')">M+</button>
+                    <button class="cbtn cbtn-mem" onclick="algHandle('M-')">M-</button>
 
-            <button class="calculator-button btn-func" data-value="^">X^Y</button>
-            <button class="calculator-button btn-func" data-value="sin">sin</button>
-            <button class="calculator-button btn-func" data-value="cos">cos</button>
-            <button class="calculator-button btn-func" data-value="tan">tan</button>
-            <button class="calculator-button btn-num" data-value="×">×</button>
+                    <!-- Row 2: Secondary Funcs -->
+                    <button class="cbtn cbtn-func shift-target" data-prim="x²" data-sec="x³"
+                        onclick="algHandleFunc(this)">x²</button>
+                    <button class="cbtn cbtn-func shift-target" data-prim="√" data-sec="³√"
+                        onclick="algHandleFunc(this)">√</button>
+                    <button class="cbtn cbtn-func shift-target" data-prim="x^y" data-sec="y√x"
+                        onclick="algHandleFunc(this)">x^y</button>
+                    <button class="cbtn cbtn-func shift-target" data-prim="e^x" data-sec="10^x"
+                        onclick="algHandleFunc(this)">e^x</button>
+                    <button class="cbtn cbtn-func shift-target" data-prim="ln" data-sec="log"
+                        onclick="algHandleFunc(this)">ln</button>
 
-            <button class="calculator-button btn-func" data-value="fact">n!</button>
-            <button class="calculator-button btn-num" data-value="7">7</button>
-            <button class="calculator-button btn-num" data-value="8">8</button>
-            <button class="calculator-button btn-num" data-value="9">9</button>
-            <button class="calculator-button btn-num" data-value="-">-</button>
+                    <!-- Row 3: Trig -->
+                    <button class="cbtn cbtn-func shift-target" data-prim="sin" data-sec="asin"
+                        onclick="algHandleFunc(this)">sin</button>
+                    <button class="cbtn cbtn-func shift-target" data-prim="cos" data-sec="acos"
+                        onclick="algHandleFunc(this)">cos</button>
+                    <button class="cbtn cbtn-func shift-target" data-prim="tan" data-sec="atan"
+                        onclick="algHandleFunc(this)">tan</button>
+                    <button class="cbtn cbtn-func" onclick="algHandle('(')">(</button>
+                    <button class="cbtn cbtn-func" onclick="algHandle(')')">)</button>
 
-            <button class="calculator-button btn-func" data-value="DEG_RAD">DEG</button>
-            <button class="calculator-button btn-num" data-value="4">4</button>
-            <button class="calculator-button btn-num" data-value="5">5</button>
-            <button class="calculator-button btn-num" data-value="6">6</button>
-            <button class="calculator-button btn-num" data-value="+">+</button>
+                    <!-- Row 4: Math controls -->
+                    <button class="cbtn cbtn-func shift-target" data-prim="π" data-sec="e"
+                        onclick="algHandleFunc(this)">π</button>
+                    <button class="cbtn cbtn-func shift-target" data-prim="1/x" data-sec="x!"
+                        onclick="algHandleFunc(this)">1/x</button>
+                    <button class="cbtn cbtn-func" onclick="algHandle('DEG/RAD')">D/R</button>
+                    <button class="cbtn cbtn-action" onclick="algHandle('DEL')">DEL</button>
+                    <button class="cbtn cbtn-action" onclick="algHandle('AC')">AC</button>
 
-            <button class="calculator-button btn-func" data-value="toggle_sign">+/-</button>
-            <button class="calculator-button btn-num" data-value="1">1</button>
-            <button class="calculator-button btn-num" data-value="2">2</button>
-            <button class="calculator-button btn-num" data-value="3">3</button>
-            <button class="calculator-button btn-num" data-value="%">%</button>
+                    <!-- NUM PAD -->
+                    <button class="cbtn" onclick="algHandle('7')">7</button>
+                    <button class="cbtn" onclick="algHandle('8')">8</button>
+                    <button class="cbtn" onclick="algHandle('9')">9</button>
+                    <button class="cbtn cbtn-func text-xl" onclick="algHandle('÷')">÷</button>
+                    <button class="cbtn cbtn-func" onclick="algHandle('%')">%</button>
 
-            <button class="calculator-button btn-func" data-value="frac_dec">F<->D</button>
-            <button class="calculator-button btn-num" data-value="ANS">ANS</button>
-            <button class="calculator-button btn-num" data-value="0">0</button>
-            <button class="calculator-button btn-num" data-value=".">.</button>
-            <button class="calculator-button btn-equals" data-value="=">=</button>
+                    <button class="cbtn" onclick="algHandle('4')">4</button>
+                    <button class="cbtn" onclick="algHandle('5')">5</button>
+                    <button class="cbtn" onclick="algHandle('6')">6</button>
+                    <button class="cbtn cbtn-func text-xl" onclick="algHandle('×')">×</button>
+                    <button class="cbtn cbtn-func" onclick="algHandle('ANS')">ANS</button>
+
+                    <button class="cbtn" onclick="algHandle('1')">1</button>
+                    <button class="cbtn" onclick="algHandle('2')">2</button>
+                    <button class="cbtn" onclick="algHandle('3')">3</button>
+                    <button class="cbtn cbtn-func text-xl" onclick="algHandle('-')">−</button>
+                    <button class="cbtn" onclick="algHandle('+/-')">+/-</button>
+
+                    <button class="cbtn" onclick="algHandle('0')">0</button>
+                    <button class="cbtn" onclick="algHandle('.')">.</button>
+                    <button class="cbtn cbtn-eq text-2xl" onclick="algHandle('=')">=</button>
+                    <button class="cbtn cbtn-func text-xl" onclick="algHandle('+')">+</button>
+                </div>
+            </div>
+
+            <!-- RPN Calculator -->
+            <div id="tab-rpn" class="tab-content hidden calc-body mx-auto">
+                <div class="rpn-stack-view" id="rpnStackView">
+                    <!-- Stack rows go here -->
+                </div>
+
+                <div class="calc-screen !mb-4">
+                    <div class="screen-top">
+                        <span id="rpnModeIndicator">DEG</span>
+                        <span id="rpnMemIndicator" class="text-amber-400 hidden">M</span>
+                    </div>
+                    <div class="screen-bot" id="rpnInput">0</div>
+                </div>
+
+                <div class="btn-grid pb-2">
+                    <button class="cbtn cbtn-func" id="rpnShiftBtn" onclick="rpnHandle('SHIFT')">SHIFT</button>
+                    <button class="cbtn cbtn-mem" onclick="rpnHandle('MC')">MC</button>
+                    <button class="cbtn cbtn-mem" onclick="rpnHandle('MR')">MR</button>
+                    <button class="cbtn cbtn-mem" onclick="rpnHandle('M+')">M+</button>
+                    <button class="cbtn cbtn-mem" onclick="rpnHandle('M-')">M-</button>
+
+                    <button class="cbtn cbtn-func shift-target-rpn" data-prim="x²" data-sec="x³"
+                        onclick="rpnHandleFunc(this)">x²</button>
+                    <button class="cbtn cbtn-func shift-target-rpn" data-prim="√" data-sec="³√"
+                        onclick="rpnHandleFunc(this)">√</button>
+                    <button class="cbtn cbtn-func shift-target-rpn" data-prim="y^x" data-sec="x√y"
+                        onclick="rpnHandleFunc(this)">y^x</button>
+                    <button class="cbtn cbtn-func shift-target-rpn" data-prim="e^x" data-sec="10^x"
+                        onclick="rpnHandleFunc(this)">e^x</button>
+                    <button class="cbtn cbtn-func shift-target-rpn" data-prim="ln" data-sec="log"
+                        onclick="rpnHandleFunc(this)">ln</button>
+
+                    <button class="cbtn cbtn-func shift-target-rpn" data-prim="sin" data-sec="asin"
+                        onclick="rpnHandleFunc(this)">sin</button>
+                    <button class="cbtn cbtn-func shift-target-rpn" data-prim="cos" data-sec="acos"
+                        onclick="rpnHandleFunc(this)">cos</button>
+                    <button class="cbtn cbtn-func shift-target-rpn" data-prim="tan" data-sec="atan"
+                        onclick="rpnHandleFunc(this)">tan</button>
+                    <button class="cbtn cbtn-func shift-target-rpn" data-prim="π" data-sec="e"
+                        onclick="rpnHandleFunc(this)">π</button>
+                    <button class="cbtn cbtn-func shift-target-rpn" data-prim="1/x" data-sec="x!"
+                        onclick="rpnHandleFunc(this)">1/x</button>
+
+                    <button class="cbtn cbtn-func" onclick="rpnHandle('SWAP')">x↔y</button>
+                    <button class="cbtn cbtn-func" onclick="rpnHandle('DROP')">DROP</button>
+                    <button class="cbtn cbtn-func" onclick="rpnHandle('DEG/RAD')">D/R</button>
+                    <button class="cbtn cbtn-action" onclick="rpnHandle('DEL')">DEL</button>
+                    <button class="cbtn cbtn-action" onclick="rpnHandle('AC')">AC</button>
+
+                    <button class="cbtn" onclick="rpnHandle('7')">7</button>
+                    <button class="cbtn" onclick="rpnHandle('8')">8</button>
+                    <button class="cbtn" onclick="rpnHandle('9')">9</button>
+                    <button class="cbtn cbtn-func text-xl" onclick="rpnHandle('÷')">÷</button>
+                    <button class="cbtn cbtn-func" onclick="rpnHandle('%')">%</button>
+
+                    <button class="cbtn" onclick="rpnHandle('4')">4</button>
+                    <button class="cbtn" onclick="rpnHandle('5')">5</button>
+                    <button class="cbtn" onclick="rpnHandle('6')">6</button>
+                    <button class="cbtn cbtn-func text-xl" onclick="rpnHandle('×')">×</button>
+                    <button class="cbtn" onclick="rpnHandle('+/-')">+/-</button>
+
+                    <button class="cbtn" onclick="rpnHandle('1')">1</button>
+                    <button class="cbtn" onclick="rpnHandle('2')">2</button>
+                    <button class="cbtn" onclick="rpnHandle('3')">3</button>
+                    <button class="cbtn cbtn-func text-xl" onclick="rpnHandle('-')">−</button>
+                    <button class="cbtn cbtn-rpn-ent row-span-2" onclick="rpnHandle('ENTER')">ENTER</button>
+
+                    <button class="cbtn col-span-2" onclick="rpnHandle('0')">0</button>
+                    <button class="cbtn" onclick="rpnHandle('.')">.</button>
+                    <button class="cbtn cbtn-func text-xl" onclick="rpnHandle('+')">+</button>
+                </div>
+            </div>
+
+            <div class="hidden lg:flex flex-col gap-4 text-sm text-gray-400 w-64 pt-4">
+                <div class="bg-gray-900/50 p-4 rounded-xl border border-gray-700">
+                    <h4 class="font-bold text-sky-400 mb-2">Memory Registers</h4>
+                    <p class="mb-1"><span class="text-amber-400 font-bold">M+</span> Adds to mem</p>
+                    <p class="mb-1"><span class="text-amber-400 font-bold">M-</span> Subtracts from mem</p>
+                    <p class="mb-1"><span class="text-amber-400 font-bold">MR</span> Recalls mem</p>
+                    <p><span class="text-amber-400 font-bold">MC</span> Clears mem</p>
+                </div>
+                <div class="bg-gray-900/50 p-4 rounded-xl border border-gray-700">
+                    <h4 class="font-bold text-sky-400 mb-2">RPN Mode Tips</h4>
+                    <p class="mb-1">Operations apply immediately to the stack (Y and X registers).</p>
+                    <p class="mb-1"><span class="text-white font-bold">ENTER</span> pushes X to stack.</p>
+                    <p><span class="text-white font-bold">x↔y</span> swaps bottom two stack items.</p>
+                </div>
+            </div>
+
         </div>
     </div>
 
+    <script src="script.js"></script>
     <script>
-        console.log("Script loaded and starting...");
+        function switchTab(id) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById('tab-' + id).classList.remove('hidden');
+        }
 
-        // DOM elements
-        const inputDisplay = document.getElementById('inputDisplay');
-        const outputDisplay = document.getElementById('outputDisplay');
-        const historyDisplay = document.getElementById('historyDisplay');
-        const modeIndicator = document.getElementById('modeIndicator');
-        const calculationHistoryIndicator = document.getElementById('calculationHistoryIndicator');
-        const shiftButton = document.getElementById('shiftButton');
+        // Shared Math Memory & Config
+        let GLOBAL_MEM = 0;
+        let isDeg = true;
 
-        // Calculator state variables
-        let currentExpression = '';
-        let outputValue = '0';
-        let isDegreeMode = true;
-        let isShiftActive = false;
-        let lastAnswer = 0;
-        let expectingNewInput = false;
-        let calculationHistory = [];
-        let currentOutputAsFraction = null; // Stores fraction string if in fraction mode
-
-        // Mapping for secondary functions
-        const secondaryFunctionsMap = {
-            'sin': { secondary: 'asin', text: 'sin⁻¹' },
-            'cos': { secondary: 'acos', text: 'cos⁻¹' },
-            'tan': { secondary: 'atan', text: 'tan⁻¹' },
-            'log': { secondary: 'ten_pow_x', text: '10ˣ' },
-            'ln': { secondary: 'e_pow_x', text: 'eˣ' },
-            'cbrt': { secondary: 'x_cubed', text: 'X³' }
+        const updateMemDisplay = () => {
+            document.getElementById('algMemIndicator').classList.toggle('hidden', GLOBAL_MEM === 0);
+            document.getElementById('rpnMemIndicator').classList.toggle('hidden', GLOBAL_MEM === 0);
         };
 
-        // Helper function for factorial calculation
-        function factorial(n) {
+        const updateModeDisplay = () => {
+            document.getElementById('algModeIndicator').innerText = isDeg ? 'DEG' : 'RAD';
+            document.getElementById('rpnModeIndicator').innerText = isDeg ? 'DEG' : 'RAD';
+        };
+
+        const fact = (n) => {
             if (n < 0 || !Number.isInteger(n)) return NaN;
             if (n === 0) return 1;
-            let res = 1;
-            for (let i = 2; i <= n; i++) {
-                res *= i;
-            }
-            return res;
-        }
-
-        // Helper functions for degree/radian conversion
-        function degToRad(degrees) { return degrees * (Math.PI / 180); }
-        function radToDeg(radians) { return radians * (180 / Math.PI); }
-
-        // Function to convert decimal to fraction
-        function decimalToFraction(decimal, tolerance = 0.0001) {
-            if (Math.abs(decimal) < tolerance) return '0';
-            let sign = decimal < 0 ? '-' : '';
-            decimal = Math.abs(decimal);
-            let integerPart = Math.floor(decimal);
-            let fractional = decimal - integerPart;
-
-            // Check for common fractions
-            const commonFractions = [
-                [0.25, '1/4'], [0.5, '1/2'], [0.75, '3/4'],
-                [0.333, '1/3'], [0.666, '2/3'], [0.2, '1/5'], [0.4, '2/5'], [0.6, '3/5'], [0.8, '4/5'],
-                [0.166, '1/6'], [0.833, '5/6'],
-                [0.125, '1/8'], [0.375, '3/8'], [0.625, '5/8'], [0.875, '7/8'],
-                [0.1, '1/10'], [0.3, '3/10'], [0.7, '7/10'], [0.9, '9/10']
-            ];
-            for (let [value, fraction] of commonFractions) {
-                if (Math.abs(fractional - value) < tolerance) {
-                    if (integerPart === 0) {
-                        return sign + fraction;
-                    } else {
-                        return sign + integerPart + ' ' + fraction;
-                    }
-                }
-            }
-
-            // Use continued fractions for others
-            let n = 1, d = 1;
-            let maxIterations = 100;
-            let current = n / d;
-            let bestError = Math.abs(current - fractional);
-            let bestN = n, bestD = d;
-            for (d = 1; d <= maxIterations; d++) {
-                n = Math.round(fractional * d);
-                current = n / d;
-                let error = Math.abs(current - fractional);
-                if (error < bestError) {
-                    bestError = error;
-                    bestN = n;
-                    bestD = d;
-                }
-                if (error < tolerance) break;
-            }
-
-            if (bestN === 0) {
-                if (integerPart === 0) return '0';
-                return sign + integerPart.toString();
-            }
-
-            // Simplify the fraction
-            let gcd = function(a, b) {
-                return b ? gcd(b, a % b) : a;
-            };
-            let divisor = gcd(bestN, bestD);
-            bestN /= divisor;
-            bestD /= divisor;
-
-            if (integerPart === 0) {
-                return sign + bestN + '/' + bestD;
-            } else {
-                return sign + integerPart + ' ' + bestN + '/' + bestD;
-            }
-        }
-
-        // Extended math functions
-        window.MathExt = {
-            sin: (val) => isDegreeMode ? Math.sin(degToRad(val)) : Math.sin(val),
-            cos: (val) => isDegreeMode ? Math.cos(degToRad(val)) : Math.cos(val),
-            tan: (val) => {
-                const angle = isDegreeMode ? degToRad(val) : val;
-                if (Math.abs(Math.cos(angle)) < 1e-10) return NaN;
-                return Math.tan(angle);
-            },
-            asin: (val) => {
-                if (val < -1 || val > 1) return NaN;
-                return isDegreeMode ? radToDeg(Math.asin(val)) : Math.asin(val);
-            },
-            acos: (val) => {
-                if (val < -1 || val > 1) return NaN;
-                return isDegreeMode ? radToDeg(Math.acos(val)) : Math.acos(val);
-            },
-            atan: (val) => isDegreeMode ? radToDeg(Math.atan(val)) : Math.atan(val),
-            log: Math.log10,
-            ln: Math.log,
-            sqrt: Math.sqrt,
-            cbrt: Math.cbrt,
-            x_cubed: (val) => Math.pow(val, 3),
-            ten_pow_x: (val) => Math.pow(10, val),
-            e_pow_x: (val) => Math.exp(val),
-            factorial: factorial,
-            abs: Math.abs
+            let r = 1; for (let i = 2; i <= n; i++) r *= i; return r;
         };
 
-        // Updates the calculator display
-        function updateDisplay() {
-            inputDisplay.textContent = currentExpression || '0';
-            
-            let displayOutput = outputValue;
-            if (currentOutputAsFraction) {
-                displayOutput = currentOutputAsFraction;
-            } else if (!isNaN(parseFloat(outputValue)) && isFinite(parseFloat(outputValue))) {
-                const num = parseFloat(outputValue);
-                if (Math.abs(num) > 1e10 || (Math.abs(num) < 1e-10 && num !== 0)) {
-                    displayOutput = num.toExponential(6).replace('e+', 'E').replace('e-', 'E-');
-                }
-            }
-            outputDisplay.textContent = displayOutput;
+        const d2r = (d) => d * (Math.PI / 180);
+        const r2d = (r) => r * (180 / Math.PI);
 
-            modeIndicator.textContent = isDegreeMode ? 'DEG' : 'RAD';
+        const trig = (fn, val) => {
+            if (fn === 'sin') return isDeg ? Math.sin(d2r(val)) : Math.sin(val);
+            if (fn === 'cos') return isDeg ? Math.cos(d2r(val)) : Math.cos(val);
+            if (fn === 'tan') return isDeg ? Math.tan(d2r(val)) : Math.tan(val);
+            if (fn === 'asin') return isDeg ? r2d(Math.asin(val)) : Math.asin(val);
+            if (fn === 'acos') return isDeg ? r2d(Math.acos(val)) : Math.acos(val);
+            if (fn === 'atan') return isDeg ? r2d(Math.atan(val)) : Math.atan(val);
+        };
 
-            if (calculationHistory.length > 0) {
-                historyDisplay.textContent = calculationHistory.slice(-3).join('; ');
-                calculationHistoryIndicator.style.display = 'flex';
-            } else {
-                historyDisplay.textContent = '';
-                calculationHistoryIndicator.style.display = 'none';
+        /* -------------------------------------------------------------------------- */
+        /* ALG MODE                                                                   */
+        /* -------------------------------------------------------------------------- */
+        let algExp = '';
+        let algOut = '0';
+        let algShift = false;
+        let algAns = 0;
+        let algNewInput = true;
+
+        const drawAlg = () => {
+            document.getElementById('algInput').innerText = algExp;
+
+            // Format output nicely for massive/tiny numbers
+            let dOut = algOut;
+            if (!isNaN(parseFloat(algOut)) && isFinite(parseFloat(algOut))) {
+                const n = parseFloat(algOut);
+                if (Math.abs(n) > 1e12 || (Math.abs(n) < 1e-10 && n !== 0)) dOut = n.toExponential(6);
+                else dOut = n.toString();
             }
-            
-            const scrollIndicator = document.querySelector('.display-scroll-indicator');
-            if (scrollIndicator) {
-                const showScrollIndicator = inputDisplay.scrollWidth > inputDisplay.clientWidth;
-                scrollIndicator.style.display = showScrollIndicator ? 'block' : 'none';
-            }
+            document.getElementById('algOutput').innerText = dOut;
+        };
+
+        function algHandleFunc(btn) {
+            let func = algShift ? btn.dataset.sec : btn.dataset.prim;
+            algHandle(func);
         }
 
-        // Clears all input, output, and resets state
-        function clearAll() {
-            currentExpression = '';
-            outputValue = '0';
-            expectingNewInput = false;
-            currentOutputAsFraction = null;
-            outputDisplay.classList.remove('error-message');
-            updateDisplay();
-        }
+        function algHandle(v) {
+            let numV = parseFloat(algOut);
 
-        // Deletes the last character
-        function deleteLast() {
-            if (outputDisplay.classList.contains('error-message') || expectingNewInput) { 
-                clearAll();
-            } else if (currentExpression.length > 0) {
-                currentExpression = currentExpression.slice(0, -1);
-            }
-            if (currentExpression === '') {
-                outputValue = '0';
-            }
-            currentOutputAsFraction = null;
-            updateDisplay();
-        }
-
-        // Toggles between Degree and Radian mode
-        function toggleDegRad() {
-            isDegreeMode = !isDegreeMode;
-            updateDisplay();
-        }
-
-        // Toggles the Shift (secondary function) mode
-        function toggleShift() {
-            isShiftActive = !isShiftActive;
-            if (shiftButton) {
-                shiftButton.classList.toggle('active-shift', isShiftActive);
-            }
-            
-            document.querySelectorAll('.calculator-button').forEach(button => {
-                const primaryValue = button.dataset.originalValue || button.dataset.value;
-                const secondaryInfo = secondaryFunctionsMap[primaryValue];
-
-                if (secondaryInfo) {
-                    if (isShiftActive) {
-                        if (!button.dataset.originalValue) {
-                            button.dataset.originalValue = button.dataset.value;
-                            button.dataset.originalText = button.textContent;
-                        }
-                        button.dataset.value = secondaryInfo.secondary;
-                        button.textContent = secondaryInfo.text;
-                    } else {
-                        if (button.dataset.originalValue) {
-                            button.dataset.value = button.dataset.originalValue;
-                            button.textContent = button.dataset.originalText;
-                        }
-                    }
-                }
-            });
-        }
-
-        // Toggles between fraction and decimal display
-        function toggleFractionDecimal() {
-            if (outputDisplay.classList.contains('error-message')) return;
-            
-            try {
-                const num = parseFloat(outputValue);
-                if (isNaN(num)) return;
-                
-                if (currentOutputAsFraction) {
-                    currentOutputAsFraction = null;
-                } else {
-                    currentOutputAsFraction = decimalToFraction(num);
-                }
-                updateDisplay();
-            } catch (e) {
-                console.error('Fraction conversion error:', e);
-                outputDisplay.classList.add('error-message');
-                outputValue = 'Conversion Error';
-                updateDisplay();
-            }
-        }
-
-        // Main function to evaluate the expression
-        function evaluateExpression() {
-            if (!currentExpression) {
-                outputValue = '0';
-                updateDisplay();
-                return;
-            }
-            
-            calculationHistory.push(currentExpression);
-            if (calculationHistory.length > 5) calculationHistory.shift();
-            
-            let processedExpr = currentExpression;
-
-            // Pre-processing for evaluation
-            processedExpr = processedExpr.replace(/\bpi\b/g, 'Math.PI');
-            processedExpr = processedExpr.replace(/\be\b/g, 'Math.E');
-            processedExpr = processedExpr.replace(/\bANS\b/g, `(${lastAnswer})`);
-            
-            // FIXED: Corrected implicit multiplication regex to not break consecutive digits
-            const implicitMultiplicationRegex = /(\d+(?:\.\d+)?|Math\.PI|Math\.E|\))(?=\s*(\(|\b(sin|cos|tan|asin|acos|atan|log|ln|sqrt|cbrt|ten_pow_x|e_pow_x|abs|pi|e)\b))/g;
-            processedExpr = processedExpr.replace(implicitMultiplicationRegex, '$1*');
-
-            // Convert functions to window.MathExt calls
-            const functionsToMap = ['sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'log', 'ln', 'sqrt', 'cbrt', 'ten_pow_x', 'e_pow_x', 'abs', 'x_cubed'];
-            functionsToMap.forEach(func => {
-                processedExpr = processedExpr.replace(new RegExp(`\\b${func}\\(`, 'g'), `window.MathExt.${func}(`);
-            });
-
-            // Replace symbols
-            processedExpr = processedExpr
-                .replace(/×/g, '*')
-                .replace(/÷/g, '/');
-
-            // Handle percentages
-            const percentageRegex = /(\d+(?:\.\d*)?|\([^()]+\))(\s*%)/g;
-            processedExpr = processedExpr.replace(percentageRegex, '(($1)/100)');
-            
-            // Handle factorial
-            const factorialRegex = /(\d+(?:\.\d*)?|\([^()]+\)|[a-zA-Z_]+\([^()]*\))(\s*\!)/g;
-            processedExpr = processedExpr.replace(factorialRegex, 'window.MathExt.factorial($1)');
-
-            // Convert power notations
-            const baseForPowerRegex = '((?:\\d+(?:\\.\\d*)?|Math\\.PI|Math\\.E|ANS|\\([^()]+\\)))';
-            const exponentRegex = '((?:\\d+(?:\\.\\d*)?|Math\\.PI|Math\\.E|ANS|\\([^()]+\\)))';
-            const powerPattern = new RegExp(`${baseForPowerRegex}\\s*\\^\\s*${exponentRegex}`, 'g');
-            processedExpr = processedExpr.replace(powerPattern, 'Math.pow($1,$2)');
-            
-            // Handle parentheses balance
-            let openParenCount = (processedExpr.match(/\(/g) || []).length;
-            let closeParenCount = (processedExpr.match(/\)/g) || []).length;
-            if (openParenCount > closeParenCount) {
-                processedExpr += ')'.repeat(openParenCount - closeParenCount);
-            } else if (closeParenCount > openParenCount) {
-                outputDisplay.classList.add('error-message');
-                outputValue = 'Paren Error';
-                updateDisplay();
-                return;
-            }
-
-            // Execution
-            console.log('Processed Expression:', processedExpr);
-
-            try {
-                const result = Function(`"use strict"; return (${processedExpr});`)();
-                
-                if (!isFinite(result)) {
-                    throw new Error('Math Error');
-                }
-                
-                outputDisplay.classList.remove('error-message');
-                outputValue = result.toString();
-                lastAnswer = result;
-                currentExpression = outputValue;
-                currentOutputAsFraction = null; // Reset fraction display
-            } catch (error) {
-                outputDisplay.classList.add('error-message');
-                console.error('Evaluation error:', error);
-                
-                if (error instanceof SyntaxError) {
-                    outputValue = 'Syntax Error';
-                } else if (error.message.includes('factorial')) {
-                    outputValue = 'Factorial Error';
-                } else if (error.message === 'Math Error') {
-                    outputValue = 'Math Error';
-                } else {
-                    outputValue = 'Error';
-                }
-            }
-            
-            expectingNewInput = true;
-            updateDisplay();
-        }
-
-        // Initialize calculator and attach event listeners
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log("DOM fully loaded. Attaching event listeners.");
-            const buttons = document.querySelectorAll('.calculator-button');
-
-            if (buttons.length === 0) {
-                console.error("No calculator buttons found!");
-                return;
-            }
-
-            buttons.forEach(button => {
-                button.addEventListener('click', () => {
-                    button.classList.add('button-press');
-                    setTimeout(() => button.classList.remove('button-press'), 150);
-                    
-                    const value = button.dataset.value;
-                    
-                    const isStartingNewInput = (
-                        expectingNewInput &&
-                        !['+', '-', '×', '÷', '^', '%', 'ANS', 'toggle_sign', 'one_over_x', 'fact',
-                          'x_squared', 'sqrt', 'cbrt', 'frac_dec', 'sin', 'cos', 'tan', 'log', 'ln', 
-                          'asin', 'acos', 'atan', 'ten_pow_x', 'e_pow_x', 'abs', '(', 'x_cubed'].includes(value)
-                    );
-
-                    if (outputDisplay.classList.contains('error-message') || isStartingNewInput) {
-                        clearAll();
-                    }
-                    
-                    const lastChar = currentExpression.slice(-1);
-                    const isLastCharANumberOrConstant = /\d/.test(lastChar) || ['π', 'e', ')', '!'].includes(lastChar);
-                    const isLastCharAnOperator = ['+', '-', '×', '÷', '^'].includes(lastChar);
-
-                    if (!isNaN(value) || value === '.') {
-                        // Check for multiple decimals in current number
-                        const lastNumberMatch = currentExpression.match(/(\d+\.?\d*)$/);
-                        if (value === '.' && lastNumberMatch && lastNumberMatch[0].includes('.')) {
-                             return;
-                        }
-                        
-                        if (currentExpression === '0' || (expectingNewInput && !currentExpression.endsWith(')'))) {
-                            // Starting new input
-                            currentExpression = value === '.' ? '0.' : value;
-                        } else if (isLastCharANumberOrConstant) {
-                            // For consecutive digits, just append without multiplication
-                            currentExpression += value;
-                        } else {
-                            currentExpression += value;
-                        }
-                        expectingNewInput = false;
-                        outputDisplay.classList.remove('error-message');
-                        currentOutputAsFraction = null;
-                    } 
-                    else if (['+', '-', '×', '÷', '^'].includes(value)) {
-                        if (isLastCharAnOperator && currentExpression.length > 0) {
-                            currentExpression = currentExpression.slice(0, -1) + value;
-                        } else if (currentExpression === '' && value !== '-') {
-                            currentExpression = '0' + value;
-                        } else {
-                            currentExpression += value;
-                        }
-                        expectingNewInput = false;
-                        currentOutputAsFraction = null;
-                    } 
-                    else if (['sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'log', 'ln', 'sqrt', 'cbrt', 'ten_pow_x', 'e_pow_x', 'abs', 'x_cubed'].includes(value)) {
-                        if (currentExpression === '0' || expectingNewInput) {
-                            currentExpression = value + '(';
-                        } else if (isLastCharANumberOrConstant) {
-                            currentExpression += '*' + value + '(';
-                        } else {
-                            currentExpression += value + '(';
-                        }
-                        expectingNewInput = false;
-                        currentOutputAsFraction = null;
-                    } 
-                    else if (['pi', 'e'].includes(value)) {
-                        if (currentExpression === '0' || expectingNewInput) {
-                            currentExpression = value;
-                        } else if (isLastCharANumberOrConstant) {
-                            currentExpression += '*' + value;
-                        } else {
-                            currentExpression += value;
-                        }
-                        expectingNewInput = false;
-                        currentOutputAsFraction = null;
-                    } 
-                    else if (value === '(') {
-                        if (currentExpression === '0' && !expectingNewInput) {
-                            currentExpression = '(';
-                        } else if (isLastCharANumberOrConstant) {
-                            currentExpression += '*(';
-                        } else {
-                            currentExpression += '(';
-                        }
-                        expectingNewInput = false;
-                        currentOutputAsFraction = null;
-                    }
-                    else if (value === ')') {
-                        if (currentExpression.length > 0 && !isLastCharAnOperator && lastChar !== '(') {
-                            currentExpression += value;
-                        }
-                        expectingNewInput = false;
-                        currentOutputAsFraction = null;
-                    } 
-                    else if (value === 'AC') {
-                        clearAll();
-                    } 
-                    else if (value === 'DEL') {
-                        deleteLast();
-                    } 
-                    else if (value === 'DEG_RAD') {
-                        toggleDegRad();
-                    } 
-                    else if (value === 'shift') {
-                        toggleShift();
-                    } 
-                    else if (value === '=') {
-                        evaluateExpression();
-                    } 
-                    else if (value === 'ANS') {
-                        if (currentExpression === '0' || expectingNewInput) {
-                            currentExpression = `ANS`;
-                        } else if (isLastCharANumberOrConstant) {
-                            currentExpression += `*ANS`;
-                        } else {
-                            currentExpression += `ANS`;
-                        }
-                        expectingNewInput = false;
-                        currentOutputAsFraction = null;
-                    } 
-                    else if (value === '%') {
-                        const lastPartMatch = currentExpression.match(/(\d+\.?\d*|\([^()]+\))$/); 
-                        if (lastPartMatch) {
-                            currentExpression = currentExpression.slice(0, -lastPartMatch[0].length) + `(${lastPartMatch[0]}%`;
-                        } else {
-                            currentExpression += '%';
-                        }
-                        expectingNewInput = false;
-                        currentOutputAsFraction = null;
-                    } 
-                    else if (value === 'fact') {
-                        if (isLastCharANumberOrConstant) {
-                            currentExpression += '!';
-                        }
-                        expectingNewInput = false;
-                        currentOutputAsFraction = null;
-                    } 
-                    else if (value === 'x_squared') {
-                        if (currentExpression === '0' || expectingNewInput) {
-                            let num = parseFloat(outputValue);
-                            if (!isNaN(num)) {
-                                outputValue = (Math.pow(num, 2)).toString();
-                                currentExpression = outputValue;
-                                expectingNewInput = true;
-                            } else {
-                                outputValue = 'Error'; 
-                            }
-                        } else {
-                            const lastPartMatch = currentExpression.match(/(\d+\.?\d*|\([^()]*?\)|[a-zA-Z]+\([\s\S]*?\))$/); 
-                            if (lastPartMatch) {
-                                currentExpression = currentExpression.slice(0, -lastPartMatch[0].length) + `(${lastPartMatch[0]})^2`;
-                            } else { 
-                                currentExpression += `^2`;
-                            }
-                        }
-                        expectingNewInput = false;
-                        currentOutputAsFraction = null;
-                    }
-                    else if (value === 'one_over_x') {
-                        if (currentExpression === '0' || expectingNewInput) {
-                            let num = parseFloat(outputValue);
-                            if (!isNaN(num) && num !== 0) {
-                                outputValue = (1 / num).toString();
-                                currentExpression = outputValue;
-                                expectingNewInput = true;
-                            } else {
-                                outputValue = 'Error: Div by 0'; 
-                            }
-                        } else {
-                            const lastPartMatch = currentExpression.match(/(\d+\.?\d*|\([^()]*?\)|[a-zA-Z]+\([\s\S]*?\))$/);
-                            if (lastPartMatch) {
-                                currentExpression = currentExpression.slice(0, -lastPartMatch[0].length) + `(1/(${lastPartMatch[0]}))`;
-                            } else {
-                                currentExpression += '1/('; 
-                            }
-                        }
-                        expectingNewInput = false;
-                        currentOutputAsFraction = null;
-                    }
-                    else if (value === 'frac_dec') {
-                        toggleFractionDecimal();
-                    }
-                    else if (value === 'toggle_sign') {
-                        if (expectingNewInput || currentExpression === '0') {
-                            let num = parseFloat(outputValue);
-                            if (!isNaN(num)) {
-                                outputValue = (num * -1).toString();
-                                currentExpression = outputValue;
-                                expectingNewInput = true;
-                            }
-                        } else {
-                            const lastPartMatch = currentExpression.match(/(\d+\.?\d*|\([^()]+\)|[a-zA-Z]+\([\s\S]*?\))$/);
-                            if (lastPartMatch) {
-                                const matchedPart = lastPartMatch[0];
-                                if (!isNaN(parseFloat(matchedPart))) {
-                                    currentExpression = currentExpression.slice(0, -matchedPart.length) + `(${-parseFloat(matchedPart)})`;
-                                } else {
-                                    currentExpression = currentExpression.slice(0, -matchedPart.length) + `(-${matchedPart})`;
-                                }
-                            } else if (currentExpression.length === 0 || isLastCharAnOperator || lastChar === '(') {
-                                currentExpression += '-';
-                            } else {
-                                currentExpression = `(-${currentExpression})`;
-                            }
-                        }
-                        expectingNewInput = false;
-                        currentOutputAsFraction = null;
-                    }
-                    
-                    updateDisplay();
+            if (v === 'SHIFT') {
+                algShift = !algShift;
+                document.getElementById('algShiftBtn').classList.toggle('shift-active', algShift);
+                document.querySelectorAll('.shift-target').forEach(b => {
+                    b.innerText = algShift ? b.dataset.sec : b.dataset.prim;
                 });
-            });
-            
-            updateDisplay();
-            
-            // Add keyboard support
-            document.addEventListener('keydown', (e) => {
-                const key = e.key;
-                let button = null;
-                
-                if (key === 'Enter') { button = document.querySelector('.calculator-button[data-value="="]'); }
-                else if (key === 'Escape') { button = document.querySelector('.calculator-button[data-value="AC"]'); }
-                else if (key === 'Backspace') { button = document.querySelector('.calculator-button[data-value="DEL"]'); }
-                else if (key === '*') { button = document.querySelector('.calculator-button[data-value="×"]'); }
-                else if (key === '/') { button = document.querySelector('.calculator-button[data-value="÷"]'); }
-                else if (key === '^') { button = document.querySelector('.calculator-button[data-value="^"]'); }
-                else if (key === '%') { button = document.querySelector('.calculator-button[data-value="%"]'); }
-                else if (key === '!') { button = document.querySelector('.calculator-button[data-value="fact"]'); }
-                else if (key === '.') { button = document.querySelector('.calculator-button[data-value="."]'); }
-                else if (key === '(' || (e.shiftKey && key === '9')) { button = document.querySelector('.calculator-button[data-value="("]'); }
-                else if (key === ')' || (e.shiftKey && key === '0')) { button = document.querySelector('.calculator-button[data-value=")"]'); }
-                else if (key === '|') { button = document.querySelector('.calculator-button[data-value="abs"]'); }
-                else if (/[0-9]/.test(key)) {
-                    button = document.querySelector(`.calculator-button[data-value="${key}"]`);
+                return;
+            }
+            if (v === 'DEG/RAD') { isDeg = !isDeg; updateModeDisplay(); return; }
+            if (v === 'AC') { algExp = ''; algOut = '0'; algNewInput = true; drawAlg(); return; }
+            if (v === 'DEL') {
+                if (!algNewInput && algOut !== '0' && algOut !== 'Error') {
+                    algOut = algOut.slice(0, -1);
+                    if (algOut === '' || algOut === '-') algOut = '0';
                 }
-                else if (key === '+') {
-                    button = document.querySelector(`.calculator-button[data-value="+"]`);
-                }
-                else if (key === '-') {
-                    button = document.querySelector(`.calculator-button[data-value="-"]`);
-                }
-                else if (key.toLowerCase() === 'p') { button = document.querySelector('.calculator-button[data-value="pi"]'); }
-                else if (key.toLowerCase() === 'e' && !e.shiftKey) { button = document.querySelector('.calculator-button[data-value="e"]'); }
-                else if (key.toLowerCase() === 's') { button = document.querySelector('.calculator-button[data-value="sin"]'); }
-                else if (key.toLowerCase() === 'c') { button = document.querySelector('.calculator-button[data-value="cos"]'); }
-                else if (key.toLowerCase() === 't') { button = document.querySelector('.calculator-button[data-value="tan"]'); }
-                else if (key.toLowerCase() === 'g') { button = document.querySelector('.calculator-button[data-value="log"]'); }
-                else if (key.toLowerCase() === 'l') { button = document.querySelector('.calculator-button[data-value="ln"]'); }
-                else if (key.toLowerCase() === 'q') { button = document.querySelector('.calculator-button[data-value="sqrt"]'); }
-                else if (key.toLowerCase() === 'f') { button = document.querySelector('.calculator-button[data-value="frac_dec"]'); }
-                else if (key === '_') { button = document.querySelector('.calculator-button[data-value="toggle_sign"]'); }
+                drawAlg(); return;
+            }
 
-                if (button) {
-                    button.click();
-                    e.preventDefault();
+            // Memory
+            if (v === 'MC') { GLOBAL_MEM = 0; updateMemDisplay(); return; }
+            if (v === 'MR') { algOut = GLOBAL_MEM.toString(); algNewInput = false; drawAlg(); return; }
+            if (v === 'M+') { GLOBAL_MEM += isNaN(numV) ? 0 : numV; updateMemDisplay(); algNewInput = true; return; }
+            if (v === 'M-') { GLOBAL_MEM -= isNaN(numV) ? 0 : numV; updateMemDisplay(); algNewInput = true; return; }
+
+            // Basic Input
+            if (/^[0-9]$/.test(v) || v === '.') {
+                if (algNewInput || algOut === '0') {
+                    algOut = v === '.' ? '0.' : v;
+                    algNewInput = false;
+                } else {
+                    if (v === '.' && algOut.includes('.')) return;
+                    algOut += v;
                 }
-            });
-        });
+                drawAlg(); return;
+            }
+
+            if (v === '+/-') {
+                if (algOut !== '0') {
+                    algOut = algOut.startsWith('-') ? algOut.substring(1) : '-' + algOut;
+                    drawAlg();
+                }
+                return;
+            }
+
+            if (v === 'π') { algOut = Math.PI.toString(); algNewInput = true; drawAlg(); return; }
+            if (v === 'e') { algOut = Math.E.toString(); algNewInput = true; drawAlg(); return; }
+            if (v === 'ANS') { algOut = algAns.toString(); algNewInput = true; drawAlg(); return; }
+
+            // Math Operations & Evaluation (Standard parsing via JS Function block)
+            if (['+', '-', '×', '÷', 'x^y'].includes(v)) {
+                let op = v === '×' ? '*' : v === '÷' ? '/' : v === 'x^y' ? '**' : v;
+                algExp += algOut + op;
+                algNewInput = true;
+                drawAlg(); return;
+            }
+
+            if (v === '=') {
+                algExp += algOut;
+                try {
+                    let calcStr = algExp.replace(/×/g, '*').replace(/÷/g, '/').replace(/\*\*/g, '**');
+                    let r = Function(`"use strict"; return (${calcStr});`)();
+                    if (!isFinite(r) || isNaN(r)) throw "Math Error";
+                    algOut = r.toString();
+                    algAns = r;
+                } catch (e) {
+                    algOut = "Error";
+                }
+                algExp = '';
+                algNewInput = true;
+                drawAlg(); return;
+            }
+
+            // Immediate unary functions
+            if (!isNaN(numV)) {
+                let r = numV;
+                try {
+                    if (v === 'x²') r = numV * numV;
+                    if (v === 'x³') r = numV * numV * numV;
+                    if (v === '√') { if (numV < 0) throw "Err"; r = Math.sqrt(numV); }
+                    if (v === '³√') r = Math.cbrt(numV);
+                    if (v === '1/x') { if (numV === 0) throw "Err"; r = 1 / numV; }
+                    if (v === 'x!') r = fact(numV);
+                    if (v === 'ln') { if (numV <= 0) throw "Err"; r = Math.log(numV); }
+                    if (v === 'log') { if (numV <= 0) throw "Err"; r = Math.log10(numV); }
+                    if (v === 'e^x') r = Math.exp(numV);
+                    if (v === '10^x') r = Math.pow(10, numV);
+                    if (['sin', 'cos', 'tan', 'asin', 'acos', 'atan'].includes(v)) r = trig(v, numV);
+                    if (v === '%') r = numV / 100;
+
+                    algOut = r.toString();
+                } catch (e) {
+                    algOut = 'Error';
+                }
+                algNewInput = true;
+                drawAlg();
+            }
+        }
+
+
+        /* -------------------------------------------------------------------------- */
+        /* RPN MODE                                                                   */
+        /* -------------------------------------------------------------------------- */
+        let rpnStack = [];
+        let rpnInput = '0';
+        let rpnNewInput = true;
+        let rpnShift = false;
+
+        const drawRpn = () => {
+            let dOut = rpnInput;
+            if (dOut !== 'Error' && !isNaN(parseFloat(rpnInput)) && isFinite(parseFloat(rpnInput))) {
+                const n = parseFloat(rpnInput);
+                if (Math.abs(n) > 1e12 || (Math.abs(n) < 1e-10 && n !== 0)) dOut = n.toExponential(6);
+                else dOut = rpnInput; // allow trailing decimals during input
+            }
+            document.getElementById('rpnInput').innerText = dOut;
+
+            const sv = document.getElementById('rpnStackView');
+            sv.innerHTML = '';
+            // Show up to 4 elements of the stack
+            for (let i = 0; i < 4; i++) {
+                let div = document.createElement('div');
+                div.className = 'rpn-stack-item';
+                let val = rpnStack[rpnStack.length - 1 - i];
+
+                let dispVal = '---';
+                if (val !== undefined) {
+                    if (Math.abs(val) > 1e12 || (Math.abs(val) < 1e-10 && val !== 0)) dispVal = val.toExponential(6);
+                    else dispVal = val.toString();
+                }
+
+                div.innerHTML = `<span class="idx">${i + 1}:</span> ${dispVal}`;
+                sv.appendChild(div);
+            }
+        };
+
+        function rpnPush(val) {
+            rpnStack.push(val);
+        }
+        function rpnPop() {
+            return rpnStack.length > 0 ? rpnStack.pop() : 0;
+        }
+
+        function rpnHandleFunc(btn) {
+            let func = rpnShift ? btn.dataset.sec : btn.dataset.prim;
+            rpnHandle(func);
+        }
+
+        function rpnHandle(v) {
+            let numV = parseFloat(rpnInput);
+
+            if (v === 'SHIFT') {
+                rpnShift = !rpnShift;
+                document.getElementById('rpnShiftBtn').classList.toggle('shift-active', rpnShift);
+                document.querySelectorAll('.shift-target-rpn').forEach(b => {
+                    b.innerText = rpnShift ? b.dataset.sec : b.dataset.prim;
+                });
+                return;
+            }
+            if (v === 'DEG/RAD') { isDeg = !isDeg; updateModeDisplay(); return; }
+
+            if (v === 'AC') { rpnStack = []; rpnInput = '0'; rpnNewInput = true; drawRpn(); return; }
+            if (v === 'DEL') {
+                if (!rpnNewInput && rpnInput !== '0' && rpnInput !== 'Error') {
+                    rpnInput = rpnInput.slice(0, -1);
+                    if (rpnInput === '' || rpnInput === '-') rpnInput = '0';
+                } else if (rpnNewInput) {
+                    rpnInput = rpnStack.length > 0 ? rpnPop().toString() : '0';
+                }
+                drawRpn(); return;
+            }
+            if (v === 'DROP') {
+                if (rpnStack.length > 0) rpnStack.pop();
+                drawRpn(); return;
+            }
+
+            // Memory
+            if (v === 'MC') { GLOBAL_MEM = 0; updateMemDisplay(); return; }
+            if (v === 'MR') { rpnInput = GLOBAL_MEM.toString(); rpnNewInput = false; drawRpn(); return; }
+            if (v === 'M+') { GLOBAL_MEM += isNaN(numV) ? 0 : numV; updateMemDisplay(); rpnNewInput = true; return; }
+            if (v === 'M-') { GLOBAL_MEM -= isNaN(numV) ? 0 : numV; updateMemDisplay(); rpnNewInput = true; return; }
+
+            // Basic Input
+            if (/^[0-9]$/.test(v) || v === '.') {
+                if (rpnNewInput || rpnInput === '0') {
+                    if (rpnNewInput && rpnInput !== '0' && rpnInput !== 'Error' && !isNaN(numV)) {
+                        rpnPush(numV); // auto-push previous result when typing new number
+                    }
+                    rpnInput = v === '.' ? '0.' : v;
+                    rpnNewInput = false;
+                } else {
+                    if (v === '.' && rpnInput.includes('.')) return;
+                    rpnInput += v;
+                }
+                drawRpn(); return;
+            }
+
+            if (v === '+/-') {
+                if (rpnInput !== '0') { rpnInput = rpnInput.startsWith('-') ? rpnInput.substring(1) : '-' + rpnInput; }
+                drawRpn(); return;
+            }
+            if (v === 'π') { if (!rpnNewInput) rpnPush(numV); rpnInput = Math.PI.toString(); rpnNewInput = true; drawRpn(); return; }
+            if (v === 'e') { if (!rpnNewInput) rpnPush(numV); rpnInput = Math.E.toString(); rpnNewInput = true; drawRpn(); return; }
+
+            if (v === 'ENTER') {
+                if (!isNaN(numV)) rpnPush(numV);
+                rpnNewInput = true;
+                drawRpn(); return;
+            }
+            if (v === 'SWAP') {
+                if (!isNaN(numV) && rpnStack.length > 0) {
+                    let y = rpnPop();
+                    rpnPush(numV);
+                    rpnInput = y.toString();
+                    rpnNewInput = true;
+                }
+                drawRpn(); return;
+            }
+
+            // Binary Operations (y op x)
+            if (['+', '-', '×', '÷', 'y^x', 'x√y'].includes(v)) {
+                if (isNaN(numV)) return;
+                let x = numV;
+                let y = rpnStack.length > 0 ? rpnPop() : 0;
+
+                try {
+                    let r = 0;
+                    if (v === '+') r = y + x;
+                    if (v === '-') r = y - x;
+                    if (v === '×') r = y * x;
+                    if (v === '÷') { if (x === 0) throw "Err"; r = y / x; }
+                    if (v === 'y^x') r = Math.pow(y, x);
+                    if (v === 'x√y') { if (x === 0) throw "Err"; r = Math.pow(y, 1 / x); }
+
+                    if (!isFinite(r) || isNaN(r)) throw "Math Error";
+                    rpnInput = r.toString();
+                } catch (e) {
+                    rpnInput = "Error";
+                }
+                rpnNewInput = true;
+                drawRpn(); return;
+            }
+
+            // Unary Operations
+            if (!isNaN(numV)) {
+                let r = numV;
+                try {
+                    if (v === 'x²') r = numV * numV;
+                    if (v === 'x³') r = numV * numV * numV;
+                    if (v === '√') { if (numV < 0) throw "Err"; r = Math.sqrt(numV); }
+                    if (v === '³√') r = Math.cbrt(numV);
+                    if (v === '1/x') { if (numV === 0) throw "Err"; r = 1 / numV; }
+                    if (v === 'x!') r = fact(numV);
+                    if (v === 'ln') { if (numV <= 0) throw "Err"; r = Math.log(numV); }
+                    if (v === 'log') { if (numV <= 0) throw "Err"; r = Math.log10(numV); }
+                    if (v === 'e^x') r = Math.exp(numV);
+                    if (v === '10^x') r = Math.pow(10, numV);
+                    if (['sin', 'cos', 'tan', 'asin', 'acos', 'atan'].includes(v)) r = trig(v, numV);
+                    if (v === '%') r = numV / 100;
+
+                    if (!isFinite(r) || isNaN(r)) throw "Math Error";
+                    rpnInput = r.toString();
+                } catch (e) {
+                    rpnInput = 'Error';
+                }
+                rpnNewInput = true;
+                drawRpn();
+            }
+        }
+
+        // Init
+        drawAlg();
+        drawRpn();
     </script>
+    <script src="ai-chat.js"></script>
 </body>
+
 </html>

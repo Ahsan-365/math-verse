@@ -1,348 +1,379 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Graph Creator</title>
-    <!-- Tailwind CSS CDN for modern styling -->
+    <title>Advanced Graphing Engine - Math Verse</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Plotly.js CDN for powerful graphing capabilities -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Plotly.js -->
     <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
-    <!-- Math.js CDN for parsing and evaluating mathematical expressions -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.0.0/math.min.js"></script>
+    <!-- Math.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
     <style>
-        /* Custom styles for the body to ensure full height and centering */
-        body {
-            font-family: "Inter", sans-serif;
-            background-color: #e0f2fe; /* Lighter blue-gray background for a fresher look */
-            margin: 0;
-            padding: 20px; /* Maintain side padding */
-            padding-top: 40px; /* Increased top padding to ensure main title visibility */
-            box-sizing: border-box;
-            color: #1f2937; /* Darker text color */
-            min-height: 100vh; /* Ensure body takes full viewport height */
-            display: flex; /* Still using flex for centering the single container horizontally */
-            flex-direction: column; /* Stack children vertically */
-            align-items: center; /* Center children horizontally */
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            font-weight: bold;
+            border-radius: 999px;
+            transition: all 0.3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
         }
 
-        /* Ensure the graph container is responsive */
-        #graph {
+        .tab-btn:hover {
+            background: rgba(56, 189, 248, 0.1);
+            color: #7dd3fc;
+        }
+
+        .tab-btn.active {
+            background: rgba(56, 189, 248, 0.25);
+            color: white;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
+            border-color: #38bdf8;
+        }
+
+        .math-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            color: white;
+            border-radius: 8px;
+            font-family: monospace;
+            padding: 0.5rem 1rem;
             width: 100%;
-            min-height: 450px; /* Slightly increased min-height for better visibility on smaller screens */
-            height: auto; /* Changed from fixed height to auto for better responsiveness */
-            background-color: #ffffff;
-            border-radius: 0.75rem;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15); /* More pronounced shadow for depth */
-            margin-top: 1.5rem;
-            transition: all 0.3s ease-in-out; /* Smooth transition for potential future interactions */
-            flex-grow: 1; /* Allow graph to grow within flex container */
+            transition: all 0.2s;
         }
 
-        /* Responsive height for graph on smaller screens - this media query is now less critical
-           due to 'height: auto', but kept for potential fine-tuning if needed. */
-        @media (max-width: 768px) {
-            #graph {
-                min-height: 400px; /* Adjust min-height for tablets and smaller if auto is too small */
-            }
-        }
-
-        /* Message box styling */
-        .message-box {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 12px 24px;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-            font-weight: 500;
-            text-align: center;
-            max-width: 90%; /* Ensure message box doesn't overflow on small screens */
-        }
-
-        .message-box.show {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .message-box.error {
-            background-color: #ef4444; /* Red for errors */
-            color: white;
-        }
-
-        .message-box.success {
-            background-color: #22c55e; /* Green for success */
-            color: white;
-        }
-
-        /* Enhancements for input and button focus/hover */
-        input:focus {
+        .math-input:focus {
+            border-color: #7dd3fc;
             outline: none;
-            border-color: #3b82f6; /* Blue border on focus */
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25); /* Light blue glow on focus */
+            box-shadow: 0 0 10px rgba(125, 211, 252, 0.4);
         }
 
-        button:hover {
-            transform: translateY(-2px); /* Slight lift on hover */
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* More pronounced shadow on hover */
-        }
-
-        button:active {
-            transform: translateY(0); /* Return to original position on click */
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow on active */
+        .plot-container {
+            min-height: 500px;
+            width: 100%;
+            position: relative;
         }
     </style>
 </head>
-<body class="antialiased">
-    <!-- Main container for the application -->
-    <div class="container bg-white p-6 sm:p-8 rounded-xl shadow-lg w-full max-w-4xl flex flex-col items-center">
-        <!-- Main title for the page, now with more top spacing -->
-        <h1 class="text-3xl sm:text-4xl font-extrabold text-blue-800 mb-8 text-center animate-fade-in-down">Dynamic Graph Plotter</h1>
 
-        <!-- Input section for equation -->
-        <div class="input-section w-full mb-6">
-            <label for="equationInput" class="block text-base sm:text-lg font-medium text-gray-700 mb-3 text-center">
-                Enter your equation:
-                <span class="block text-sm text-gray-500 mt-1">
-                    (Use <code class="bg-blue-50 px-1 py-0.5 rounded-md text-blue-700 font-mono text-xs">x</code> for 2D, or <code class="bg-blue-50 px-1 py-0.5 rounded-md text-blue-700 font-mono text-xs">x</code> and <code class="bg-blue-50 px-1 py-0.5 rounded-md text-blue-700 font-mono text-xs">y</code> for 3D)
-                    <br>
-                    Examples: <code class="bg-gray-100 px-1 py-0.5 rounded-md text-gray-700 font-mono text-xs">x^2</code>, <code class="bg-gray-100 px-1 py-0.5 rounded-md text-gray-700 font-mono text-xs">sin(x)</code>, <code class="bg-gray-100 px-1 py-0.5 rounded-md text-gray-700 font-mono text-xs">2*x + 5</code> (2D)
-                    <br>
-                    <code class="bg-gray-100 px-1 py-0.5 rounded-md text-gray-700 font-mono text-xs">x^2 + y^2</code>, <code class="bg-gray-100 px-1 py-0.5 rounded-md text-gray-700 font-mono text-xs">sin(x)*cos(y)</code> (3D)
-                </span>
-            </label>
-            <div class="flex flex-col sm:flex-row gap-4">
-                <input
-                    type="text"
-                    id="equationInput"
-                    value="x^2"
-                    placeholder="e.g., x^2, sin(x)*cos(y)"
-                    class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-base sm:text-lg shadow-sm"
-                />
-                <button
-                    id="createGraphBtn"
-                    class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150 text-base sm:text-lg"
-                >
-                    Plot Graph
-                </button>
-            </div>
+<body class="flex flex-col items-center p-4 lg:p-8">
+    <div class="glass-panel w-full max-w-6xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-8 relative">
+        <h2
+            class="text-3xl md:text-5xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-indigo-400 pb-2">
+            <i class="fas fa-cubes text-sky-400"></i> Advanced Graphing
+        </h2>
+
+        <!-- Tabs -->
+        <div
+            class="flex flex-wrap justify-center gap-4 bg-black/40 p-2 rounded-full border border-sky-500/30 mx-auto w-full max-w-4xl">
+            <button class="tab-btn active" onclick="switchTab('basic')">2D / 3D Surface</button>
+            <button class="tab-btn" onclick="switchTab('contour')">Contour Map</button>
+            <button class="tab-btn" onclick="switchTab('vector')">3D Vector Field</button>
+            <button class="tab-btn" onclick="switchTab('implicit')">Implicit Surface</button>
         </div>
 
-        <!-- Graph rendering area -->
-        <div id="graph"></div>
+        <div class="flex flex-col lg:flex-row gap-8">
 
-        <!-- Message box for displaying errors or notifications -->
-        <div id="messageBox" class="message-box"></div>
+            <!-- Controls Sidebar -->
+            <div class="w-full lg:w-1/3 bg-gray-900/50 p-6 rounded-2xl border border-sky-500/30 flex flex-col gap-6">
+
+                <!-- Tab 1: Basic 2D/3D -->
+                <div id="ctrl-basic" class="ctrl-panel flex flex-col gap-4">
+                    <h3 class="text-xl font-bold text-sky-300 border-b border-gray-700 pb-2">Standard Plots</h3>
+                    <p class="text-xs text-gray-400">Enter comma-separated functions of x (e.g., `x^2`, `sin(x)`) or a
+                        single function of x,y (e.g., `sin(x)*cos(y)`) for a 3D surface.</p>
+                    <label class="text-sm font-bold text-white">f(x) or f(x,y):</label>
+                    <input type="text" id="eqBasic" class="math-input text-lg" value="sin(x)*cos(y)">
+                    <button
+                        class="btn bg-sky-600 hover:bg-sky-500 text-white font-bold py-3 shadow-[0_0_15px_rgba(56,189,248,0.4)]"
+                        onclick="plotBasic()">Render Plot</button>
+                </div>
+
+                <!-- Tab 2: Contour Map -->
+                <div id="ctrl-contour" class="ctrl-panel hidden flex flex-col gap-4">
+                    <h3 class="text-xl font-bold text-sky-300 border-b border-gray-700 pb-2">Topographic Contour</h3>
+                    <p class="text-xs text-gray-400">Projects a 3D surface `z = f(x,y)` onto a 2D plane with contour
+                        lines showing elevation.</p>
+                    <label class="text-sm font-bold text-white">f(x,y):</label>
+                    <input type="text" id="eqContour" class="math-input text-lg" value="sin(x) + cos(y)">
+                    <button
+                        class="btn bg-sky-600 hover:bg-sky-500 text-white font-bold py-3 shadow-[0_0_15px_rgba(56,189,248,0.4)]"
+                        onclick="plotContour()">Draw Contour</button>
+                </div>
+
+                <!-- Tab 3: 3D Vector Field -->
+                <div id="ctrl-vector" class="ctrl-panel hidden flex flex-col gap-4">
+                    <h3 class="text-xl font-bold text-sky-300 border-b border-gray-700 pb-2">Vector Field</h3>
+                    <p class="text-xs text-gray-400">Plots vectors `F = < P, Q, R>` at points (x,y,z) in 3D space.</p>
+                    <label class="text-sm font-bold text-white">P(x,y,z): <span
+                            class="text-gray-500 font-normal">i-component</span></label>
+                    <input type="text" id="vecP" class="math-input" value="-y">
+                    <label class="text-sm font-bold text-white">Q(x,y,z): <span
+                            class="text-gray-500 font-normal">j-component</span></label>
+                    <input type="text" id="vecQ" class="math-input" value="x">
+                    <label class="text-sm font-bold text-white">R(x,y,z): <span
+                            class="text-gray-500 font-normal">k-component</span></label>
+                    <input type="text" id="vecR" class="math-input" value="z">
+                    <button
+                        class="btn bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 shadow-[0_0_15px_rgba(99,102,241,0.4)] mt-2"
+                        onclick="plotVectorField()">Generate Field</button>
+                </div>
+
+                <!-- Tab 4: Implicit Surface -->
+                <div id="ctrl-implicit" class="ctrl-panel hidden flex flex-col gap-4">
+                    <h3 class="text-xl font-bold text-sky-300 border-b border-gray-700 pb-2">Implicit Surface
+                        volumetrics</h3>
+                    <p class="text-xs text-gray-400">Renders `F(x,y,z) = C` using continuous volumetric isosurfacing.
+                    </p>
+                    <label class="text-sm font-bold text-white">F(x,y,z):</label>
+                    <input type="text" id="eqImplicit" class="math-input text-lg" value="x^2 + y^2 + z^2">
+                    <div class="flex items-center justify-between gap-4 mt-2">
+                        <label class="text-sm font-bold text-white flex-1">Constant (C):</label>
+                        <input type="number" id="valC" class="math-input w-24 text-center" value="16">
+                    </div>
+                    <button
+                        class="btn bg-teal-600 hover:bg-teal-500 text-white font-bold py-3 shadow-[0_0_15px_rgba(20,184,166,0.4)] mt-2"
+                        onclick="plotImplicit()">Render Topology</button>
+                </div>
+
+                <div id="errorBox"
+                    class="text-rose-400 font-bold bg-rose-900/30 border border-rose-500/50 p-3 rounded-xl mt-auto hidden text-sm">
+                </div>
+            </div>
+
+            <!-- Visualization Canvas -->
+            <div
+                class="flex-1 bg-black/40 rounded-2xl border border-sky-500/30 overflow-hidden relative shadow-[inset_0_0_50px_rgba(0,0,0,0.8)] flex items-center justify-center p-2">
+                <div id="graphCanvas" class="plot-container"></div>
+            </div>
+
+        </div>
     </div>
 
+    <script src="script.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const equationInput = document.getElementById('equationInput');
-            const createGraphBtn = document.getElementById('createGraphBtn');
-            const graphDiv = document.getElementById('graph');
-            const messageBox = document.getElementById('messageBox');
+        // Tab system
+        function switchTab(id) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.querySelectorAll('.ctrl-panel').forEach(c => c.classList.add('hidden'));
+            document.getElementById('ctrl-' + id).classList.remove('hidden');
+            document.getElementById('errorBox').classList.add('hidden');
 
-            /**
-             * Displays a message in the message box.
-             * @param {string} message - The message to display.
-             * @param {string} type - 'success' or 'error' to determine background color.
-             */
-            function showMessage(message, type = 'error') {
-                messageBox.textContent = message;
-                messageBox.className = 'message-box show ' + type;
+            // Auto-trigger rendering to populate canvas for the new tab
+            if (id === 'basic') plotBasic();
+            if (id === 'contour') plotContour();
+            if (id === 'vector') plotVectorField();
+            if (id === 'implicit') plotImplicit();
+        }
 
-                setTimeout(() => {
-                    messageBox.classList.remove('show');
-                }, 3000); // Hide after 3 seconds
-            }
+        const outError = (msg) => {
+            const eb = document.getElementById('errorBox');
+            eb.innerText = msg;
+            eb.classList.remove('hidden');
+        };
 
-            /**
-             * Creates and renders the graph based on the user-provided equation.
-             */
-            function createGraph() {
-                const equationString = equationInput.value.trim();
-                if (!equationString) {
-                    showMessage('Please enter an equation to graph.', 'error');
-                    return;
-                }
+        const clearError = () => document.getElementById('errorBox').classList.add('hidden');
 
-                const is3D = /[yY]/.test(equationString);
+        // Global Layout Base config for Dark theme
+        const baseLayout = {
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { color: '#cbd5e1' },
+            margin: { t: 40, r: 20, b: 20, l: 20 },
+            scene: {
+                xaxis: { title: 'X', gridcolor: '#334155', zerolinecolor: '#ef4444', backgroundcolor: 'rgba(0,0,0,0)' },
+                yaxis: { title: 'Y', gridcolor: '#334155', zerolinecolor: '#ef4444', backgroundcolor: 'rgba(0,0,0,0)' },
+                zaxis: { title: 'Z', gridcolor: '#334155', zerolinecolor: '#ef4444', backgroundcolor: 'rgba(0,0,0,0)' }
+            },
+            xaxis: { title: 'X Axis', gridcolor: '#1e293b', zerolinecolor: '#ef4444' },
+            yaxis: { title: 'Y Axis', gridcolor: '#1e293b', zerolinecolor: '#ef4444' }
+        };
 
-                let parser;
-                try {
-                    parser = math.parser();
-                    if (is3D) {
-                        parser.evaluate(`f(x, y) = ${equationString}`);
-                    } else {
-                        parser.evaluate(`f(x) = ${equationString}`);
-                    }
-                } catch (error) {
-                    showMessage('Invalid equation syntax: ' + error.message, 'error');
-                    return;
-                }
+        // Compilation Utility
+        const compileEval = (expr, vars) => {
+            const code = math.compile(expr);
+            return (scope) => code.evaluate(scope);
+        };
 
-                let traces = [];
-                let layout = {};
+        // --- Basic 2D/3D (Original Logic Improved) ---
+        function plotBasic() {
+            clearError();
+            const eqStr = document.getElementById('eqBasic').value.trim();
+            if (!eqStr) return outError('Enter an equation.');
 
-                const config = {
-                    responsive: true,
-                    displayModeBar: true // Enable the Plotly mode bar for zoom/pan
-                };
+            const is3D = /[yY]/.test(eqStr);
+            let traces = [];
 
+            try {
                 if (is3D) {
-                    const xRange = [-5, 5];
-                    const yRange = [-5, 5];
-                    const gridSize = 30; // Number of points in each dimension for 3D grid
+                    const fn = compileEval(eqStr);
+                    const range = [-5, 5];
+                    const pts = 40;
+                    let xV = [], yV = [], zV = [];
 
-                    const xValues = [];
-                    const yValues = [];
-                    const zValues = []; // 2D array for 3D surface
-
-                    for (let i = 0; i < gridSize; i++) {
-                        xValues.push(xRange[0] + (i / (gridSize - 1)) * (xRange[1] - xRange[0]));
-                        yValues.push(yRange[0] + (i / (gridSize - 1)) * (yRange[1] - yRange[0]));
+                    for (let i = 0; i < pts; i++) {
+                        let val = range[0] + i * (range[1] - range[0]) / (pts - 1);
+                        xV.push(val); yV.push(val);
                     }
 
-                    for (let i = 0; i < gridSize; i++) {
-                        const row = [];
-                        for (let j = 0; j < gridSize; j++) {
-                            const x = xValues[j];
-                            const y = yValues[i];
-
-                            try {
-                                const z = parser.evaluate(`f(${x}, ${y})`);
-                                row.push(z);
-                            } catch (error) {
-                                row.push(NaN); // Push NaN if evaluation fails
-                            }
+                    for (let i = 0; i < pts; i++) {
+                        let row = [];
+                        for (let j = 0; j < pts; j++) {
+                            try { row.push(fn({ x: xV[j], y: yV[i] })); } catch (e) { row.push(NaN); }
                         }
-                        zValues.push(row);
+                        zV.push(row);
                     }
 
-                    const trace3D = {
-                        z: zValues,
-                        x: xValues,
-                        y: yValues,
-                        type: 'surface', // 3D surface plot
-                        name: `z = ${equationString}`,
-                        colorscale: 'Viridis' // A nice colormap for surfaces
-                    };
-                    traces.push(trace3D);
-
-                    layout = {
-                        title: {
-                            text: `Graph of <b>z = ${equationString}</b>`, /* Bold the equation */
-                            font: { family: 'Inter, sans-serif', size: 26, color: '#1f2937' },
-                            yref: 'paper', y: 0.95, /* Position title slightly higher */
-                            x: 0.5, xanchor: 'center'
-                        },
-                        scene: {
-                            xaxis: {
-                                title: 'x-axis',
-                                range: xRange,
-                                gridcolor: '#cbd5e1', zerolinecolor: '#94a3b8',
-                                backgroundcolor: '#f8fafc', showbackground: true,
-                            },
-                            yaxis: {
-                                title: 'y-axis',
-                                range: yRange,
-                                gridcolor: '#cbd5e1', zerolinecolor: '#94a3b8',
-                                backgroundcolor: '#f8fafc', showbackground: true,
-                            },
-                            zaxis: {
-                                title: 'z-axis',
-                                gridcolor: '#cbd5e1', zerolinecolor: '#94a3b8',
-                                backgroundcolor: '#f8fafc', showbackground: true,
-                            },
-                            bgcolor: '#f1f5f9', /* Slightly darker background for 3D scene */
-                            aspectmode: 'cube' /* Maintain aspect ratio for better 3D perception */
-                        },
-                        margin: { l: 20, r: 20, b: 20, t: 100 }, /* Increased top margin for title */
-                        hovermode: 'closest',
-                        paper_bgcolor: '#ffffff'
-                    };
-
+                    traces.push({ x: xV, y: yV, z: zV, type: 'surface', colorscale: 'Plasma', name: 'f(x,y)' });
                 } else {
-                    // 2D Graphing logic
-                    const xMin = -10;
-                    const xMax = 10;
-                    const numPoints = 500;
+                    const eqs = eqStr.split(',').map(s => s.trim()).filter(s => s);
+                    const range = [-10, 10];
+                    const pts = 300;
+                    let xV = [];
+                    for (let i = 0; i < pts; i++) xV.push(range[0] + i * (range[1] - range[0]) / (pts - 1));
 
-                    const xValues = [];
-                    const yValues = [];
+                    eqs.forEach(eq => {
+                        const fn = compileEval(eq);
+                        let yV = xV.map(x => fn({ x: x }));
+                        traces.push({ x: xV, y: yV, type: 'scatter', mode: 'lines', line: { width: 3 }, name: `y = ${eq}` });
+                    });
+                }
 
-                    for (let i = 0; i < numPoints; i++) {
-                        const x = xMin + (i / (numPoints - 1)) * (xMax - xMin);
-                        xValues.push(x);
-                        try {
-                            const y = parser.evaluate(`f(${x})`);
-                            yValues.push(y);
-                        } catch (error) {
-                            yValues.push(NaN);
+                Plotly.newPlot('graphCanvas', traces, baseLayout, { responsive: true });
+            } catch (e) { outError("Syntax Error: " + e.message); }
+        }
+
+        // --- Contour Plot ---
+        function plotContour() {
+            clearError();
+            const eqStr = document.getElementById('eqContour').value.trim();
+            if (!eqStr) return outError('Enter an equation.');
+
+            try {
+                const fn = compileEval(eqStr);
+                const range = [-5, 5];
+                const pts = 50;
+                let xV = [], yV = [], zV = [];
+
+                for (let i = 0; i < pts; i++) {
+                    let val = range[0] + i * (range[1] - range[0]) / (pts - 1);
+                    xV.push(val); yV.push(val);
+                }
+
+                for (let i = 0; i < pts; i++) {
+                    let row = [];
+                    for (let j = 0; j < pts; j++) {
+                        try { row.push(fn({ x: xV[j], y: yV[i] })); } catch (e) { row.push(NaN); }
+                    }
+                    zV.push(row);
+                }
+
+                let traces = [{
+                    x: xV, y: yV, z: zV, type: 'contour', colorscale: 'Viridis',
+                    contours: { coloring: 'heatmap' }
+                }];
+
+                let layout = JSON.parse(JSON.stringify(baseLayout));
+                layout.title = 'Topographic Contour Mapping';
+                Plotly.newPlot('graphCanvas', traces, layout, { responsive: true });
+            } catch (e) { outError("Syntax Error: " + e.message); }
+        }
+
+        // --- 3D Vector Field ---
+        function plotVectorField() {
+            clearError();
+            const pStr = document.getElementById('vecP').value.trim();
+            const qStr = document.getElementById('vecQ').value.trim();
+            const rStr = document.getElementById('vecR').value.trim();
+
+            try {
+                const fP = compileEval(pStr);
+                const fQ = compileEval(qStr);
+                const fR = compileEval(rStr);
+
+                let xV = [], yV = [], zV = [], uV = [], vV = [], wV = [];
+
+                const range = [-4, 4];
+                const steps = 7; // creates an 7x7x7 grid
+
+                for (let i = 0; i < steps; i++) {
+                    let z = range[0] + i * (range[1] - range[0]) / (steps - 1);
+                    for (let j = 0; j < steps; j++) {
+                        let y = range[0] + j * (range[1] - range[0]) / (steps - 1);
+                        for (let k = 0; k < steps; k++) {
+                            let x = range[0] + k * (range[1] - range[0]) / (steps - 1);
+
+                            xV.push(x); yV.push(y); zV.push(z);
+                            uV.push(fP({ x, y, z }));
+                            vV.push(fQ({ x, y, z }));
+                            wV.push(fR({ x, y, z }));
                         }
                     }
+                }
 
-                    const trace2D = {
-                        x: xValues,
-                        y: yValues,
-                        mode: 'lines',
-                        type: 'scatter',
-                        name: `y = ${equationString}`,
-                        line: {
-                            color: 'rgb(59, 130, 246)',
-                            width: 2.5 /* Slightly thicker line */
+                let traces = [{
+                    type: 'cone', x: xV, y: yV, z: zV, u: uV, v: vV, w: wV,
+                    colorscale: 'Portland', sizemode: 'absolute', sizeref: 3, hoverinfo: 'u+v+w'
+                }];
+
+                let layout = JSON.parse(JSON.stringify(baseLayout));
+                layout.title = 'Vector Field Analysis';
+                Plotly.newPlot('graphCanvas', traces, layout, { responsive: true });
+            } catch (e) { outError("Syntax Error in Vector Field equations."); }
+        }
+
+        // --- Implicit Surface ---
+        function plotImplicit() {
+            clearError();
+            const eqStr = document.getElementById('eqImplicit').value.trim();
+            const cVal = parseFloat(document.getElementById('valC').value);
+
+            if (!eqStr || isNaN(cVal)) return outError('Valid equation and constant C required.');
+
+            try {
+                const fn = compileEval(eqStr);
+
+                let xV = [], yV = [], zV = [], valV = [];
+
+                const range = [-6, 6];
+                const steps = 18; // 18x18x18 volumetric grid for isosurface computation
+
+                for (let i = 0; i < steps; i++) {
+                    let z = range[0] + i * (range[1] - range[0]) / (steps - 1);
+                    for (let j = 0; j < steps; j++) {
+                        let y = range[0] + j * (range[1] - range[0]) / (steps - 1);
+                        for (let k = 0; k < steps; k++) {
+                            let x = range[0] + k * (range[1] - range[0]) / (steps - 1);
+
+                            xV.push(x); yV.push(y); zV.push(z);
+                            valV.push(fn({ x, y, z }));
                         }
-                    };
-                    traces.push(trace2D);
-
-                    layout = {
-                        title: {
-                            text: `Graph of <b>y = ${equationString}</b>`, /* Bold the equation */
-                            font: { family: 'Inter, sans-serif', size: 26, color: '#1f2937' },
-                            yref: 'paper', y: 0.95, /* Position title slightly higher */
-                            x: 0.5, xanchor: 'center'
-                        },
-                        xaxis: {
-                            title: { text: 'x-axis', font: { family: 'Inter, sans-serif', size: 18, color: '#4b5563' } },
-                            range: [xMin, xMax],
-                            gridcolor: '#cbd5e1', zerolinecolor: '#94a3b8' /* Clearer grid lines */
-                        },
-                        yaxis: {
-                            title: { text: 'y-axis', font: { family: 'Inter, sans-serif', size: 18, color: '#4b5563' } },
-                            gridcolor: '#cbd5e1', zerolinecolor: '#94a3b8' /* Clearer grid lines */
-                        },
-                        margin: { l: 60, r: 60, b: 60, t: 100 }, /* Increased top margin for title */
-                        hovermode: 'closest',
-                        plot_bgcolor: '#f8fafc',
-                        paper_bgcolor: '#ffffff'
-                    };
+                    }
                 }
 
-                Plotly.newPlot(graphDiv, traces, layout, config)
-                    .then(() => {
-                        // Optional: showMessage('Graph updated successfully!', 'success');
-                    })
-                    .catch(err => {
-                        showMessage('Error plotting graph: ' + err.message, 'error');
-                    });
-            }
+                let traces = [{
+                    type: 'isosurface', x: xV, y: yV, z: zV, value: valV,
+                    isomin: cVal, isomax: cVal, surface: { show: true, count: 1 },
+                    caps: { x: { show: false }, y: { show: false }, z: { show: false } },
+                    colorscale: 'Electric', showscale: false
+                }];
 
-            // Event listeners
-            createGraphBtn.addEventListener('click', createGraph);
-            equationInput.addEventListener('keypress', (event) => {
-                if (event.key === 'Enter') {
-                    createGraph();
-                }
-            });
+                let layout = JSON.parse(JSON.stringify(baseLayout));
+                layout.title = `F(x,y,z) = ${cVal} (Isosurface)`;
+                Plotly.newPlot('graphCanvas', traces, layout, { responsive: true });
+            } catch (e) { outError("Syntax evaluation failed for volumetric grid."); }
+        }
 
-            // Initial graph creation on page load
-            createGraph();
-        });
+        // Initialize Plot
+        plotBasic();
+
     </script>
+    <script src="ai-chat.js"></script>
 </body>
+
 </html>

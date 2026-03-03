@@ -1,0 +1,371 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ODE Solver - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mathjs@11.11.2/lib/browser/math.min.js"></script>
+    <style>
+        .tab-btn {
+            padding: .55rem 1rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .8rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(34, 197, 94, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(34, 197, 94, 0.25);
+            color: white;
+            border-color: #22c55e;
+            box-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
+        }
+
+        .o-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(34, 197, 94, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            width: 100%;
+            font-family: monospace;
+        }
+
+        .o-input:focus {
+            border-color: #4ade80;
+            outline: none;
+        }
+
+        .val-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(34, 197, 94, 0.4);
+            border-radius: .75rem;
+            padding: .75rem;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-lime-500 pb-2">
+            <i class="fas fa-wind text-green-400"></i> ODE Solver & Direction Fields
+        </h2>
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-green-500/30">
+            <button class="tab-btn active" onclick="switchTab('direction',this)">Direction Field</button>
+            <button class="tab-btn" onclick="switchTab('euler',this)">Euler & RK4</button>
+            <button class="tab-btn" onclick="switchTab('systems',this)">Phase Plane (2D Systems)</button>
+            <button class="tab-btn" onclick="switchTab('exact',this)">Exact & Separable</button>
+        </div>
+
+        <!-- Direction Field -->
+        <div id="tab-direction" class="tab-content flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-green-500/30 flex flex-col gap-4">
+                <h3 class="text-green-300 font-bold text-xl">Direction Field dy/dx = f(x,y)</h3>
+                <div class="flex flex-wrap gap-3 items-end">
+                    <div class="flex-1"><label class="text-xs text-gray-400">dy/dx = f(x,y)</label><input type="text"
+                            id="dfFx" class="o-input" value="y - x" oninput="drawField()"></div>
+                    <div><label class="text-xs text-gray-400">x range</label>
+                        <div class="flex gap-1"><input type="number" id="dfXmin" class="o-input w-16" value="-4"
+                                oninput="drawField()"><input type="number" id="dfXmax" class="o-input w-16" value="4"
+                                oninput="drawField()"></div>
+                    </div>
+                    <div><label class="text-xs text-gray-400">y range</label>
+                        <div class="flex gap-1"><input type="number" id="dfYmin" class="o-input w-16" value="-4"
+                                oninput="drawField()"><input type="number" id="dfYmax" class="o-input w-16" value="4"
+                                oninput="drawField()"></div>
+                    </div>
+                </div>
+                <div class="flex gap-3 flex-wrap items-center">
+                    <div><label class="text-xs text-gray-400">IC: y(x₀)=y₀ at x₀=</label><input type="number" id="dfX0"
+                            class="o-input w-20" value="0" step="any" oninput="drawField()"></div>
+                    <div><label class="text-xs text-gray-400">&nbsp;&nbsp;&nbsp;&nbsp;y₀=</label><input type="number"
+                            id="dfY0" class="o-input w-20" value="1" step="any" oninput="drawField()"></div>
+                    <button class="btn bg-green-700 hover:bg-green-600 text-sm font-bold"
+                        onclick="drawField()">Draw</button>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button class="btn text-xs bg-gray-800 hover:bg-gray-700" onclick="setDF('y - x')">y−x</button>
+                    <button class="btn text-xs bg-gray-800 hover:bg-gray-700" onclick="setDF('x*y')">xy</button>
+                    <button class="btn text-xs bg-gray-800 hover:bg-gray-700" onclick="setDF('-x/y')">−x/y
+                        (circles)</button>
+                    <button class="btn text-xs bg-gray-800 hover:bg-gray-700" onclick="setDF('y^2 - x')">y²−x</button>
+                    <button class="btn text-xs bg-gray-800 hover:bg-gray-700"
+                        onclick="setDF('sin(x*y)')">sin(xy)</button>
+                    <button class="btn text-xs bg-gray-800 hover:bg-gray-700" onclick="setDF('r - y^3')">1−y³
+                        (logistic-like)</button>
+                </div>
+                <canvas id="dfCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:400px"></canvas>
+            </div>
+        </div>
+
+        <!-- Euler & RK4 -->
+        <div id="tab-euler" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-green-500/30 flex flex-col gap-4">
+                <h3 class="text-green-300 font-bold text-xl">Euler & Runge-Kutta 4th-Order</h3>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    <div><label class="text-xs text-gray-400">dy/dx = f(x,y)</label><input type="text" id="rkFx"
+                            class="o-input" value="x + y"></div>
+                    <div><label class="text-xs text-gray-400">x₀</label><input type="number" id="rkX0" class="o-input"
+                            value="0" step="any"></div>
+                    <div><label class="text-xs text-gray-400">y₀</label><input type="number" id="rkY0" class="o-input"
+                            value="1" step="any"></div>
+                    <div><label class="text-xs text-gray-400">Step h</label><input type="number" id="rkH"
+                            class="o-input" value="0.1" step="any"></div>
+                    <div><label class="text-xs text-gray-400">Target x</label><input type="number" id="rkXn"
+                            class="o-input" value="2" step="any"></div>
+                </div>
+                <button class="btn bg-green-700 hover:bg-green-600 font-bold" onclick="runRK()">Solve</button>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Euler y(target)</span><span
+                            id="rkEuler" class="text-2xl font-mono text-green-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">RK4 y(target)</span><span id="rkRK4"
+                            class="text-2xl font-mono text-green-300 font-bold">—</span></div>
+                </div>
+                <div class="overflow-x-auto max-h-60">
+                    <table class="w-full text-xs font-mono border-collapse" id="rkTable">
+                        <tr class="bg-gray-900">
+                            <th class="px-3 py-1 text-green-400 border border-gray-700">x</th>
+                            <th class="px-3 py-1 text-green-400 border border-gray-700">Euler y</th>
+                            <th class="px-3 py-1 text-green-400 border border-gray-700">RK4 y</th>
+                        </tr>
+                    </table>
+                </div>
+                <canvas id="rkCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:240px"></canvas>
+            </div>
+        </div>
+
+        <!-- Phase Plane -->
+        <div id="tab-systems" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-green-500/30 flex flex-col gap-4">
+                <h3 class="text-green-300 font-bold text-xl">Phase Plane (2D Autonomous System)</h3>
+                <p class="text-sm text-gray-400">dx/dt = f(x,y), dy/dt = g(x,y) — shows trajectories in the xy-plane.
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div><label class="text-xs text-gray-400">dx/dt = f(x,y)</label><input type="text" id="ppF"
+                            class="o-input" value="x - x*y" oninput="drawPhase()"></div>
+                    <div><label class="text-xs text-gray-400">dy/dt = g(x,y)</label><input type="text" id="ppG"
+                            class="o-input" value="-y + x*y" oninput="drawPhase()"></div>
+                </div>
+                <div class="flex gap-2 flex-wrap">
+                    <button class="btn text-xs bg-gray-800 hover:bg-gray-700"
+                        onclick="setSystem('x-x*y','-y+x*y')">Lotka-Volterra</button>
+                    <button class="btn text-xs bg-gray-800 hover:bg-gray-700"
+                        onclick="setSystem('y','-sin(x)')">Pendulum</button>
+                    <button class="btn text-xs bg-gray-800 hover:bg-gray-700" onclick="setSystem('y','-x')">Harmonic
+                        Osc</button>
+                    <button class="btn text-xs bg-gray-800 hover:bg-gray-700"
+                        onclick="setSystem('x*(1-x)-x*y','y*(x-0.5)')">Competition</button>
+                </div>
+                <canvas id="ppCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:400px"></canvas>
+            </div>
+        </div>
+
+        <!-- Exact & Separable -->
+        <div id="tab-exact" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-green-500/30 flex flex-col gap-4">
+                <h3 class="text-green-300 font-bold text-xl">Separable ODE Analyzer</h3>
+                <p class="text-sm text-gray-400">For dy/dx = f(x)·g(y), the solution is ∫1/g(y)dy = ∫f(x)dx + C. Solve
+                    numerically with IVP and plot solution family.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div><label class="text-xs text-gray-400">f(x) (the x part)</label><input type="text" id="sepFx"
+                            class="o-input" value="x" oninput="drawSep()"></div>
+                    <div><label class="text-xs text-gray-400">g(y) (the y part)</label><input type="text" id="sepGy"
+                            class="o-input" value="y" oninput="drawSep()"></div>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button class="btn text-xs bg-gray-800 hover:bg-gray-700" onclick="setSep('x','y')">dy/dx =
+                        xy</button>
+                    <button class="btn text-xs bg-gray-800 hover:bg-gray-700" onclick="setSep('1','1+y^2')">dy/dx =
+                        1+y²</button>
+                    <button class="btn text-xs bg-gray-800 hover:bg-gray-700" onclick="setSep('x^2','y')">dy/dx =
+                        x²y</button>
+                    <button class="btn text-xs bg-gray-800 hover:bg-gray-700"
+                        onclick="setSep('1','y*(1-y)')">Logistic</button>
+                </div>
+                <p class="text-xs text-gray-500 italic">Plots solution curves for ICs y(0) = -3 to 3.</p>
+                <canvas id="sepCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:360px"></canvas>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); document.getElementById('tab-' + id).classList.remove('hidden'); if (id === 'direction') setTimeout(drawField, 50); if (id === 'systems') setTimeout(drawPhase, 50); if (id === 'exact') setTimeout(drawSep, 50); }
+        function evalF(expr, x, y) { try { return math.evaluate(expr, { x, y, r: 1 }); } catch (e) { return NaN; } }
+        function setDF(expr) { document.getElementById('dfFx').value = expr; drawField(); }
+        function setSystem(f, g) { document.getElementById('ppF').value = f; document.getElementById('ppG').value = g; drawPhase(); }
+        function setSep(f, g) { document.getElementById('sepFx').value = f; document.getElementById('sepGy').value = g; drawSep(); }
+
+        // ---- DIRECTION FIELD ----
+        function drawField() {
+            const c = document.getElementById('dfCanvas'); c.width = c.offsetWidth; c.height = 400;
+            const cx = c.getContext('2d'), W = c.width, H = c.height;
+            let expr = document.getElementById('dfFx').value;
+            let xMin = parseFloat(document.getElementById('dfXmin').value) || -4;
+            let xMax = parseFloat(document.getElementById('dfXmax').value) || 4;
+            let yMin = parseFloat(document.getElementById('dfYmin').value) || -4;
+            let yMax = parseFloat(document.getElementById('dfYmax').value) || 4;
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            const tx = v => ((v - xMin) / (xMax - xMin)) * (W - 20) + 10;
+            const ty = v => H - 10 - ((v - yMin) / (yMax - yMin)) * (H - 20);
+            // Axes
+            cx.strokeStyle = '#334155'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(tx(0), 10); cx.lineTo(tx(0), H - 10); cx.stroke(); cx.beginPath(); cx.moveTo(10, ty(0)); cx.lineTo(W - 10, ty(0)); cx.stroke();
+            // Arrow field
+            let nx = 20, ny = 20, len = 14;
+            for (let i = 0; i <= nx; i++) for (let j = 0; j <= ny; j++) {
+                let x = xMin + i * (xMax - xMin) / nx, y = yMin + j * (yMax - yMin) / ny;
+                let dy = evalF(expr, x, y);
+                if (!isFinite(dy) || Math.abs(dy) > 20) continue;
+                let px = tx(x), py = ty(y);
+                let angle = Math.atan(dy);
+                let dx2 = len / 2 * Math.cos(angle), dy2 = len / 2 * Math.sin(angle);
+                let mag = Math.min(1, Math.abs(dy) / 5);
+                cx.strokeStyle = `hsl(${120 + mag * 240},70%,60%)`; cx.lineWidth = 1;
+                cx.beginPath(); cx.moveTo(px - dx2, py + dy2); cx.lineTo(px + dx2, py - dy2); cx.stroke();
+                // arrowhead
+                cx.beginPath(); cx.moveTo(px + dx2, py - dy2); let ax2 = px + dx2 - 4 * Math.cos(angle + 0.4), ay2 = py - dy2 + 4 * Math.sin(angle + 0.4); cx.lineTo(ax2, ay2); cx.stroke();
+            }
+            // Solution curve with IVP
+            let x0 = parseFloat(document.getElementById('dfX0').value) || 0;
+            let y0 = parseFloat(document.getElementById('dfY0').value) || 1;
+            let h = 0.05;
+            cx.strokeStyle = '#22c55e'; cx.lineWidth = 2.5; cx.beginPath();
+            let x = x0, y = y0, first = true;
+            for (let s = 0; s < 300; s++) { if (x < xMin || x > xMax || y < yMin || y > yMax) { break; } let px = tx(x), py = ty(y); if (first) { cx.moveTo(px, py); first = false; } else cx.lineTo(px, py); let k = evalF(expr, x, y); y += h * k; x += h; }
+            x = x0; y = y0; first = true;
+            for (let s = 0; s < 300; s++) { if (x < xMin || x > xMax || y < yMin || y > yMax) { break; } let px = tx(x), py = ty(y); if (first) { cx.moveTo(px, py); first = false; } else cx.lineTo(px, py); let k = evalF(expr, x, y); y -= h * k; x -= h; }
+            cx.stroke();
+            cx.beginPath(); cx.arc(tx(x0), ty(y0), 5, 0, Math.PI * 2); cx.fillStyle = '#22c55e'; cx.fill();
+        }
+
+        // ---- RK4 ----
+        function runRK() {
+            let expr = document.getElementById('rkFx').value;
+            let x0 = parseFloat(document.getElementById('rkX0').value) || 0;
+            let y0 = parseFloat(document.getElementById('rkY0').value) || 1;
+            let h = parseFloat(document.getElementById('rkH').value) || 0.1;
+            let xTarget = parseFloat(document.getElementById('rkXn').value) || 2;
+            let n = Math.round((xTarget - x0) / h);
+            let xe = x0, ye = y0, xr = x0, yr = y0;
+            let eulerPts = [{ x: x0, ye: y0 }], rkPts = [{ x: x0, yr: y0 }];
+            let rows = '';
+            for (let i = 0; i < n; i++) {
+                rows += `<tr class="border-t border-gray-800"><td class="px-3 py-1 border border-gray-700">${xe.toFixed(4)}</td><td class="px-3 py-1 border border-gray-700">${ye.toFixed(8)}</td><td class="px-3 py-1 border border-gray-700">${yr.toFixed(8)}</td></tr>`;
+                // Euler
+                ye += h * evalF(expr, xe, ye); xe += h;
+                // RK4
+                let k1 = evalF(expr, xr, yr), k2 = evalF(expr, xr + h / 2, yr + h / 2 * k1);
+                let k3 = evalF(expr, xr + h / 2, yr + h / 2 * k2), k4 = evalF(expr, xr + h, yr + h * k3);
+                yr += h * (k1 + 2 * k2 + 2 * k3 + k4) / 6; xr += h;
+                eulerPts.push({ x: xe, ye }); rkPts.push({ x: xr, yr });
+            }
+            document.getElementById('rkEuler').innerText = ye.toFixed(10);
+            document.getElementById('rkRK4').innerText = yr.toFixed(10);
+            document.getElementById('rkTable').innerHTML = `<tr class="bg-gray-900"><th class="px-3 py-1 text-green-400 border border-gray-700">x</th><th class="px-3 py-1 text-green-400 border border-gray-700">Euler y</th><th class="px-3 py-1 text-green-400 border border-gray-700">RK4 y</th></tr>${rows}`;
+            // Canvas
+            const c = document.getElementById('rkCanvas'); c.width = c.offsetWidth; c.height = 240;
+            const cx = c.getContext('2d'), W2 = c.width, H2 = 240, pad = 30;
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W2, H2);
+            let allY = [...eulerPts.map(p => p.ye), ...rkPts.map(p => p.yr)].filter(isFinite);
+            let minY = Math.min(...allY) - 0.5, maxY = Math.max(...allY) + 0.5;
+            const tx2 = v => pad + (v - x0) / (xTarget - x0) * (W2 - pad - 10), ty2 = v => H2 - pad - (v - minY) / (maxY - minY) * (H2 - 2 * pad);
+            cx.strokeStyle = '#334155'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(pad, H2 - pad); cx.lineTo(W2 - 10, H2 - pad); cx.stroke();
+            [[eulerPts.map(p => ({ x: p.x, y: p.ye })), '#60a5fa', 'Euler'], [rkPts.map(p => ({ x: p.x, y: p.yr })), '#22c55e', 'RK4']].forEach(([pts, col, lbl], i) => {
+                cx.strokeStyle = col; cx.lineWidth = 2; cx.beginPath(); pts.forEach((p, j) => { let y = isFinite(p.y) ? p.y : null; if (y === null) return; j === 0 ? cx.moveTo(tx2(p.x), ty2(y)) : cx.lineTo(tx2(p.x), ty2(y)); }); cx.stroke();
+                cx.fillStyle = col; cx.font = '10px monospace'; cx.fillText(lbl, pad + 5 + (i ? 60 : 0), pad + 12);
+            });
+        }
+
+        // ---- PHASE PLANE ----
+        function drawPhase() {
+            const c = document.getElementById('ppCanvas'); c.width = c.offsetWidth; c.height = 400;
+            const cx = c.getContext('2d'), W = c.width, H = c.height;
+            let fExpr = document.getElementById('ppF').value, gExpr = document.getElementById('ppG').value;
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let xMin = -3, xMax = 3, yMin = -3, yMax = 3;
+            const tx = v => ((v - xMin) / (xMax - xMin)) * (W - 20) + 10, ty = v => H - 10 - ((v - yMin) / (yMax - yMin)) * (H - 20);
+            cx.strokeStyle = '#1e293b'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(tx(0), 10); cx.lineTo(tx(0), H - 10); cx.stroke(); cx.beginPath(); cx.moveTo(10, ty(0)); cx.lineTo(W - 10, ty(0)); cx.stroke();
+            // Vector field
+            let nx = 15, ny = 15, maxLen = 18;
+            for (let i = 0; i <= nx; i++) for (let j = 0; j <= ny; j++) {
+                let x = xMin + i * (xMax - xMin) / nx, y = yMin + j * (yMax - yMin) / ny;
+                let fx = evalF(fExpr, x, y), gy = evalF(gExpr, x, y);
+                if (!isFinite(fx) || !isFinite(gy)) continue;
+                let mag = Math.hypot(fx, gy) || 1, nx2 = fx / mag, ny2 = gy / mag;
+                let scale = Math.min(maxLen, maxLen / (1 + mag * 0.2));
+                let px = tx(x), py = ty(y);
+                cx.strokeStyle = `hsla(${140 + mag * 20},60%,60%,0.5)`; cx.lineWidth = 1;
+                cx.beginPath(); cx.moveTo(px, py); cx.lineTo(px + nx2 * scale, py - ny2 * scale); cx.stroke();
+            }
+            // Multiple trajectories
+            const ics = [[0.5, 0.5], [1, 1], [2, 1], [0.5, 2], [1.5, 0.5]];
+            const cols = ['#22c55e', '#60a5fa', '#f87171', '#fbbf24', '#c084fc'];
+            ics.forEach(([x0ic, y0ic], ci) => {
+                cx.strokeStyle = cols[ci % cols.length]; cx.lineWidth = 1.5; cx.beginPath();
+                let x = x0ic, y = y0ic, h = 0.02, f = true;
+                for (let s = 0; s < 2000; s++) {
+                    if (x < xMin - .5 || x > xMax + .5 || y < yMin - .5 || y > yMax + .5) break;
+                    let px = tx(x), py = ty(y);
+                    if (f) { cx.moveTo(px, py); f = false; } else cx.lineTo(px, py);
+                    let fx = evalF(fExpr, x, y), gy = evalF(gExpr, x, y);
+                    if (!isFinite(fx) || !isFinite(gy)) break;
+                    x += h * fx; y += h * gy;
+                }
+                cx.stroke();
+            });
+        }
+
+        // ---- SEPARABLE ----
+        function drawSep() {
+            const c = document.getElementById('sepCanvas'); c.width = c.offsetWidth; c.height = 360;
+            const cx = c.getContext('2d'), W = c.width, H = c.height;
+            let fExpr = document.getElementById('sepFx').value, gExpr = document.getElementById('sepGy').value;
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let xMin = -3, xMax = 3, yMin = -4, yMax = 4;
+            const tx = v => ((v - xMin) / (xMax - xMin)) * (W - 20) + 10, ty = v => H - 10 - ((v - yMin) / (yMax - yMin)) * (H - 20);
+            cx.strokeStyle = '#334155'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(tx(0), 10); cx.lineTo(tx(0), H - 10); cx.stroke(); cx.beginPath(); cx.moveTo(10, ty(0)); cx.lineTo(W - 10, ty(0)); cx.stroke();
+            const ics = [-3, -2, -1, 0, 1, 2, 3];
+            const cols2 = ['#f87171', '#fb923c', '#fbbf24', '#22c55e', '#60a5fa', '#c084fc', '#f472b6'];
+            ics.forEach((y0ic, ci) => {
+                cx.strokeStyle = cols2[ci]; cx.lineWidth = 2; cx.beginPath();
+                let x = 0, y = y0ic, h = 0.05, f = true;
+                for (let s = 0; s < 200; s++) {
+                    if (x < xMin || x > xMax || y < yMin || y > yMax) break;
+                    let px = tx(x), py = ty(y); if (f) { cx.moveTo(px, py); f = false; } else cx.lineTo(px, py);
+                    let gy = evalF(gExpr, 0, y), fx2 = evalF(fExpr, x, 0);
+                    if (!isFinite(gy) || !isFinite(fx2)) break;
+                    y += h * (fx2 * gy); x += h;
+                }
+                x = 0; y = y0ic; f = true;
+                for (let s = 0; s < 200; s++) {
+                    if (x < xMin || x > xMax || y < yMin || y > yMax) break;
+                    let px = tx(x), py = ty(y); if (f) { cx.moveTo(px, py); f = false; } else cx.lineTo(tx(x), ty(y));
+                    let gy = evalF(gExpr, 0, y), fx2 = evalF(fExpr, x, 0);
+                    if (!isFinite(gy) || !isFinite(fx2)) break;
+                    y -= h * (fx2 * gy); x -= h;
+                }
+                cx.stroke();
+            });
+        }
+
+        drawField();
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

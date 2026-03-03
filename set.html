@@ -1,0 +1,270 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Set Theory - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .s-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            color: white;
+            border-radius: 0.5rem;
+            padding: 0.6rem 0.75rem;
+            width: 100%;
+            transition: 0.2s;
+            font-family: monospace;
+        }
+
+        .s-input:focus {
+            border-color: #818cf8;
+            outline: none;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+        }
+
+        .op-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            background: rgba(0, 0, 0, 0.4);
+            color: #c7d2fe;
+            font-weight: bold;
+            transition: 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .op-btn:hover {
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        .op-btn.active {
+            background: #4f46e5;
+            color: white;
+            border-color: #818cf8;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6 relative">
+        <h2
+            class="text-3xl md:text-5xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-indigo-500 pb-2">
+            <i class="fas fa-circle-half-stroke text-violet-400"></i> Set Theory Engine
+        </h2>
+
+        <!-- Set Inputs -->
+        <div class="bg-gray-900/50 p-6 rounded-2xl border border-violet-500/30 flex flex-col gap-4">
+            <h3 class="text-violet-300 font-bold text-xl">Define Sets (comma-separated values)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="text-xs text-violet-400 font-bold uppercase tracking-widest block mb-1">Set A</label>
+                    <input type="text" id="setA" class="s-input !border-violet-500/60" value="1, 2, 3, 4, 5"
+                        oninput="compute()">
+                </div>
+                <div>
+                    <label class="text-xs text-indigo-400 font-bold uppercase tracking-widest block mb-1">Set B</label>
+                    <input type="text" id="setB" class="s-input !border-indigo-500/60" value="3, 4, 5, 6, 7"
+                        oninput="compute()">
+                </div>
+                <div>
+                    <label class="text-xs text-cyan-400 font-bold uppercase tracking-widest block mb-1">Set C
+                        (optional)</label>
+                    <input type="text" id="setC" class="s-input !border-cyan-500/60" value="5, 6, 7, 8, 9"
+                        placeholder="optional" oninput="compute()">
+                </div>
+            </div>
+
+            <!-- Universal Set -->
+            <div>
+                <label class="text-xs text-gray-400 font-bold uppercase tracking-widest block mb-1">Universal Set U
+                    (optional — for complements)</label>
+                <input type="text" id="setU" class="s-input" value="1, 2, 3, 4, 5, 6, 7, 8, 9, 10" oninput="compute()">
+            </div>
+        </div>
+
+        <!-- Operation Buttons -->
+        <div class="flex flex-wrap gap-2">
+            <button class="op-btn active" onclick="setOp('union_ab', this)">A ∪ B</button>
+            <button class="op-btn" onclick="setOp('inter_ab', this)">A ∩ B</button>
+            <button class="op-btn" onclick="setOp('diff_ab', this)">A − B</button>
+            <button class="op-btn" onclick="setOp('diff_ba', this)">B − A</button>
+            <button class="op-btn" onclick="setOp('sym_diff', this)">A △ B (Sym. Diff)</button>
+            <button class="op-btn" onclick="setOp('comp_a', this)">A' (Complement)</button>
+            <button class="op-btn" onclick="setOp('comp_b', this)">B' (Complement)</button>
+            <button class="op-btn" onclick="setOp('union_abc', this)">A ∪ B ∪ C</button>
+            <button class="op-btn" onclick="setOp('inter_abc', this)">A ∩ B ∩ C</button>
+            <button class="op-btn" onclick="setOp('cartesian', this)">A × B (Cartesian)</button>
+            <button class="op-btn" onclick="setOp('power', this)">𝒫(A) (Power Set)</button>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-6">
+            <!-- Results -->
+            <div
+                class="flex-1 bg-black/50 border border-violet-500/40 rounded-xl p-6 shadow-[inset_0_0_20px_rgba(0,0,0,0.8)] flex flex-col gap-4">
+                <div>
+                    <span
+                        class="text-[10px] text-gray-500 uppercase font-bold tracking-widest block mb-1">Operation</span>
+                    <span id="opLabel" class="text-violet-300 font-bold text-lg">A ∪ B</span>
+                </div>
+                <div>
+                    <span class="text-[10px] text-gray-500 uppercase font-bold tracking-widest block mb-1">Result
+                        Set</span>
+                    <span id="result" class="text-white font-mono font-bold text-lg leading-loose">{}</span>
+                </div>
+                <div>
+                    <span class="text-[10px] text-gray-500 uppercase font-bold tracking-widest block mb-1">Cardinality
+                        |R|</span>
+                    <span id="card" class="text-2xl font-mono text-violet-300 font-bold">0</span>
+                </div>
+
+                <!-- Set Properties -->
+                <div class="border-t border-gray-700 pt-4 grid grid-cols-2 gap-2 text-sm">
+                    <div class="bg-black/40 p-2 rounded-lg"><span class="text-gray-500">|A| =</span> <span id="cardA"
+                            class="text-violet-200 font-mono font-bold">0</span></div>
+                    <div class="bg-black/40 p-2 rounded-lg"><span class="text-gray-500">|B| =</span> <span id="cardB"
+                            class="text-indigo-200 font-mono font-bold">0</span></div>
+                    <div class="bg-black/40 p-2 rounded-lg col-span-2">
+                        <span class="text-gray-500">A ⊆ B?</span> <span id="subsetAB"
+                            class="font-bold text-emerald-300">—</span>
+                        <span class="text-gray-500 ml-4">B ⊆ A?</span> <span id="subsetBA"
+                            class="font-bold text-emerald-300">—</span>
+                    </div>
+                    <div class="bg-black/40 p-2 rounded-lg col-span-2"><span class="text-gray-500">A ∩ B = ∅?
+                            (Disjoint?)</span> <span id="disjoint" class="font-bold text-yellow-300">—</span></div>
+                </div>
+            </div>
+
+            <!-- Venn Diagram Canvas -->
+            <div
+                class="flex-1 bg-black/60 rounded-2xl border border-gray-700 p-2 shadow-[inset_0_0_20px_rgba(0,0,0,0.9)] flex flex-col items-center">
+                <canvas id="vennCanvas" class="w-full rounded-xl" style="max-height: 320px;"></canvas>
+                <p class="text-xs text-gray-600 mt-1 italic">Dynamic Venn Diagram</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        let currentOp = 'union_ab';
+
+        function parseSet(id) {
+            let raw = document.getElementById(id).value;
+            if (!raw.trim()) return [];
+            return [...new Set(raw.split(',').map(x => x.trim()).filter(x => x !== ''))];
+        }
+
+        function setOp(op, btn) {
+            currentOp = op;
+            document.querySelectorAll('.op-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            compute();
+        }
+
+        const ops = {
+            union_ab: (A, B, C, U) => [...new Set([...A, ...B])],
+            inter_ab: (A, B, C, U) => A.filter(x => B.includes(x)),
+            diff_ab: (A, B, C, U) => A.filter(x => !B.includes(x)),
+            diff_ba: (A, B, C, U) => B.filter(x => !A.includes(x)),
+            sym_diff: (A, B, C, U) => [...A.filter(x => !B.includes(x)), ...B.filter(x => !A.includes(x))],
+            comp_a: (A, B, C, U) => U.filter(x => !A.includes(x)),
+            comp_b: (A, B, C, U) => U.filter(x => !B.includes(x)),
+            union_abc: (A, B, C, U) => [...new Set([...A, ...B, ...C])],
+            inter_abc: (A, B, C, U) => A.filter(x => B.includes(x) && C.includes(x)),
+            cartesian: (A, B, C, U) => A.flatMap(a => B.map(b => `(${a},${b})`)),
+            power: (A, B, C, U) => {
+                let ps = [[]]; A.forEach(e => ps = [...ps, ...ps.map(s => [...s, e])]);
+                return ps.map(s => '{' + s.join(',') + '}');
+            }
+        };
+
+        const opLabels = {
+            union_ab: 'A ∪ B', inter_ab: 'A ∩ B', diff_ab: 'A − B', diff_ba: 'B − A',
+            sym_diff: 'A △ B (Symmetric Difference)', comp_a: "A' (Complement A in U)",
+            comp_b: "B' (Complement B in U)", union_abc: 'A ∪ B ∪ C', inter_abc: 'A ∩ B ∩ C',
+            cartesian: 'A × B (Cartesian Product)', power: '𝒫(A) (Power Set)'
+        };
+
+        function compute() {
+            let A = parseSet('setA'), B = parseSet('setB'), C = parseSet('setC'), U = parseSet('setU');
+            let res = ops[currentOp](A, B, C, U);
+
+            // Display
+            let label = currentOp === 'cartesian' ? 'A × B' : currentOp === 'power' ? '𝒫(A)' : res.length <= 30 ? `{${res.join(', ')}}` : '{' + res.slice(0, 30).join(', ') + ', … (' + res.length + ' total)}';
+            document.getElementById('opLabel').innerText = opLabels[currentOp];
+            document.getElementById('result').innerText = label;
+            document.getElementById('card').innerText = res.length;
+            document.getElementById('cardA').innerText = A.length;
+            document.getElementById('cardB').innerText = B.length;
+            document.getElementById('subsetAB').innerText = A.every(x => B.includes(x)) ? '✓ Yes' : '✗ No';
+            document.getElementById('subsetBA').innerText = B.every(x => A.includes(x)) ? '✓ Yes' : '✗ No';
+            document.getElementById('disjoint').innerText = A.filter(x => B.includes(x)).length === 0 ? '✓ Yes (Disjoint)' : '✗ No';
+
+            drawVenn(A, B, C);
+        }
+
+        function drawVenn(A, B, C) {
+            const canvas = document.getElementById('vennCanvas');
+            const W = canvas.parentElement.clientWidth - 8;
+            canvas.width = W; canvas.height = 300;
+            const cx = canvas.getContext('2d');
+            cx.clearRect(0, 0, W, 300);
+            cx.fillStyle = '#0f172a'; cx.fillRect(0, 0, W, 300);
+
+            let useThree = C.length > 0;
+            let cx2 = W / 2, cy = 145;
+            let r = Math.min(W * 0.28, 100);
+
+            // Draw operations highlight
+            let inter_ab = A.filter(x => B.includes(x));
+            let only_a = A.filter(x => !B.includes(x));
+            let only_b = B.filter(x => !A.includes(x));
+
+            // Circle positions
+            let ax, ay, bx, by, ccx, ccy;
+            if (!useThree) {
+                ax = cx2 - r * 0.55; ay = cy;
+                bx = cx2 + r * 0.55; by = cy;
+                ccx = 0; ccy = 0;
+            } else {
+                ax = cx2 - r * 0.6; ay = cy - r * 0.25;
+                bx = cx2 + r * 0.6; by = cy - r * 0.25;
+                ccx = cx2; ccy = cy + r * 0.6;
+            }
+
+            function drawCirc(x, y, color, alpha) {
+                cx.beginPath(); cx.arc(x, y, r, 0, Math.PI * 2);
+                cx.fillStyle = color.replace(')', `,${alpha})`).replace('rgb', 'rgba');
+                cx.fill();
+                cx.strokeStyle = color; cx.lineWidth = 2; cx.stroke();
+            }
+
+            drawCirc(ax, ay, 'rgb(139,92,246)', 0.18);
+            drawCirc(bx, by, 'rgb(99,102,241)', 0.18);
+            if (useThree) drawCirc(ccx, ccy, 'rgb(34,211,238)', 0.18);
+
+            // Labels
+            cx.fillStyle = '#e2e8f0'; cx.font = 'bold 14px sans-serif'; cx.textAlign = 'center';
+            cx.fillText('A', ax, ay - r - 8);
+            cx.fillText('B', bx, by - r - 8);
+            if (useThree) cx.fillText('C', ccx, ccy + r + 16);
+
+            // Display element counts in regions
+            cx.font = '11px monospace'; cx.fillStyle = '#e2e8f0';
+            cx.fillText(`${only_a.length}`, ax - r * 0.3, ay);
+            cx.fillText(`|A∩B|=${inter_ab.length}`, cx2, ay);
+            cx.fillText(`${only_b.length}`, bx + r * 0.3, by);
+        }
+
+        // Init
+        compute();
+        window.addEventListener('resize', compute);
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

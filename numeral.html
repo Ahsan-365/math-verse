@@ -1,0 +1,442 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Systems - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-btn {
+            padding: .55rem 1rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .8rem;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            background: rgba(16, 185, 129, 0.1);
+            color: #34d399;
+        }
+
+        .tab-btn.active {
+            background: rgba(16, 185, 129, 0.25);
+            color: white;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
+            border-color: #10b981;
+        }
+
+        .n-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            font-family: monospace;
+            width: 100%;
+            transition: .2s;
+        }
+
+        .n-input:focus {
+            border-color: #34d399;
+            outline: none;
+            box-shadow: 0 0 10px rgba(52, 211, 153, 0.3);
+        }
+
+        .calc-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: .35rem;
+        }
+
+        .calc-btn {
+            padding: .75rem 0;
+            text-align: center;
+            border-radius: .4rem;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: .2s;
+            background: rgba(0, 0, 0, 0.5);
+            color: #e2e8f0;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .calc-btn:hover {
+            background: rgba(16, 185, 129, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .calc-btn.btn-op {
+            background: rgba(16, 185, 129, 0.1);
+            color: #34d399;
+        }
+
+        .calc-btn.btn-eq {
+            background: #10b981;
+            color: white;
+        }
+
+        .calc-btn.btn-clear {
+            background: rgba(239, 68, 68, 0.1);
+            color: #f87171;
+        }
+
+        .calc-btn.col-span-2 {
+            grid-column: span 2;
+        }
+
+        .display-box {
+            min-height: 4.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-end;
+            padding: .75rem 1rem;
+            font-family: monospace;
+            font-size: 1.8rem;
+            word-break: break-all;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: .5rem;
+            margin-bottom: .75rem;
+        }
+
+        .abacus-frame {
+            background: #5c4033;
+            padding: 10px;
+            border-radius: 8px;
+            border: 4px solid #3e2723;
+            display: flex;
+            gap: 8px;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, .8);
+        }
+
+        .abacus-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 40px;
+            position: relative;
+        }
+
+        .abacus-rod {
+            position: absolute;
+            width: 4px;
+            background: #8d6e63;
+            height: 100%;
+            z-index: 1;
+            left: 18px;
+        }
+
+        .abacus-bar {
+            width: 100%;
+            height: 6px;
+            background: #fff8e1;
+            margin: 4px 0;
+            z-index: 2;
+            border-radius: 2px;
+        }
+
+        .abacus-bead {
+            width: 36px;
+            height: 16px;
+            background: radial-gradient(circle at 30% 30%, #ffd54f, #ffb300);
+            border-radius: 50% 50% 50% 50%/60% 60% 40% 40%;
+            z-index: 3;
+            cursor: pointer;
+            transition: transform .15s;
+            box-shadow: 0 2px 3px rgba(0, 0, 0, .5);
+            margin: 2px 0;
+        }
+
+        .top-bead {
+            transform: translateY(-8px);
+        }
+
+        .top-bead.active {
+            transform: translateY(4px);
+        }
+
+        .bot-bead {
+            transform: translateY(8px);
+        }
+
+        .bot-bead.active {
+            transform: translateY(-4px);
+        }
+
+        @media(max-width:640px) {
+            .calc-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-500 pb-2">
+            <i class="fas fa-hashtag text-emerald-400"></i> Number Systems Engine
+        </h2>
+        <div class="flex flex-wrap justify-center gap-1.5 bg-black/40 p-2 rounded-full border border-emerald-500/30">
+            <button class="tab-btn active" onclick="switchTab('basecalc',this)">Base Calculator</button>
+            <button class="tab-btn" onclick="switchTab('convert',this)">Base Converter</button>
+            <button class="tab-btn" onclick="switchTab('exotic',this)">Exotic Bases</button>
+            <button class="tab-btn" onclick="switchTab('roman',this)">Roman Numerals</button>
+            <button class="tab-btn" onclick="switchTab('egypt',this)">Egyptian Fractions</button>
+            <button class="tab-btn" onclick="switchTab('abacus',this)">Abacus</button>
+        </div>
+        <div
+            class="bg-gray-900/50 p-4 rounded-2xl border border-emerald-500/30 flex items-center justify-between gap-4 max-w-2xl mx-auto w-full">
+            <div>
+                <h3 class="text-emerald-300 font-bold text-base">Number Systems AI Guide</h3>
+                <p class="text-xs text-gray-400 mt-0.5">Ask the AI about radices, conversion algorithms, or the history
+                    of ancient number systems.</p>
+            </div>
+            <button class="mv-ai-btn flex-shrink-0" onclick="openNumeralAI()">🤖 Ask AI</button>
+        </div>
+        <div id="errBox"
+            class="hidden text-rose-400 bg-rose-900/30 border border-rose-500/50 p-2 rounded-xl text-sm text-center">
+        </div>
+
+        <!-- Tab 1: Base Calculator -->
+        <div id="tab-basecalc" class="tab-content flex flex-col gap-3 max-w-xl mx-auto w-full">
+            <div><label class="text-xs text-gray-400">Calculation Base (2–64)</label>
+                <select id="base-select" class="n-input mt-1" onchange="changeBase()"></select>
+            </div>
+            <div class="display-box">
+                <div id="bc-sub" class="text-sm text-gray-400 text-right"></div>
+                <div id="bc-display">0</div>
+            </div>
+            <div class="calc-grid" id="btn-grid"></div>
+        </div>
+
+        <!-- Tab 2: Base Converter -->
+        <div id="tab-convert" class="tab-content hidden flex flex-col gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-gray-900/50 p-5 rounded-2xl border border-emerald-500/30 flex flex-col gap-3">
+                    <h3 class="text-emerald-300 font-bold">Standard Radix Converter</h3>
+                    <div><label class="text-xs text-gray-400">Number</label><input type="text" id="stdInput"
+                            class="n-input mt-1" placeholder="e.g. 1011.01 or F4A"></div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="text-xs text-gray-400">From base</label><input type="number" id="stdFrom"
+                                class="n-input mt-1 text-center" value="2" min="2" max="64"></div>
+                        <div><label class="text-xs text-gray-400">To base</label><input type="number" id="stdTo"
+                                class="n-input mt-1 text-center" value="10" min="2" max="64"></div>
+                    </div>
+                    <button class="btn bg-emerald-700 hover:bg-emerald-600 font-bold"
+                        onclick="convertStd()">Convert</button>
+                    <div id="stdOut"
+                        class="bg-black/40 p-3 rounded-xl text-2xl font-mono text-cyan-300 text-center min-h-12">—</div>
+                </div>
+                <div class="bg-gray-900/50 p-5 rounded-2xl border border-teal-500/30 flex flex-col gap-3">
+                    <h3 class="text-teal-300 font-bold">Negative Bases</h3>
+                    <p class="text-xs text-gray-400">Negative bases represent all integers without a minus sign.</p>
+                    <div><label class="text-xs text-gray-400">Decimal integer</label><input type="number" id="negaIn"
+                            class="n-input mt-1 text-center text-xl" value="-42"></div>
+                    <div class="flex gap-2">
+                        <button class="btn bg-teal-700 hover:bg-teal-600 font-bold flex-1 text-xs"
+                            onclick="convertNega(-2)">Base −2</button>
+                        <button class="btn bg-cyan-700 hover:bg-cyan-600 font-bold flex-1 text-xs"
+                            onclick="convertNega(-10)">Base −10</button>
+                    </div>
+                    <div id="negaOut"
+                        class="bg-black/40 p-3 rounded-xl text-2xl font-mono text-teal-300 text-center min-h-12">—</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Exotic Bases -->
+        <div id="tab-exotic" class="tab-content hidden grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-amber-500/30 flex flex-col gap-3 text-center">
+                <h3 class="text-amber-300 font-bold">Bijective Base-26</h3>
+                <p class="text-xs text-gray-400">Uses A–Z without zero (like Excel columns). Only positive integers.</p>
+                <input type="number" id="bijIn" class="n-input text-center text-xl" value="2026" min="1">
+                <button class="btn bg-amber-700 hover:bg-amber-600 font-bold"
+                    onclick="convertBij()">Alphabetize</button>
+                <div id="bijOut" class="bg-black/40 p-3 rounded-xl text-2xl font-mono text-amber-200 min-h-12">—</div>
+            </div>
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-fuchsia-500/30 flex flex-col gap-3 text-center">
+                <h3 class="text-fuchsia-300 font-bold">Phinary (Base-φ)</h3>
+                <p class="text-xs text-gray-400">Uses Golden Ratio φ ≈ 1.618 as a base. No two consecutive 1s in
+                    standard form.</p>
+                <input type="number" id="phiIn" class="n-input text-center text-xl" value="14" min="1">
+                <button class="btn bg-fuchsia-700 hover:bg-fuchsia-600 font-bold" onclick="convertPhi()">Golden
+                    Map</button>
+                <div id="phiOut" class="bg-black/40 p-3 rounded-xl text-2xl font-mono text-fuchsia-200 min-h-12">—</div>
+            </div>
+        </div>
+
+        <!-- Tab 4: Roman Numerals -->
+        <div id="tab-roman" class="tab-content hidden flex flex-col gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-gray-900/50 p-5 rounded-2xl border border-yellow-500/30 flex flex-col gap-3">
+                    <h3 class="text-yellow-300 font-bold">Translation</h3>
+                    <div><label class="text-xs text-gray-400">Decimal → Roman</label>
+                        <div class="flex gap-2 mt-1"><input type="number" id="decInput" class="n-input"
+                                placeholder="2024"><button class="btn bg-yellow-700 hover:bg-yellow-600 font-bold px-4"
+                                onclick="decToRom()">→</button></div>
+                        <div id="romOut"
+                            class="mt-1 p-2 bg-black/40 border border-gray-700 text-yellow-200 font-mono text-xl rounded min-h-10">
+                        </div>
+                    </div>
+                    <div><label class="text-xs text-gray-400">Roman → Decimal</label>
+                        <div class="flex gap-2 mt-1"><input type="text" id="romInput" class="n-input uppercase"
+                                placeholder="MMXXIV"><button
+                                class="btn bg-orange-700 hover:bg-orange-600 font-bold px-4"
+                                onclick="romToDec()">→</button></div>
+                        <div id="decOut"
+                            class="mt-1 p-2 bg-black/40 border border-gray-700 text-orange-200 font-mono text-xl rounded min-h-10">
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-900/50 p-5 rounded-2xl border border-orange-500/30 flex flex-col gap-3">
+                    <h3 class="text-orange-300 font-bold">Roman Arithmetic</h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="calcR1" class="n-input uppercase text-center" placeholder="XIV">
+                        <input type="text" id="calcR2" class="n-input uppercase text-center" placeholder="VI">
+                    </div>
+                    <div class="flex gap-2">
+                        <select id="calcOp" class="n-input w-16 text-center font-bold text-xl">
+                            <option>+</option>
+                            <option>-</option>
+                            <option>*</option>
+                            <option>/</option>
+                        </select>
+                        <button
+                            class="btn bg-gradient-to-r from-yellow-700 to-orange-700 hover:brightness-110 font-bold flex-1"
+                            onclick="calcRoman()">Calculate</button>
+                    </div>
+                    <div class="bg-black/40 p-4 rounded-xl text-center">
+                        <div id="calcResRom" class="text-3xl font-black text-yellow-400">—</div>
+                        <div id="calcResDec" class="text-sm text-gray-400 mt-1"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 5: Egyptian Fractions -->
+        <div id="tab-egypt" class="tab-content hidden flex flex-col items-center gap-4">
+            <div
+                class="bg-gray-900/50 p-6 rounded-2xl border border-amber-500/30 w-full max-w-2xl text-center flex flex-col gap-4">
+                <h3 class="text-amber-300 font-bold text-xl">Eye of Horus Fractions</h3>
+                <p class="text-xs text-gray-400">Egyptians expressed all fractions as sums of distinct unit fractions
+                    1/n. Uses the Fibonacci greedy algorithm.</p>
+                <div class="flex items-center justify-center gap-4 text-3xl font-bold text-white">
+                    <div class="flex flex-col gap-2 w-24">
+                        <input type="number" id="egyptN" class="n-input text-center text-xl" value="5" min="1">
+                        <div class="h-0.5 bg-amber-500/50 w-full rounded"></div>
+                        <input type="number" id="egyptD" class="n-input text-center text-xl" value="121" min="2">
+                    </div>
+                </div>
+                <button class="btn bg-amber-700 hover:bg-amber-600 font-bold px-10 py-3"
+                    onclick="runEgypt()">Decompose</button>
+            </div>
+            <div class="w-full max-w-2xl bg-black/40 border border-gray-700 rounded-2xl p-5 min-h-24 flex items-center justify-center flex-wrap gap-4"
+                id="egyptOut">
+                <span class="text-gray-600 italic">Decomposition appears here…</span>
+            </div>
+        </div>
+
+        <!-- Tab 6: Abacus -->
+        <div id="tab-abacus" class="tab-content hidden flex flex-col items-center gap-4">
+            <div
+                class="bg-gray-900/50 p-6 rounded-2xl border border-amber-700/50 w-full max-w-3xl text-center flex flex-col items-center gap-4">
+                <h3 class="text-amber-400 font-bold text-xl">Soroban Simulator</h3>
+                <p class="text-xs text-gray-400">Japanese 1/4 abacus. Top bead = 5, Bottom beads = 1. Click beads toward
+                    the center bar to register value.</p>
+                <div class="abacus-frame" id="abacusFrame"></div>
+                <div class="mt-2 p-3 bg-black/40 border border-amber-500/30 rounded-xl min-w-48">
+                    <div class="text-xs text-amber-500 font-bold uppercase tracking-widest mb-1">Total Value</div>
+                    <div id="abacusValue" class="text-4xl font-black text-white font-mono">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        const ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+/";
+        function switchTab(id, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById('tab-' + id).classList.remove('hidden');
+            document.getElementById('errBox').classList.add('hidden');
+            if (id === 'basecalc') renderButtons();
+            if (id === 'abacus' && !document.getElementById('abacusFrame').innerHTML.trim()) initAbacus();
+            window._activeNumeralTab = id;
+            setTimeout(() => { if (window.injectAIButtons) window.injectAIButtons(); }, 100);
+        }
+        window._activeNumeralTab = 'basecalc';
+        function openNumeralAI() {
+            const tabs = { 'basecalc': 'Base Calculator', 'convert': 'Base Converter', 'exotic': 'Exotic & Non-Standard Bases', 'roman': 'Roman Numerals', 'egypt': 'Egyptian unit fractions', 'abacus': 'Abacus & Soroban' };
+            const label = tabs[window._activeNumeralTab] || 'Number Systems';
+            if (window.openMathAI) openMathAI(label, 'Number Systems assistant helping with radices, historical notation, and conversion logic.');
+        }
+        const err = (m) => { const e = document.getElementById('errBox'); e.innerText = m; e.classList.remove('hidden'); };
+        const clearErr = () => document.getElementById('errBox').classList.add('hidden');
+
+        // ======= BASE CALCULATOR =======
+        let currentBase = 10, currentInput = '0', firstOp = null, operator = null, waiting = false;
+        const btnMap = new Map();
+        const layout = [
+            { id: 'AC', text: 'AC', type: 'btn-clear', handler: clearCalc, cls: 'col-span-2' },
+            { id: '/', text: '÷', type: 'btn-op', handler: () => handleOp('divide') },
+            { id: '*', text: '×', type: 'btn-op', handler: () => handleOp('multiply') },
+            { id: '-', text: '−', type: 'btn-op', handler: () => handleOp('subtract') },
+            { id: '+', text: '+', type: 'btn-op', handler: () => handleOp('add') },
+            { id: '=', text: '=', type: 'btn-eq', handler: calculate },
+            { id: '.', text: '.', type: 'btn-op', handler: () => handleDigit('.') },
+        ];
+        for (let i = 0; i < 64; i++)layout.push({ id: ALPHABET[i], text: ALPHABET[i], type: 'digit', handler: () => handleDigit(ALPHABET[i]) });
+        window.onload = () => { populateSel(); createButtons(); renderButtons(); };
+        function populateSel() { const s = document.getElementById('base-select'); s.innerHTML = ''; for (let i = 2; i <= 64; i++) { let t = `Base ${i}`; if (i === 2) t = 'Binary (2)'; if (i === 8) t = 'Octal (8)'; if (i === 10) t = 'Decimal (10)'; if (i === 16) t = 'Hex (16)'; if (i === 64) t = 'Base 64'; s.innerHTML += `<option value="${i}" ${i === 10 ? 'selected' : ''}>${t}</option>`; } }
+        function createButtons() { layout.forEach(b => { const el = document.createElement('button'); el.className = `calc-btn ${b.type || ''} ${b.cls || ''}`; el.textContent = b.text; el.onclick = b.handler; btnMap.set(b.id, el); }); }
+        function renderButtons() { const g = document.getElementById('btn-grid'); g.innerHTML = '';['AC', '/', '*', '-', '+', '='].forEach(id => g.appendChild(btnMap.get(id))); g.appendChild(btnMap.get('.')); for (let i = 0; i < currentBase; i++)g.appendChild(btnMap.get(ALPHABET[i])); }
+        function changeBase() { currentBase = parseInt(document.getElementById('base-select').value); clearCalc(); renderButtons(); }
+        function toDecimal(s, base) { if (!s || s === '0') return 0; let pts = s.split('.'); let d = 0; for (let i = 0; i < pts[0].length; i++)d = d * base + ALPHABET.indexOf(pts[0][i]); if (pts[1]) for (let i = 0; i < pts[1].length; i++)d += ALPHABET.indexOf(pts[1][i]) * Math.pow(base, -(i + 1)); return d; }
+        function fromDecimal(d, base) { if (d === 0) return '0'; let neg = d < 0; if (neg) d = -d; let iP = Math.floor(d), fP = d - iP, res = ''; if (iP === 0) res = '0'; while (iP > 0) { res = ALPHABET[iP % base] + res; iP = Math.floor(iP / base); } if (fP > 1e-10) { res += '.'; for (let i = 0; i < 8; i++) { fP *= base; let dg = Math.floor(fP); res += ALPHABET[dg]; fP -= dg; if (fP < 1e-10) break; } } return (neg ? '-' : '') + res; }
+        function handleDigit(d) { clearErr(); if (d === '.') { if (currentInput.includes('.')) return; if (waiting) { currentInput = '0.'; waiting = false; } else currentInput += '.'; } else { if (waiting || currentInput === '0') { currentInput = d; waiting = false; } else currentInput += d; } updDisp(); }
+        function handleOp(op) { clearErr(); let v = toDecimal(currentInput, currentBase); if (firstOp === null) { firstOp = v; } else if (operator) { let r = doCalc(firstOp, operator, v); if (r === null) return; firstOp = r; currentInput = fromDecimal(r, currentBase); } waiting = true; operator = op; document.getElementById('bc-sub').textContent = `${fromDecimal(firstOp, currentBase)} ${op === 'add' ? '+' : op === 'subtract' ? '−' : op === 'multiply' ? '×' : '÷'}`; updDisp(); }
+        function doCalc(a, op, b) { if (op === 'add') return a + b; if (op === 'subtract') return a - b; if (op === 'multiply') return a * b; if (op === 'divide') { if (b === 0) { err('Div by zero'); return null; } return a / b; } return null; }
+        function calculate() { if (firstOp === null || !operator) return; let v = toDecimal(currentInput, currentBase), r = doCalc(firstOp, operator, v); if (r === null) return; currentInput = fromDecimal(r, currentBase); firstOp = null; operator = null; waiting = true; document.getElementById('bc-sub').textContent = ''; updDisp(); }
+        function clearCalc() { currentInput = '0'; firstOp = null; operator = null; waiting = false; document.getElementById('bc-sub').textContent = ''; clearErr(); updDisp(); }
+        function updDisp() { document.getElementById('bc-display').textContent = currentInput; }
+
+        // ======= BASE CONVERTER =======
+        function convertStd() { clearErr(); let n = document.getElementById('stdInput').value.trim(), f = parseInt(document.getElementById('stdFrom').value), t = parseInt(document.getElementById('stdTo').value); if (!n) return err('Enter a number'); if (isNaN(f) || f < 2 || f > 64 || isNaN(t) || t < 2 || t > 64) return err('Bases must be 2–64'); let neg = n.startsWith('-'); let clean = (neg ? n.slice(1) : n).toUpperCase(); try { let pts = clean.split('.'); let d = 0; for (let i = 0; i < pts[0].length; i++)d = d * f + ALPHABET.toUpperCase().indexOf(pts[0][i]); if (pts[1]) for (let i = 0; i < pts[1].length; i++)d += ALPHABET.toUpperCase().indexOf(pts[1][i]) * Math.pow(f, -(i + 1)); document.getElementById('stdOut').innerText = (neg ? '-' : '') + fromDecimal(d, t); } catch (e) { err('Parse error'); } }
+        function convertNega(base) { clearErr(); let v = parseInt(document.getElementById('negaIn').value); if (isNaN(v)) return err('Invalid integer'); if (v === 0) { document.getElementById('negaOut').innerText = '0'; return; } let res = ''; while (v !== 0) { let r = v % base; v = Math.trunc(v / base); if (r < 0) { r += Math.abs(base); v += 1; } res = r.toString() + res; } document.getElementById('negaOut').innerHTML = `<span class="text-sm text-gray-500 mr-3">Base ${base}:</span>${res}`; }
+        function convertBij() { clearErr(); let v = parseInt(document.getElementById('bijIn').value); if (isNaN(v) || v < 1) return err('Positive integers ≥ 1 only'); let res = ''; while (v > 0) { v--; let r = v % 26; res = String.fromCharCode(65 + r) + res; v = Math.floor(v / 26); } document.getElementById('bijOut').innerText = res; }
+        function convertPhi() { clearErr(); let v = parseInt(document.getElementById('phiIn').value); if (isNaN(v) || v < 1) return err('Positive integer ≥ 1'); const phi = (1 + Math.sqrt(5)) / 2; let maxP = 0; while (Math.pow(phi, maxP) <= v) maxP++; maxP--; let res = '', valR = v, hasDot = false; for (let p = maxP; p >= -10; p--) { if (p === -1 && !hasDot) { res += '.'; hasDot = true; } let pw = Math.pow(phi, p); if (valR + 1e-9 >= pw) { res += '1'; valR -= pw; } else res += '0'; } while (res.includes('.') && res.endsWith('0')) res = res.slice(0, -1); if (res.endsWith('.')) res = res.slice(0, -1); document.getElementById('phiOut').innerText = res; }
+
+        // ======= ROMAN NUMERALS =======
+        const romVals = [{ v: 1000000, s: '_M' }, { v: 900000, s: '_C_M' }, { v: 500000, s: '_D' }, { v: 400000, s: '_C_D' }, { v: 100000, s: '_C' }, { v: 90000, s: '_X_C' }, { v: 50000, s: '_L' }, { v: 40000, s: '_X_L' }, { v: 10000, s: '_X' }, { v: 9000, s: 'I_X' }, { v: 5000, s: '_V' }, { v: 4000, s: 'M_V' }, { v: 1000, s: 'M' }, { v: 900, s: 'CM' }, { v: 500, s: 'D' }, { v: 400, s: 'CD' }, { v: 100, s: 'C' }, { v: 90, s: 'XC' }, { v: 50, s: 'L' }, { v: 40, s: 'XL' }, { v: 10, s: 'X' }, { v: 9, s: 'IX' }, { v: 5, s: 'V' }, { v: 4, s: 'IV' }, { v: 1, s: 'I' }];
+        const romMap = { 'I': 1, 'V': 5, 'X': 10, 'L': 50, 'C': 100, 'D': 500, 'M': 1000, '_I': 1000, '_V': 5000, '_X': 10000, '_L': 50000, '_C': 100000, '_D': 500000, '_M': 1000000, 'S': 0.5, '.': 1 / 12 };
+        function toRoman(num) { if (num <= 0 || num >= 4000000) return null; let res = '', iP = Math.floor(num); for (let o of romVals) while (iP >= o.v) { res += o.s; iP -= o.v; } let frac = num - Math.floor(num); if (frac > 0.01) { let tw = Math.round(frac * 12); if (tw >= 6) { res += 'S'; tw -= 6; } while (tw > 0) { res += '.'; tw--; } } return res || 'nulla'; }
+        function toDec(str) { str = str.toUpperCase().trim(); if (!str) return null; let tokens = []; for (let i = 0; i < str.length; i++) { if (str[i] === '_' && i + 1 < str.length) { tokens.push('_' + str[i + 1]); i++; } else tokens.push(str[i]); } let total = 0; for (let i = 0; i < tokens.length; i++) { let cur = romMap[tokens[i]], nxt = romMap[tokens[i + 1]] || 0; if (!cur) return null; if (cur < nxt) total -= cur; else total += cur; } return total; }
+        function decToRom() { clearErr(); let n = parseFloat(document.getElementById('decInput').value); if (isNaN(n)) return err('Invalid number'); let r = toRoman(n); if (!r) return err('Must be positive and < 4,000,000'); document.getElementById('romOut').innerText = r; }
+        function romToDec() { clearErr(); let d = toDec(document.getElementById('romInput').value); if (d === null) return err('Malformed Roman numeral'); document.getElementById('decOut').innerText = Number.isInteger(d) ? d : d.toFixed(4); }
+        function calcRoman() { clearErr(); let v1 = toDec(document.getElementById('calcR1').value), v2 = toDec(document.getElementById('calcR2').value), op = document.getElementById('calcOp').value; if (v1 === null || v2 === null) return err('Invalid Roman numerals'); let res = op === '+' ? v1 + v2 : op === '-' ? v1 - v2 : op === '*' ? v1 * v2 : v2 === 0 ? (err('Div by zero'), null) : v1 / v2; if (res === null) return; if (res <= 0 || res >= 4000000) return err('Result must be >0 and <4M'); document.getElementById('calcResRom').innerText = toRoman(res); document.getElementById('calcResDec').innerText = Number.isInteger(res) ? res : res.toFixed(4); }
+
+        // ======= EGYPTIAN FRACTIONS =======
+        function solveEgypt(n, d) { if (n === 0n || d === 0n) return []; if (d % n === 0n) return [d / n]; let q = (d + n - 1n) / n; return [q].concat(solveEgypt(n * q - d, d * q)); }
+        function runEgypt() { clearErr(); try { const n = BigInt(parseInt(document.getElementById('egyptN').value)), d = BigInt(parseInt(document.getElementById('egyptD').value)); if (n <= 0n || d <= 0n) throw 0; let arr = n >= d ? [n / d, ...(n % d === 0n ? [] : solveEgypt(n % d, d))] : solveEgypt(n, d); let ht = []; if (n >= d) { ht.push(`<span class="text-3xl text-white font-black">${n / d}</span>`); arr = arr.slice(1); if (arr.length > 0) ht.push(`<span class="text-xl text-amber-500 px-2">+</span>`); } arr.forEach((denom, i) => { ht.push(`<div class="flex flex-col items-center font-bold text-2xl text-amber-300"><span>1</span><div class="h-0.5 bg-gray-500 w-full my-1"></div><span>${denom}</span></div>`); if (i < arr.length - 1) ht.push(`<span class="text-xl text-amber-500 px-2">+</span>`); }); document.getElementById('egyptOut').innerHTML = ht.join(''); } catch (e) { err('Invalid fraction inputs'); } }
+
+        // ======= SOROBAN ABACUS =======
+        const COLS = 9;
+        function initAbacus() { const frame = document.getElementById('abacusFrame'); frame.innerHTML = ''; for (let i = 0; i < COLS; i++) { const cw = document.createElement('div'); cw.className = 'abacus-col'; cw.dataset.col = i; const rod = document.createElement('div'); rod.className = 'abacus-rod'; cw.appendChild(rod); const topB = document.createElement('div'); topB.className = 'abacus-bead top-bead'; topB.onclick = () => { topB.classList.toggle('active'); calcAbacus(); }; cw.appendChild(topB); const bar = document.createElement('div'); bar.className = 'abacus-bar'; cw.appendChild(bar); for (let b = 0; b < 4; b++) { const bb = document.createElement('div'); bb.className = 'abacus-bead bot-bead'; bb.dataset.idx = b; bb.onclick = () => toggleBot(i, b); cw.appendChild(bb); } frame.appendChild(cw); } calcAbacus(); }
+        function toggleBot(ci, bi) { const col = document.querySelectorAll('.abacus-col')[ci]; const bbs = col.querySelectorAll('.bot-bead'); if (bbs[bi].classList.contains('active')) for (let i = bi; i < 4; i++)bbs[i].classList.remove('active'); else for (let i = 0; i <= bi; i++)bbs[i].classList.add('active'); calcAbacus(); }
+        function calcAbacus() { let total = 0n; document.querySelectorAll('.abacus-col').forEach((col, idx) => { let v = 0; if (col.querySelector('.top-bead').classList.contains('active')) v += 5; v += col.querySelectorAll('.bot-bead.active').length; let pw = BigInt(COLS - 1 - idx), m = 1n; for (let p = 0n; p < pw; p++)m *= 10n; total += BigInt(v) * m; }); document.getElementById('abacusValue').innerText = total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

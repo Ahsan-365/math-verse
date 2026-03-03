@@ -1,0 +1,415 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Mathematics - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            font-weight: bold;
+            border-radius: 999px;
+            transition: all 0.3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+        }
+
+        .tab-btn:hover {
+            background: rgba(34, 197, 94, 0.1);
+            color: #4ade80;
+        }
+
+        .tab-btn.active {
+            background: rgba(34, 197, 94, 0.25);
+            color: white;
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.5);
+            border-color: #22c55e;
+        }
+
+        .math-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(34, 197, 94, 0.4);
+            color: white;
+            border-radius: 8px;
+            font-family: monospace;
+            padding: 0.5rem 1rem;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .math-input:focus {
+            border-color: #4ade80;
+            outline: none;
+            box-shadow: 0 0 10px rgba(74, 222, 128, 0.4);
+        }
+
+        .data-table th {
+            background: rgba(20, 83, 45, 0.6);
+            color: #86efac;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            padding: 0.75rem;
+            border-bottom: 2px solid #22c55e;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .data-table td {
+            padding: 0.75rem;
+            font-family: monospace;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .data-table tr:hover td {
+            background: rgba(34, 197, 94, 0.1);
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8">
+    <div class="glass-panel w-full max-w-6xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-8 relative">
+        <h2
+            class="text-3xl md:text-5xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-500 pb-2">
+            <i class="fas fa-chart-line text-emerald-400"></i> Capital Analytics
+        </h2>
+
+        <!-- Tabs -->
+        <div
+            class="flex flex-wrap justify-center gap-4 bg-black/40 p-2 rounded-full border border-green-500/30 mx-auto w-full max-w-3xl">
+            <button class="tab-btn active" onclick="switchTab('growth')">Compound Growth</button>
+            <button class="tab-btn" onclick="switchTab('amort')">Amortization (Mortgage)</button>
+            <button class="tab-btn" onclick="switchTab('infl')">Inflation Time-Shift</button>
+        </div>
+        <div
+            class="bg-gray-900/50 p-4 rounded-2xl border border-green-500/30 flex items-center justify-between gap-4 max-w-2xl mx-auto w-full">
+            <div>
+                <h3 class="text-green-300 font-bold text-base">Financial AI Guide</h3>
+                <p class="text-xs text-gray-400 mt-0.5">Ask about interest formulas, loan structures, or the impact of
+                    inflation.</p>
+            </div>
+            <button class="mv-ai-btn flex-shrink-0" onclick="openFinanceAI()">🤖 Ask AI</button>
+        </div>
+
+        <div id="errorBox"
+            class="hidden text-rose-400 font-bold bg-rose-900/30 border border-rose-500/50 p-3 rounded-xl text-center max-w-lg mx-auto w-full mb-4">
+        </div>
+
+        <!-- Tab 1: Compound Growth -->
+        <div id="tab-growth" class="tab-content flex flex-col lg:flex-row gap-8">
+            <div class="w-full lg:w-1/3 flex flex-col gap-4">
+                <div class="bg-gray-900/50 p-6 rounded-2xl border border-emerald-500/30 shadow-lg">
+                    <h3 class="text-xl font-bold text-emerald-300 border-b border-gray-700 pb-2 mb-4">Investment Engine
+                    </h3>
+                    <div class="grid grid-cols-1 gap-4">
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 uppercase">Initial Principal ($)</label>
+                            <input type="number" id="grP" class="math-input" value="10000" min="0">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 uppercase">Annual Yield (%)</label>
+                            <input type="number" id="grR" class="math-input" value="7.5" step="0.1">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 uppercase">Horizon (Years)</label>
+                            <input type="number" id="grY" class="math-input" value="20" min="1">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 uppercase">Monthly Deposit ($)</label>
+                            <input type="number" id="grM" class="math-input" value="500" min="0">
+                        </div>
+                        <button
+                            class="btn bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 mt-2 shadow-[0_0_15px_rgba(16,185,129,0.4)]"
+                            onclick="runGrowth()">Calculate Projection</button>
+                    </div>
+                </div>
+                <!-- Mini Stats -->
+                <div class="grid grid-cols-2 gap-3 mt-2">
+                    <div class="bg-black/40 p-3 rounded-xl border border-gray-700 text-center"><span
+                            class="block text-[10px] uppercase text-emerald-500 font-bold">Total Future
+                            Value</span><span id="grOutFV" class="text-xl font-bold text-white">$0</span></div>
+                    <div class="bg-black/40 p-3 rounded-xl border border-gray-700 text-center"><span
+                            class="block text-[10px] uppercase text-teal-500 font-bold">Total Interest</span><span
+                            id="grOutInt" class="text-xl font-bold text-white">$0</span></div>
+                </div>
+            </div>
+
+            <div
+                class="flex-1 bg-black/60 border border-gray-700 rounded-2xl p-4 shadow-[inset_0_0_50px_rgba(0,0,0,0.8)] flex flex-col items-center justify-center min-h-[400px]">
+                <canvas id="growthChart" class="w-full h-full"></canvas>
+            </div>
+        </div>
+
+        <!-- Tab 2: Amortization -->
+        <div id="tab-amort" class="tab-content hidden flex flex-col lg:flex-row gap-8">
+            <div class="w-full lg:w-1/3 flex flex-col gap-4">
+                <div class="bg-gray-900/50 p-6 rounded-2xl border border-teal-500/30 shadow-lg">
+                    <h3 class="text-xl font-bold text-teal-300 border-b border-gray-700 pb-2 mb-4">Mortgage / Loan</h3>
+                    <div class="grid grid-cols-1 gap-4">
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 uppercase">Loan Amount ($)</label>
+                            <input type="number" id="amP" class="math-input" value="300000" min="0">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 uppercase">Interest Rate (%)</label>
+                            <input type="number" id="amR" class="math-input" value="6.5" step="0.1">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 uppercase">Loan Term (Years)</label>
+                            <input type="number" id="amY" class="math-input" value="30" min="1">
+                        </div>
+                        <button
+                            class="btn bg-teal-600 hover:bg-teal-500 text-white font-bold py-3 mt-2 shadow-[0_0_15px_rgba(20,184,166,0.4)]"
+                            onclick="runAmort()">Generate Schedule</button>
+                    </div>
+                </div>
+                <!-- Mini Stats -->
+                <div class="bg-teal-900/30 p-4 rounded-xl border border-teal-700 text-center flex flex-col gap-2 mt-2">
+                    <div><span class="text-[10px] uppercase text-teal-300 font-bold tracking-widest block">Monthly
+                            Payment</span><span id="amOutM" class="text-3xl font-black text-white">$0</span></div>
+                    <div class="h-[1px] bg-teal-700/50 w-3/4 mx-auto my-1"></div>
+                    <div><span class="text-[10px] uppercase text-gray-400 font-bold block">Total Interest Paid: <span
+                                id="amOutI" class="text-white text-lg ml-2">$0</span></span></div>
+                </div>
+            </div>
+
+            <div
+                class="flex-1 bg-black/60 border border-gray-700 rounded-2xl shadow-[inset_0_0_30px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col h-[500px]">
+                <div class="overflow-y-auto h-full flex-1 w-full custom-scrollbar">
+                    <table class="w-full text-right text-sm data-table">
+                        <thead>
+                            <tr>
+                                <th class="text-center rounded-tl-lg">Month</th>
+                                <th>Balance Start</th>
+                                <th>Principal Paid</th>
+                                <th>Interest Paid</th>
+                                <th class="rounded-tr-lg">Balance End</th>
+                            </tr>
+                        </thead>
+                        <tbody id="amortTableBody">
+                            <tr>
+                                <td colspan="5" class="text-center text-gray-500 py-10">Generate schedule to view data.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Inflation Time-Shift -->
+        <div id="tab-infl" class="tab-content hidden flex flex-col items-center gap-6">
+            <div
+                class="bg-gray-900/50 p-8 rounded-2xl border border-emerald-700/50 text-center shadow-lg w-full max-w-3xl">
+                <h3 class="text-2xl font-bold text-emerald-400 mb-2">Inflation Time-Machine</h3>
+                <p class="text-xs text-gray-400 mb-8 max-w-lg mx-auto leading-relaxed">Calculate the purchasing power of
+                    money backward or forward in time based on an average annual inflation coefficient.</p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                    <div>
+                        <label class="text-xs font-bold text-gray-400 uppercase">Starting Amount ($)</label>
+                        <input type="number" id="inP" class="math-input text-center text-xl" value="1000" min="0">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-400 uppercase">Avg Annual Inflation (%)</label>
+                        <input type="number" id="inR" class="math-input text-center text-xl" value="3.0" step="0.1">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-400 uppercase">Time Shift (Years)</label>
+                        <input type="number" id="inY" class="math-input text-center text-xl" value="10" min="1">
+                    </div>
+                </div>
+
+                <div class="flex gap-4 w-full">
+                    <button
+                        class="btn border border-emerald-500/50 text-emerald-300 hover:bg-emerald-900/40 font-bold py-3 flex-1"
+                        onclick="runInfl(-1)"><i class="fas fa-history mr-2"></i>Value in Past</button>
+                    <button
+                        class="btn bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 flex-1 shadow-[0_0_15px_rgba(16,185,129,0.4)]"
+                        onclick="runInfl(1)">Value in Future<i class="fas fa-forward ml-2"></i></button>
+                </div>
+            </div>
+
+            <div id="inflOut"
+                class="hidden w-full max-w-3xl bg-black/60 border border-gray-700 rounded-2xl p-6 text-center shadow-[inset_0_0_30px_rgba(0,0,0,0.8)]">
+                <!-- Result injected -->
+            </div>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            if (event) event.currentTarget.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById('tab-' + id).classList.remove('hidden');
+            document.getElementById('errorBox').classList.add('hidden');
+
+            if (id === 'growth') runGrowth();
+            window._activeFinanceTab = id;
+            setTimeout(() => { if (window.injectAIButtons) window.injectAIButtons(); }, 100);
+        }
+        window._activeFinanceTab = 'growth';
+        function openFinanceAI() {
+            const tabs = { 'growth': 'Compound Interest & Growth', 'amort': 'Loan Amortization', 'infl': 'Inflation & Purchasing Power' };
+            const label = tabs[window._activeFinanceTab] || 'Capital Analytics';
+            if (window.openMathAI) openMathAI(label, 'Financial Mathematics Assistant covering interest rates, projections, and economic calculations.');
+        }
+
+        const fmt = (num) => '$' + num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const outError = (msg) => { const eb = document.getElementById('errorBox'); eb.innerText = msg; eb.classList.remove('hidden'); };
+        const clearError = () => document.getElementById('errorBox').classList.add('hidden');
+
+        Chart.defaults.color = '#9ca3af';
+        let grChart = null;
+
+        /* -------------------------------------------------------------------------- */
+        /* Compound Growth                                                            */
+        /* -------------------------------------------------------------------------- */
+        function runGrowth() {
+            clearError();
+            let p = parseFloat(document.getElementById('grP').value);
+            let r = parseFloat(document.getElementById('grR').value) / 100;
+            let y = parseInt(document.getElementById('grY').value);
+            let m = parseFloat(document.getElementById('grM').value);
+
+            if (isNaN(p) || isNaN(r) || isNaN(y) || isNaN(m) || p < 0 || y < 1 || m < 0) return outError("Invalid logic in projections.");
+
+            let labels = [], prinData = [], intData = [];
+            let currentBal = p;
+            let totalContrib = p;
+
+            labels.push('Year 0');
+            prinData.push(totalContrib);
+            intData.push(0);
+
+            for (let year = 1; year <= y; year++) {
+                for (let mo = 1; mo <= 12; mo++) {
+                    currentBal += m;
+                    totalContrib += m;
+                    currentBal *= (1 + r / 12);
+                }
+                labels.push(`Year ${year}`);
+                prinData.push(totalContrib);
+                intData.push(currentBal - totalContrib);
+            }
+
+            document.getElementById('grOutFV').innerText = fmt(currentBal);
+            document.getElementById('grOutInt').innerText = fmt(currentBal - totalContrib);
+
+            const ctx = document.getElementById('growthChart').getContext('2d');
+            if (grChart) grChart.destroy();
+            grChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Principal', data: prinData, backgroundColor: 'rgba(52, 211, 153, 0.8)', stack: 'S1' },
+                        { label: 'Interest', data: intData, backgroundColor: 'rgba(16, 185, 129, 0.4)', stack: 'S1' }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: { tooltip: { callbacks: { label: (ctx) => ctx.dataset.label + ': ' + fmt(ctx.raw) } } },
+                    scales: {
+                        x: { stacked: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        y: { stacked: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { callback: v => '$' + v } }
+                    }
+                }
+            });
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* Amortization                                                               */
+        /* -------------------------------------------------------------------------- */
+        function runAmort() {
+            clearError();
+            let p = parseFloat(document.getElementById('amP').value);
+            let r = parseFloat(document.getElementById('amR').value) / 100 / 12; // monthly rate
+            let y = parseInt(document.getElementById('amY').value);
+            let n = y * 12; // total months
+
+            if (isNaN(p) || isNaN(r) || isNaN(y) || p <= 0 || y <= 0 || r < 0) return outError("Verify mortgage parameters.");
+
+            let mPayment = 0;
+            if (r > 0) mPayment = p * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+            else mPayment = p / n;
+
+            let balance = p;
+            let totalInt = 0;
+            let ht = [];
+
+            for (let mo = 1; mo <= n; mo++) {
+                let startBal = balance;
+                let intPaid = balance * r;
+                let prinPaid = mPayment - intPaid;
+
+                if (balance - prinPaid < 0) prinPaid = balance; // final month adjust
+
+                balance -= prinPaid;
+                totalInt += intPaid;
+
+                ht.push(`
+                    <tr>
+                        <td class="text-center font-bold text-gray-500">${mo}</td>
+                        <td class="text-gray-300 pointer-events-none">${fmt(startBal)}</td>
+                        <td class="text-teal-400 pointer-events-none">${fmt(prinPaid)}</td>
+                        <td class="text-rose-400 pointer-events-none">${fmt(intPaid)}</td>
+                        <td class="text-white font-bold pointer-events-none">${fmt(Math.max(0, balance))}</td>
+                    </tr>
+                `);
+                if (balance <= 0) break;
+            }
+
+            document.getElementById('amortTableBody').innerHTML = ht.join('');
+            document.getElementById('amOutM').innerText = fmt(mPayment);
+            document.getElementById('amOutI').innerText = fmt(totalInt);
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* Inflation                                                                  */
+        /* -------------------------------------------------------------------------- */
+        function runInfl(dir) {
+            clearError();
+            let p = parseFloat(document.getElementById('inP').value);
+            let r = parseFloat(document.getElementById('inR').value) / 100;
+            let y = parseInt(document.getElementById('inY').value);
+
+            if (isNaN(p) || isNaN(r) || isNaN(y) || p <= 0 || y < 1) return outError("Invalid inflation parameters.");
+
+            let res = 0;
+            if (dir === 1) {
+                // Future calculation: Costs going up. Your $X will need to be $Y to buy the SAME goods.
+                res = p * Math.pow(1 + r, y);
+            } else {
+                // Past calculation: Costs were lower. Your $X now could have bought $Y of goods back then.
+                res = p / Math.pow(1 + r, y);
+            }
+
+            const out = document.getElementById('inflOut');
+            let dirTxt = dir === 1 ? `in ${y} years` : `${y} years ago`;
+
+            out.innerHTML = `
+                <div class="text-sm text-gray-400 uppercase tracking-widest mb-2 font-bold">Purchasing Power Equivalent</div>
+                <div class="text-gray-300">To have the same buying power as <span class="text-white font-bold">${fmt(p)}</span> today, <br>you would need <span class="text-emerald-400 font-bold text-3xl mx-2 block mt-2">${fmt(res)}</span> <span class="italic opacity-80">${dirTxt}</span>.</div>
+            `;
+            out.classList.remove('hidden');
+        }
+
+        // Init initially
+        setTimeout(() => runGrowth(), 100);
+
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,279 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Dev Math - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-btn {
+            padding: .55rem 1rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .8rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(52, 211, 153, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(52, 211, 153, 0.25);
+            color: white;
+            border-color: #34d399;
+            box-shadow: 0 0 12px rgba(52, 211, 153, 0.4);
+        }
+
+        .g-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(52, 211, 153, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            font-family: monospace;
+            width: 100%;
+        }
+
+        .g-input:focus {
+            border-color: #6ee7b7;
+            outline: none;
+        }
+
+        .val-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(52, 211, 153, 0.4);
+            border-radius: .75rem;
+            padding: .75rem;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-500 pb-2">
+            <i class="fas fa-gamepad text-emerald-400"></i> Game Development Math
+        </h2>
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-emerald-500/30">
+            <button class="tab-btn active" onclick="switchTab('bezier',this)">BÃ©zier Curves</button>
+            <button class="tab-btn" onclick="switchTab('transform',this)">Transforms</button>
+            <button class="tab-btn" onclick="switchTab('physics',this)">Physics & Projectile</button>
+            <button class="tab-btn" onclick="switchTab('collision',this)">Collision Detection</button>
+        </div>
+
+        <!-- Bezier -->
+        <div id="tab-bezier" class="tab-content flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-emerald-500/30 flex flex-col gap-4">
+                <h3 class="text-emerald-300 font-bold text-xl">BÃ©zier Curve Visualizer</h3>
+                <p class="text-sm text-gray-400">Drag control points on canvas. B(t) = Î£ Báµ¢â¿(t)Â·Páµ¢ where Báµ¢â¿(t) =
+                    C(n,i)Â·tâ±Â·(1âˆ’t)â¿â»â± (Bernstein polynomial)</p>
+                <div class="flex gap-3 items-center flex-wrap">
+                    <div><label class="text-xs text-gray-400">Degree</label>
+                        <select id="bezDeg" class="g-input w-32 mt-1" onchange="initBezier()">
+                            <option value="2">Quadratic (2)</option>
+                            <option value="3" selected>Cubic (3)</option>
+                            <option value="4">Quartic (4)</option>
+                            <option value="5">Quintic (5)</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-2"><input type="checkbox" id="bezSkel" checked
+                            onchange="drawBezier()"><label class="text-xs text-gray-400">Show skeleton</label></div>
+                    <div class="flex items-center gap-2"><input type="checkbox" id="bezPts" checked
+                            onchange="drawBezier()"><label class="text-xs text-gray-400">Show points</label></div>
+                    <div><label class="text-xs text-gray-400">t value</label><input type="range" id="bezT" min="0"
+                            max="1" step="0.01" value="0.5" oninput="drawBezier()" /></div>
+                    <span id="bezTVal" class="text-emerald-300 font-mono font-bold text-sm">0.5</span>
+                </div>
+                <canvas id="bezCanvas" class="w-full rounded-xl bg-black border border-gray-700 cursor-crosshair"
+                    style="height:340px"></canvas>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="bezStats"></div>
+                <div class="bg-black/40 p-3 rounded-xl text-xs font-mono text-gray-400">
+                    <b class="text-emerald-300">de Casteljau algorithm:</b> Lerp between consecutive points recursively
+                    at parameter t. O(nÂ²) â€” numerically stable.<br>
+                    <b class="text-emerald-300">Applications:</b> SVG/PostScript curves, font outlines, animation
+                    easing, road splines, camera paths.
+                </div>
+            </div>
+        </div>
+
+        <!-- Transforms -->
+        <div id="tab-transform" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-emerald-500/30 flex flex-col gap-4">
+                <h3 class="text-emerald-300 font-bold text-xl">2D/3D Transformation Matrices</h3>
+                <div class="flex flex-wrap gap-3 items-end">
+                    <div><label class="text-xs text-gray-400">Rotate Â°</label><input type="number" id="trRot"
+                            class="g-input w-20" value="45" step="15" oninput="drawTransform()"></div>
+                    <div><label class="text-xs text-gray-400">Scale X</label><input type="number" id="trSx"
+                            class="g-input w-20" value="1.5" step="0.1" oninput="drawTransform()"></div>
+                    <div><label class="text-xs text-gray-400">Scale Y</label><input type="number" id="trSy"
+                            class="g-input w-20" value="1" step="0.1" oninput="drawTransform()"></div>
+                    <div><label class="text-xs text-gray-400">Translate X</label><input type="number" id="trTx"
+                            class="g-input w-20" value="50" step="10" oninput="drawTransform()"></div>
+                    <div><label class="text-xs text-gray-400">Shear X</label><input type="number" id="trShx"
+                            class="g-input w-20" value="0" step="0.1" oninput="drawTransform()"></div>
+                </div>
+                <div class="flex flex-col md:flex-row gap-4">
+                    <canvas id="trCanvas" class="rounded-xl bg-black border border-gray-700"
+                        style="width:280px;height:280px"></canvas>
+                    <div id="trMatrix" class="flex-1 bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300"></div>
+                </div>
+            </div>
+        </div>
+    <!-- Collision -->
+        <div id="tab-collision" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-emerald-500/30 flex flex-col gap-4">
+                <h3 class="text-emerald-300 font-bold text-xl">Collision Detection & Response</h3>
+                <div class="flex gap-3 flex-wrap items-center">
+                    <button class="btn bg-emerald-700 hover:bg-emerald-600 font-bold text-sm"
+                        onclick="initCollision()">New Simulation</button>
+                    <button class="btn bg-gray-700 hover:bg-gray-600 text-sm" id="colPlayBtn"
+                        onclick="toggleCollision()">Pause</button>
+                    <div><label class="text-xs text-gray-400">Restitution e</label><input type="number" id="colE"
+                            class="g-input w-20" value="0.8" step="0.1" min="0" max="1"></div>
+                    <div><label class="text-xs text-gray-400">Balls</label><input type="number" id="colN"
+                            class="g-input w-20" value="6" step="1" min="2" max="12"></div>
+                </div>
+                <canvas id="colCanvas" class="w-full rounded-xl bg-black border border-gray-800"
+                    style="height:320px"></canvas>
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Collisions/sec</span><span
+                            id="colCPS" class="text-xl font-mono text-emerald-300 font-bold">â€”</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Total KE</span><span id="colKE"
+                            class="text-xl font-mono text-emerald-300 font-bold">â€”</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Method</span><span
+                            class="text-sm font-mono text-emerald-200">Circle-Circle + eÂ·impulse</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); document.getElementById('tab-' + id).classList.remove('hidden'); if (id === 'bezier') setTimeout(initBezier, 50); if (id === 'transform') setTimeout(() => { const c = document.getElementById('trCanvas'); c.width = 280; c.height = 280; drawTransform(); }, 50); if (id === 'physics') runProj(); if (id === 'collision') setTimeout(initCollision, 50); }
+        function f3(v) { return isFinite(v) ? parseFloat(v.toFixed(3)).toString() : 'â€”'; }
+
+        // ---- BEZIER ----
+        let bezPts = []; let bezDrag = -1;
+        function initBezier() {
+            let deg = parseInt(document.getElementById('bezDeg').value) || 3;
+            let cv = document.getElementById('bezCanvas'); cv.width = cv.offsetWidth; cv.height = 340;
+            let W = cv.width, H = 340; let n = deg + 1;
+            bezPts = [];
+            for (let i = 0; i < n; i++) { let t = i / (n - 1); bezPts.push({ x: 80 + t * (W - 160), y: H / 2 + Math.sin(t * Math.PI) * (H / 3 - 20) * (i % 2 === 0 ? -1 : 1) }); }
+            drawBezier();
+        }
+        function deCasteljau(pts, t) { let p = pts.map(q => ({ ...q })); while (p.length > 1) { let next = []; for (let i = 0; i < p.length - 1; i++)next.push({ x: (1 - t) * p[i].x + t * p[i + 1].x, y: (1 - t) * p[i].y + t * p[i + 1].y }); p = next; } return p[0]; }
+        function drawBezier() {
+            let cv = document.getElementById('bezCanvas'); if (!cv.width || !bezPts.length) return;
+            let cx = cv.getContext('2d'), W = cv.width, H = cv.height;
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let t = parseFloat(document.getElementById('bezT').value) || 0.5;
+            document.getElementById('bezTVal').innerText = t.toFixed(2);
+            // Draw curve
+            cx.strokeStyle = '#34d399'; cx.lineWidth = 2.5; cx.beginPath();
+            for (let i = 0; i <= 100; i++) { let pt = deCasteljau(bezPts, i / 100); i === 0 ? cx.moveTo(pt.x, pt.y) : cx.lineTo(pt.x, pt.y); } cx.stroke();
+            // Skeleton
+            if (document.getElementById('bezSkel').checked) { cx.strokeStyle = 'rgba(100,116,139,0.5)'; cx.lineWidth = 1; cx.setLineDash([4, 4]); cx.beginPath(); bezPts.forEach((p, i) => i === 0 ? cx.moveTo(p.x, p.y) : cx.lineTo(p.x, p.y)); cx.stroke(); cx.setLineDash([]); }
+            // Control points
+            if (document.getElementById('bezPts').checked) { bezPts.forEach((p, i) => { cx.beginPath(); cx.arc(p.x, p.y, 7, 0, Math.PI * 2); cx.fillStyle = i === 0 || i === bezPts.length - 1 ? '#34d399' : '#fbbf24'; cx.fill(); cx.fillStyle = '#fff'; cx.font = 'bold 9px monospace'; cx.textAlign = 'center'; cx.fillText('P' + i, p.x, p.y - 11); }); cx.textAlign = 'start'; }
+            // t point
+            let tPt = deCasteljau(bezPts, t);
+            cx.beginPath(); cx.arc(tPt.x, tPt.y, 6, 0, Math.PI * 2); cx.fillStyle = '#f43f5e'; cx.fill();
+            cx.fillStyle = '#f43f5e'; cx.font = '10px monospace'; cx.fillText(`B(${t.toFixed(2)})`, tPt.x + 10, tPt.y - 10);
+            // Stats
+            let len = 0; for (let i = 1; i <= 200; i++) { let a = deCasteljau(bezPts, i / 200), b = deCasteljau(bezPts, (i - 1) / 200); len += Math.hypot(a.x - b.x, a.y - b.y); }
+            document.getElementById('bezStats').innerHTML = [['Degree', bezPts.length - 1], ['Control pts', bezPts.length], ['Approx length', len.toFixed(1) + ' px'], ['B(t)', `(${tPt.x.toFixed(0)}, ${tPt.y.toFixed(0)})`]].map(([k, v]) => `<div class="val-card"><span class="text-xs text-gray-500 block">${k}</span><span class="font-mono text-emerald-300 font-bold">${v}</span></div>`).join('');
+        }
+        document.getElementById('bezCanvas').addEventListener('mousedown', e => { let r = e.currentTarget.getBoundingClientRect(); let mx = e.clientX - r.left, my = e.clientY - r.top; bezDrag = bezPts.findIndex(p => Math.hypot(p.x - mx, p.y - my) < 15); });
+        document.getElementById('bezCanvas').addEventListener('mousemove', e => { if (bezDrag < 0) return; let r = e.currentTarget.getBoundingClientRect(); bezPts[bezDrag] = { x: e.clientX - r.left, y: e.clientY - r.top }; drawBezier(); });
+        document.getElementById('bezCanvas').addEventListener('mouseup', () => { bezDrag = -1; });
+        document.getElementById('bezCanvas').addEventListener('touchstart', e => { e.preventDefault(); let r = e.currentTarget.getBoundingClientRect(); let mx = e.touches[0].clientX - r.left, my = e.touches[0].clientY - r.top; bezDrag = bezPts.findIndex(p => Math.hypot(p.x - mx, p.y - my) < 20); }, { passive: false });
+        document.getElementById('bezCanvas').addEventListener('touchmove', e => { e.preventDefault(); if (bezDrag < 0) return; let r = e.currentTarget.getBoundingClientRect(); bezPts[bezDrag] = { x: e.touches[0].clientX - r.left, y: e.touches[0].clientY - r.top }; drawBezier(); }, { passive: false });
+        document.getElementById('bezCanvas').addEventListener('touchend', () => { bezDrag = -1; });
+
+        // ---- TRANSFORMS ----
+        function drawTransform() {
+            let cv = document.getElementById('trCanvas'); let cx = cv.getContext('2d'), W = 280, H = 280, cx2 = 140, cy2 = 140;
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let rot = parseFloat(document.getElementById('trRot').value || 0) * Math.PI / 180;
+            let sx = parseFloat(document.getElementById('trSx').value || 1), sy = parseFloat(document.getElementById('trSy').value || 1);
+            let tx2 = parseFloat(document.getElementById('trTx').value || 0), shx = parseFloat(document.getElementById('trShx').value || 0);
+            // Original shape (square)
+            let pts = [[-30, -30], [30, -30], [30, 30], [-30, 30]];
+            // Draw original
+            cx.strokeStyle = 'rgba(100,116,139,0.5)'; cx.lineWidth = 1; cx.beginPath(); pts.forEach((p, i) => { let [x, y] = p; i === 0 ? cx.moveTo(cx2 + x, cy2 + y) : cx.lineTo(cx2 + x, cy2 + y); }); cx.closePath(); cx.stroke();
+            // Apply: Scale â†’ Rotate â†’ Shear â†’ Translate
+            let tpts = pts.map(([x, y]) => { let xs = sx * x, ys = sy * y; let xr = xs * Math.cos(rot) - ys * Math.sin(rot), yr = xs * Math.sin(rot) + ys * Math.cos(rot); let xsh = xr + shx * yr; return [cx2 + xsh + tx2, cy2 + yr]; });
+            cx.strokeStyle = '#34d399'; cx.lineWidth = 2; cx.beginPath(); tpts.forEach(([x, y], i) => i === 0 ? cx.moveTo(x, y) : cx.lineTo(x, y)); cx.closePath(); cx.stroke(); cx.fillStyle = 'rgba(52,211,153,0.07)'; cx.fill();
+            // Axes
+            cx.strokeStyle = '#1e293b'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(cx2, 10); cx.lineTo(cx2, H - 10); cx.stroke(); cx.beginPath(); cx.moveTo(10, cy2); cx.lineTo(W - 10, cy2); cx.stroke();
+            let r = rot, co = Math.cos(r), si = Math.sin(r);
+            document.getElementById('trMatrix').innerHTML = `<b class="text-emerald-400">2D Homogeneous Transformation Matrix (TRS):</b><br><br><pre class="text-emerald-200 text-xs">[ sxÂ·cos(Î¸)  âˆ’syÂ·sin(Î¸)  tx ]\n[ sxÂ·sin(Î¸)   syÂ·cos(Î¸)   0 ]\n[     0            0       1 ]</pre><br><pre class="text-amber-200 text-xs">= [ ${(sx * co).toFixed(2)}  ${(-sy * si).toFixed(2)}  ${tx2} ]\n  [ ${(sx * si).toFixed(2)}  ${(sy * co).toFixed(2)}  0  ]\n  [ 0    0    1 ]</pre><br><b class="text-sky-400">Shear X:</b> x\' = x + shxÂ·y = x + ${shx}Â·y<br><br><b class="text-gray-400 text-xs">Gray = original, Green = transformed.<br>Order: Scale â†’ Rotate â†’ Shear â†’ Translate</b>`;
+        }
+
+        // ---- PROJECTILE ----
+        function runProj() {
+            let v0 = parseFloat(document.getElementById('projV0').value) || 20;
+            let ang = parseFloat(document.getElementById('projAngle').value) || 45;
+            let g = parseFloat(document.getElementById('projG').value) || 9.81;
+            let h0 = parseFloat(document.getElementById('projH0').value) || 0;
+            let th = ang * Math.PI / 180, vx = v0 * Math.cos(th), vy = v0 * Math.sin(th);
+            let disc = vy * vy + 2 * g * h0; let tf = disc >= 0 ? (vy + Math.sqrt(disc)) / g : 0;
+            let R = vx * tf; let H2 = h0 + vy * vy / (2 * g); let vf = Math.sqrt(vx * vx + (vy - g * tf) ** 2);
+            document.getElementById('projR').innerText = f3(R) + ' m';
+            document.getElementById('projH').innerText = f3(H2) + ' m';
+            document.getElementById('projT').innerText = f3(tf) + ' s';
+            document.getElementById('projVf').innerText = f3(vf) + ' m/s';
+            let cv = document.getElementById('projCanvas'); cv.width = cv.offsetWidth; cv.height = 260;
+            let cx = cv.getContext('2d'), W = cv.width, H = 260, pad = 30;
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let maxX = R * 1.1 || 1, maxY = Math.max(H2 * 1.3, h0 + 1) || 1;
+            const tx = x => pad + x / maxX * (W - 2 * pad), ty = y => H - pad - y / maxY * (H - 2 * pad);
+            cx.strokeStyle = '#1e293b'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(pad, ty(0)); cx.lineTo(W - pad, ty(0)); cx.stroke();
+            cx.strokeStyle = '#34d399'; cx.lineWidth = 2; cx.beginPath(); let N = 200; for (let i = 0; i <= N; i++) { let t = i / N * tf; let x = vx * t, y = h0 + vy * t - 0.5 * g * t * t; if (y < 0 && i > 0) break; i === 0 ? cx.moveTo(tx(x), ty(y)) : cx.lineTo(tx(x), ty(y)); } cx.stroke();
+            cx.beginPath(); cx.arc(tx(0), ty(h0), 5, 0, Math.PI * 2); cx.fillStyle = '#fbbf24'; cx.fill();
+            cx.beginPath(); cx.arc(tx(R), ty(0), 5, 0, Math.PI * 2); cx.fillStyle = '#f43f5e'; cx.fill();
+            cx.fillStyle = '#34d399'; cx.font = '10px monospace'; cx.textAlign = 'center'; cx.fillText(`Î¸=${ang}Â° vâ‚€=${v0}m/s`, W / 2, H - 10); cx.textAlign = 'start';
+        }
+
+        // ---- COLLISION ----
+        let balls = [], colRunning = true, colAnim = null, colEvents = 0, colLastT = Date.now();
+        function initCollision() {
+            if (colAnim) cancelAnimationFrame(colAnim);
+            let cv = document.getElementById('colCanvas'); cv.width = cv.offsetWidth; cv.height = 320;
+            let W = cv.width, H = 320, n = parseInt(document.getElementById('colN').value) || 6;
+            let colors = ['#34d399', '#60a5fa', '#f87171', '#fbbf24', '#c084fc', '#fb923c', '#4ade80', '#38bdf8', '#f472b6', '#a78bfa', '#facc15', '#86efac'];
+            balls = []; for (let i = 0; i < n; i++) { let r = 12 + Math.random() * 10; balls.push({ x: r + Math.random() * (W - 2 * r), y: r + Math.random() * (H - 2 * r), vx: (Math.random() - 0.5) * 150, vy: (Math.random() - 0.5) * 150, r, m: r * r, color: colors[i % colors.length] }); }
+            colRunning = true; colEvents = 0; document.getElementById('colPlayBtn').innerText = 'Pause';
+            let last = performance.now();
+            function frame(now) {
+                if (!colRunning) { colAnim = requestAnimationFrame(frame); return; }
+                let dt = Math.min((now - last) / 1000, 0.03); last = now;
+                let e = parseFloat(document.getElementById('colE').value) || 0.8;
+                let cv2 = document.getElementById('colCanvas'), W2 = cv2.width, H2 = cv2.height;
+                balls.forEach(b => { b.x += b.vx * dt; b.y += b.vy * dt; if (b.x - b.r < 0) { b.x = b.r; b.vx = Math.abs(b.vx) * e; } if (b.x + b.r > W2) { b.x = W2 - b.r; b.vx = -Math.abs(b.vx) * e; } if (b.y - b.r < 0) { b.y = b.r; b.vy = Math.abs(b.vy) * e; } if (b.y + b.r > H2) { b.y = H2 - b.r; b.vy = -Math.abs(b.vy) * e; } });
+                for (let i = 0; i < balls.length; i++)for (let j = i + 1; j < balls.length; j++) { let a = balls[i], b2 = balls[j], dx = b2.x - a.x, dy = b2.y - a.y, d = Math.hypot(dx, dy); if (d < a.r + b2.r && d > 0.01) { colEvents++; let nx = dx / d, ny = dy / d; let overlap = (a.r + b2.r - d) / 2; a.x -= nx * overlap; a.y -= ny * overlap; b2.x += nx * overlap; b2.y += ny * overlap; let relV = (a.vx - b2.vx) * nx + (a.vy - b2.vy) * ny; if (relV > 0) { let j2 = (1 + e) * relV / (1 / a.m + 1 / b2.m); a.vx -= j2 / a.m * nx; a.vy -= j2 / a.m * ny; b2.vx += j2 / b2.m * nx; b2.vy += j2 / b2.m * ny; } } }
+                let cx2 = cv2.getContext('2d'); cx2.fillStyle = '#050818'; cx2.fillRect(0, 0, W2, H2);
+                balls.forEach(b => { cx2.beginPath(); cx2.arc(b.x, b.y, b.r, 0, Math.PI * 2); cx2.fillStyle = b.color + '33'; cx2.fill(); cx2.strokeStyle = b.color; cx2.lineWidth = 2; cx2.stroke(); });
+                let ke = balls.reduce((s, b) => s + 0.5 * b.m * (b.vx * b.vx + b.vy * b.vy), 0);
+                let now2 = Date.now(); if (now2 - colLastT > 1000) { document.getElementById('colCPS').innerText = colEvents; colEvents = 0; colLastT = now2; }
+                document.getElementById('colKE').innerText = (ke / 1000).toFixed(1) + 'k';
+                colAnim = requestAnimationFrame(frame);
+            }
+            colAnim = requestAnimationFrame(frame);
+        }
+        function toggleCollision() { colRunning = !colRunning; document.getElementById('colPlayBtn').innerText = colRunning ? 'Pause' : 'Play'; }
+
+        setTimeout(initBezier, 100);
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>
+

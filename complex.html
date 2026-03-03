@@ -1,0 +1,328 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complex Analysis - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-btn {
+            padding: .55rem 1rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .8rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(6, 182, 212, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(6, 182, 212, 0.25);
+            color: white;
+            border-color: #06b6d4;
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.4);
+        }
+
+        .c-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(6, 182, 212, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            font-family: monospace;
+            width: 100%;
+        }
+
+        .c-input:focus {
+            border-color: #22d3ee;
+            outline: none;
+        }
+
+        .val-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(6, 182, 212, 0.4);
+            border-radius: .75rem;
+            padding: .75rem;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-sky-600 pb-2">
+            <i class="fas fa-drafting-compass text-cyan-400"></i> Complex Analysis
+        </h2>
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-cyan-500/30">
+            <button class="tab-btn active" onclick="switchTab('argand',this)">Argand Diagram</button>
+            <button class="tab-btn" onclick="switchTab('mandelbrot',this)">Mandelbrot Set</button>
+            <button class="tab-btn" onclick="switchTab('roots',this)">Roots of Unity</button>
+            <button class="tab-btn" onclick="switchTab('julia',this)">Julia Sets</button>
+        </div>
+
+        <!-- Argand Diagram -->
+        <div id="tab-argand" class="tab-content flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-cyan-500/30 flex flex-col gap-4">
+                <h3 class="text-cyan-300 font-bold text-xl">Complex Number Arithmetic & Argand Diagram</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div><label class="text-xs text-gray-400">z₁ real</label><input type="number" id="z1r"
+                            class="c-input" value="3" step="any" oninput="runArgand()"></div>
+                    <div><label class="text-xs text-gray-400">z₁ imag</label><input type="number" id="z1i"
+                            class="c-input" value="2" step="any" oninput="runArgand()"></div>
+                    <div><label class="text-xs text-gray-400">z₂ real</label><input type="number" id="z2r"
+                            class="c-input" value="1" step="any" oninput="runArgand()"></div>
+                    <div><label class="text-xs text-gray-400">z₂ imag</label><input type="number" id="z2i"
+                            class="c-input" value="-1" step="any" oninput="runArgand()"></div>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div class="val-card"><span class="text-xs text-gray-500 block">z₁+z₂</span><span id="cadSum"
+                            class="text-lg font-mono text-cyan-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">z₁·z₂</span><span id="cadMul"
+                            class="text-lg font-mono text-cyan-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">z₁/z₂</span><span id="cadDiv"
+                            class="text-lg font-mono text-cyan-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">|z₁| (modulus)</span><span
+                            id="cadMod1" class="text-lg font-mono text-cyan-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">arg(z₁) deg</span><span id="cadArg1"
+                            class="text-lg font-mono text-cyan-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">z₁* conjugate</span><span
+                            id="cadConj1" class="text-lg font-mono text-cyan-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">e^(z₁) = eˢⁱⁿ</span><span
+                            id="cadExp1" class="text-sm font-mono text-cyan-200">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">√z₁ (principal)</span><span
+                            id="cadSqrt1" class="text-sm font-mono text-cyan-200">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">ln(z₁) principal</span><span
+                            id="cadLn1" class="text-sm font-mono text-cyan-200">—</span></div>
+                </div>
+                <canvas id="argandCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:320px"></canvas>
+                <div class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300">
+                    <div class="text-cyan-300 font-bold mb-2">Euler's formula</div>
+                    e^(iθ) = cos(θ) + i·sin(θ)<br>
+                    |z|·e^(i·arg(z)) = a + bi (polar form)<br>
+                    de Moivre: (r·e^iθ)ⁿ = rⁿ·e^(inθ)
+                </div>
+            </div>
+        </div>
+
+        <!-- Mandelbrot -->
+        <div id="tab-mandelbrot" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-cyan-500/30 flex flex-col gap-4">
+                <h3 class="text-cyan-300 font-bold text-xl">Mandelbrot Set: {c ∈ ℂ : zₙ₊₁=zₙ²+c does not diverge}</h3>
+                <div class="flex flex-wrap gap-3 items-end">
+                    <div><label class="text-xs text-gray-400">Max iterations</label><input type="number" id="mbIter"
+                            class="c-input w-24" value="80" min="20" max="500" step="20"></div>
+                    <div><label class="text-xs text-gray-400">Color scheme</label>
+                        <select id="mbColor" class="c-input mt-1">
+                            <option value="classic">Classic Blue</option>
+                            <option value="fire">Fire</option>
+                            <option value="electric">Electric</option>
+                            <option value="void">Void</option>
+                        </select>
+                    </div>
+                    <button class="btn bg-cyan-700 hover:bg-cyan-600 font-bold"
+                        onclick="renderMandelbrot()">Render</button>
+                    <button class="btn bg-gray-700 hover:bg-gray-600 text-sm" onclick="resetMB()">Reset View</button>
+                </div>
+                <div class="text-xs text-gray-500">Click canvas to zoom in (5×). Right-click/long-press to zoom out.
+                </div>
+                <canvas id="mbCanvas" class="w-full rounded-xl bg-black border border-gray-700 cursor-crosshair"
+                    style="height:380px"></canvas>
+                <div class="text-xs text-gray-500 text-center" id="mbInfo">Re: [−2.5, 1] Im: [−1.25, 1.25]</div>
+            </div>
+        </div>
+
+        <!-- Roots of Unity -->
+        <div id="tab-roots" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-cyan-500/30 flex flex-col gap-4">
+                <h3 class="text-cyan-300 font-bold text-xl">N-th Roots of Unity: ωₖ = e^(2πik/N)</h3>
+                <div class="flex gap-3 items-center flex-wrap">
+                    <div><label class="text-xs text-gray-400">N</label><input type="number" id="rouN"
+                            class="c-input w-20" value="8" min="1" max="24" oninput="runRoots()"></div>
+                    <div><label class="text-xs text-gray-400">Show z^N</label><input type="checkbox" id="rouPow" checked
+                            onchange="runRoots()"></div>
+                </div>
+                <div class="flex flex-col md:flex-row gap-4">
+                    <canvas id="rouCanvas" class="rounded-xl bg-black border border-gray-700"
+                        style="width:300px;height:300px"></canvas>
+                    <div class="flex flex-col flex-1 gap-2">
+                        <div class="text-xs text-gray-500 uppercase">Roots (Re + Im*i)</div>
+                        <div id="rouTable" class="overflow-y-auto max-h-60 text-xs font-mono flex flex-col gap-1"></div>
+                        <div class="bg-black/40 p-3 rounded-xl text-sm font-mono text-gray-300">
+                            <div class="text-cyan-300 font-bold mb-1">Properties</div>
+                            <div>Sum of all n-th roots = 0 (n&gt;1)</div>
+                            <div>Product of all n-th roots = (−1)^(n+1)</div>
+                            <div>They form a cyclic group of order n</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Julia Sets -->
+        <div id="tab-julia" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-cyan-500/30 flex flex-col gap-4">
+                <h3 class="text-cyan-300 font-bold text-xl">Julia Sets Jₒ: {z : zₙ₊₁=zₙ²+c stays bounded}</h3>
+                <div class="flex flex-wrap gap-3 items-end">
+                    <div><label class="text-xs text-gray-400">c real</label><input type="number" id="juliaR"
+                            class="c-input w-28" value="-0.7" step="0.01" oninput="renderJulia()"></div>
+                    <div><label class="text-xs text-gray-400">c imag</label><input type="number" id="juliaI"
+                            class="c-input w-28" value="0.27015" step="0.01" oninput="renderJulia()"></div>
+                    <div><label class="text-xs text-gray-400">Max iter</label><input type="number" id="juliaIter"
+                            class="c-input w-24" value="80" min="20" max="300" step="20"></div>
+                    <button class="btn bg-cyan-700 hover:bg-cyan-600 font-bold" onclick="renderJulia()">Render</button>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button class="btn text-xs bg-cyan-900 hover:bg-cyan-800"
+                        onclick="setJulia(-0.7,0.27015)">Dendrite</button>
+                    <button class="btn text-xs bg-cyan-900 hover:bg-cyan-800" onclick="setJulia(-0.123,0.745)">Douady
+                        rabbit</button>
+                    <button class="btn text-xs bg-cyan-900 hover:bg-cyan-800" onclick="setJulia(0.285,0.01)">San
+                        Marco</button>
+                    <button class="btn text-xs bg-cyan-900 hover:bg-cyan-800"
+                        onclick="setJulia(-1.476,0)">Basilica</button>
+                    <button class="btn text-xs bg-cyan-900 hover:bg-cyan-800"
+                        onclick="setJulia(-0.4,0.6)">Spiral</button>
+                    <button class="btn text-xs bg-cyan-900 hover:bg-cyan-800"
+                        onclick="setJulia(0.355,0.355)">Snowflake</button>
+                </div>
+                <canvas id="juliaCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:360px"></canvas>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); document.getElementById('tab-' + id).classList.remove('hidden'); if (id === 'argand') runArgand(); if (id === 'mandelbrot') setTimeout(() => { const c = document.getElementById('mbCanvas'); if (!c._init) { c.width = c.offsetWidth; c.height = 380; c._init = true; } resetMB(); }, 50); if (id === 'roots') { const c = document.getElementById('rouCanvas'); c.width = 300; c.height = 300; runRoots(); } if (id === 'julia') setTimeout(renderJulia, 80); }
+        function f4(v) { return isFinite(v) ? parseFloat(v.toFixed(4)).toString() : '∞'; }
+        function cStr(r, i) { return `${f4(r)}${i >= 0 ? '+' : ''}${f4(i)}i`; }
+
+        // ---- ARGAND ----
+        function runArgand() {
+            let r1 = +document.getElementById('z1r').value || 0, i1 = +document.getElementById('z1i').value || 0;
+            let r2 = +document.getElementById('z2r').value || 0, i2 = +document.getElementById('z2i').value || 0;
+            let ar = r1 + r2, ai = i1 + i2;
+            let mr = r1 * r2 - i1 * i2, mi = r1 * i2 + i1 * r2;
+            let denom = r2 * r2 + i2 * i2;
+            let dr = (r1 * r2 + i1 * i2) / denom, di = (i1 * r2 - r1 * i2) / denom;
+            let mod1 = Math.hypot(r1, i1), arg1 = Math.atan2(i1, r1) * 180 / Math.PI;
+            let eR = Math.exp(r1) * Math.cos(i1), eI = Math.exp(r1) * Math.sin(i1);
+            let sqR = Math.sqrt((mod1 + r1) / 2) * (i1 >= 0 ? 1 : -1), sqI = Math.sqrt((mod1 - r1) / 2);
+            let lnR = Math.log(mod1), lnI = Math.atan2(i1, r1);
+            document.getElementById('cadSum').innerText = cStr(ar, ai);
+            document.getElementById('cadMul').innerText = cStr(mr, mi);
+            document.getElementById('cadDiv').innerText = isFinite(dr) ? cStr(dr, di) : '∄';
+            document.getElementById('cadMod1').innerText = f4(mod1);
+            document.getElementById('cadArg1').innerText = f4(arg1) + '°';
+            document.getElementById('cadConj1').innerText = cStr(r1, -i1);
+            document.getElementById('cadExp1').innerText = cStr(eR, eI);
+            document.getElementById('cadSqrt1').innerText = cStr(sqR, sqI);
+            document.getElementById('cadLn1').innerText = cStr(lnR, lnI);
+            drawArgand(r1, i1, r2, i2, ar, ai, mr, mi, dr, di);
+        }
+
+        function drawArgand(r1, i1, r2, i2, ar, ai, mr, mi, dr, di) {
+            const cv = document.getElementById('argandCanvas'); cv.width = cv.offsetWidth; cv.height = 320;
+            const cx = cv.getContext('2d'), W = cv.width, H = 320, cx2 = W / 2, cy2 = H / 2;
+            let allX = [0, r1, r2, ar, mr], allY = [0, i1, i2, ai, mi];
+            let maxR = Math.max(1, ...allX.map(Math.abs), ...allY.map(Math.abs)) * 1.4;
+            const tx = v => cx2 + v / maxR * (cx2 - 20), ty = v => cy2 - v / maxR * (cy2 - 20);
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            cx.strokeStyle = '#1e293b'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(cx2, 20); cx.lineTo(cx2, H - 20); cx.stroke(); cx.beginPath(); cx.moveTo(20, cy2); cx.lineTo(W - 20, cy2); cx.stroke();
+            cx.fillStyle = '#334155'; cx.font = '9px monospace';
+            for (let v = -Math.ceil(maxR); v <= Math.ceil(maxR); v++) { if (v === 0) continue; cx.fillText(v, tx(v) + 2, cy2 + 12); cx.fillText(v + 'i', cx2 + 4, ty(v) + 4); }
+            const pts = [{ r: r1, i: i1, l: 'z₁', c: '#06b6d4' }, { r: r2, i: i2, l: 'z₂', c: '#22d3ee' }, { r: ar, i: ai, l: 'z₁+z₂', c: '#34d399' }, { r: mr, i: mi, l: 'z₁·z₂', c: '#f87171' }];
+            pts.forEach(({ r, i, l, c }) => { cx.strokeStyle = c; cx.lineWidth = 1.5; cx.beginPath(); cx.moveTo(cx2, cy2); cx.lineTo(tx(r), ty(i)); cx.stroke(); cx.beginPath(); cx.arc(tx(r), ty(i), 5, 0, Math.PI * 2); cx.fillStyle = c; cx.fill(); cx.fillStyle = c; cx.font = 'bold 11px monospace'; cx.fillText(`${l}(${f4(r)},${f4(i)})`, tx(r) + 7, ty(i) - 5); });
+        }
+
+        // ---- MANDELBROT ----
+        let mbView = { xMin: -2.5, xMax: 1, yMin: -1.25, yMax: 1.25 };
+        function resetMB() { mbView = { xMin: -2.5, xMax: 1, yMin: -1.25, yMax: 1.25 }; renderMandelbrot(); }
+        function renderMandelbrot() {
+            const cv = document.getElementById('mbCanvas'); if (!cv.width) return;
+            const cx = cv.getContext('2d'), W = cv.width, H = cv.height;
+            let maxI = parseInt(document.getElementById('mbIter').value) || 80;
+            let scheme = document.getElementById('mbColor').value;
+            let img = cx.createImageData(W, H);
+            const getColor = (i, maxI, scheme) => {
+                if (i === maxI) return [0, 0, 0, 255];
+                let t = i / maxI;
+                if (scheme === 'classic') return [Math.floor(9 * (1 - t) * t * t * t * 255), Math.floor(15 * (1 - t) * (1 - t) * t * t * 255), Math.floor(8.5 * (1 - t) * (1 - t) * (1 - t) * t * 255), 255];
+                if (scheme === 'fire') return [Math.floor(t * 255), Math.floor(t * t * 128), 0, 255];
+                if (scheme === 'electric') return [Math.floor(t * 100), Math.floor(t * 200), Math.floor(255), 255];
+                return [Math.floor((1 - t) * 255), 0, Math.floor(t * 200), 255];
+            };
+            for (let py = 0; py < H; py++) for (let px = 0; px < W; px++) {
+                let cr = mbView.xMin + (px / W) * (mbView.xMax - mbView.xMin), ci = mbView.yMin + (py / H) * (mbView.yMax - mbView.yMin);
+                let zr = 0, zi = 0, i = 0;
+                while (i < maxI && zr * zr + zi * zi < 4) { let tmp = zr * zr - zi * zi + cr; zi = 2 * zr * zi + ci; zr = tmp; i++; }
+                let col = getColor(i, maxI, scheme); let idx = (py * W + px) * 4;
+                img.data[idx] = col[0]; img.data[idx + 1] = col[1]; img.data[idx + 2] = col[2]; img.data[idx + 3] = 255;
+            }
+            cx.putImageData(img, 0, 0);
+            document.getElementById('mbInfo').innerText = `Re: [${mbView.xMin.toFixed(3)}, ${mbView.xMax.toFixed(3)}]  Im: [${mbView.yMin.toFixed(3)}, ${mbView.yMax.toFixed(3)}]`;
+        }
+        document.getElementById('mbCanvas').addEventListener('click', function (e) {
+            const r = this.getBoundingClientRect(); let px = (e.clientX - r.left) / this.width, py = (e.clientY - r.top) / this.height;
+            let cx2 = mbView.xMin + (mbView.xMax - mbView.xMin) * px, cy2 = mbView.yMin + (mbView.yMax - mbView.yMin) * py;
+            let w = (mbView.xMax - mbView.xMin) / 5, h = (mbView.yMax - mbView.yMin) / 5;
+            mbView = { xMin: cx2 - w / 2, xMax: cx2 + w / 2, yMin: cy2 - h / 2, yMax: cy2 + h / 2 }; renderMandelbrot();
+        });
+        document.getElementById('mbCanvas').addEventListener('contextmenu', function (e) { e.preventDefault(); let w = (mbView.xMax - mbView.xMin) * 5, h = (mbView.yMax - mbView.yMin) * 5; let cx2 = (mbView.xMin + mbView.xMax) / 2, cy2 = (mbView.yMin + mbView.yMax) / 2; mbView = { xMin: cx2 - w / 2, xMax: cx2 + w / 2, yMin: cy2 - h / 2, yMax: cy2 + h / 2 }; renderMandelbrot(); });
+
+        // ---- ROOTS OF UNITY ----
+        function runRoots() {
+            let n = parseInt(document.getElementById('rouN').value) || 8;
+            const cv = document.getElementById('rouCanvas'); if (!cv.width) return;
+            const cx = cv.getContext('2d'), W = 300, H = 300, cx2 = 150, cy2 = 150, r = 110;
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            cx.strokeStyle = '#1e293b'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(cx2, 20); cx.lineTo(cx2, H - 20); cx.stroke(); cx.beginPath(); cx.moveTo(20, cy2); cx.lineTo(W - 20, cy2); cx.stroke();
+            cx.strokeStyle = 'rgba(6,182,212,0.3)'; cx.beginPath(); cx.arc(cx2, cy2, r, 0, Math.PI * 2); cx.stroke();
+            let rows = '';
+            let pts = Array.from({ length: n }, (_, k) => { let a = 2 * Math.PI * k / n; return { x: Math.cos(a), y: Math.sin(a), a }; });
+            pts.forEach((p, k) => {
+                cx.beginPath(); cx.moveTo(cx2, cy2); cx.lineTo(cx2 + p.x * r, cy2 - p.y * r); cx.strokeStyle = 'rgba(6,182,212,0.4)'; cx.lineWidth = 1; cx.stroke();
+                cx.beginPath(); cx.arc(cx2 + p.x * r, cy2 - p.y * r, 5, 0, Math.PI * 2); cx.fillStyle = `hsl(${186 + k * 30},80%,60%)`; cx.fill();
+                cx.fillStyle = `hsl(${186 + k * 30},80%,60%)`; cx.font = 'bold 9px monospace'; cx.textAlign = 'center'; cx.fillText(`ω${k}`, cx2 + p.x * (r + 16), cy2 - p.y * (r + 16) + 4);
+                rows += `<div class="px-2 py-0.5 rounded bg-black/30 border border-cyan-500/20 text-cyan-200">ω${k}: ${f4(p.x)}+${f4(p.y)}i | arg=${f4(p.a * 180 / Math.PI)}°</div>`;
+            });
+            cx.textAlign = 'start';
+            document.getElementById('rouTable').innerHTML = rows;
+        }
+
+        // ---- JULIA ----
+        function setJulia(r, i) { document.getElementById('juliaR').value = r; document.getElementById('juliaI').value = i; renderJulia(); }
+        function renderJulia() {
+            const cv = document.getElementById('juliaCanvas'); cv.width = cv.offsetWidth; cv.height = 360;
+            const cx = cv.getContext('2d'), W = cv.width, H = 360;
+            let maxI = parseInt(document.getElementById('juliaIter').value) || 80;
+            let cr = parseFloat(document.getElementById('juliaR').value) || 0;
+            let ci = parseFloat(document.getElementById('juliaI').value) || 0;
+            let img = cx.createImageData(W, H);
+            for (let py = 0; py < H; py++) for (let px = 0; px < W; px++) {
+                let zr = (px / W - 0.5) * 3.5, zi = (py / H - 0.5) * 3.5;
+                let i = 0;
+                while (i < maxI && zr * zr + zi * zi < 4) { let tmp = zr * zr - zi * zi + cr; zi = 2 * zr * zi + ci; zr = tmp; i++; }
+                let t = i / maxI; let idx = (py * W + px) * 4;
+                if (i === maxI) { img.data[idx] = img.data[idx + 1] = img.data[idx + 2] = 0; }
+                else { img.data[idx] = Math.floor(t * 100); img.data[idx + 1] = Math.floor(t * 200); img.data[idx + 2] = Math.floor(255 - t * 100); }
+                img.data[idx + 3] = 255;
+            }
+            cx.putImageData(img, 0, 0);
+        }
+
+        runArgand();
+        document.addEventListener('DOMContentLoaded', () => { const c = document.getElementById('rouCanvas'); c.width = 300; c.height = 300; runRoots(); });
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

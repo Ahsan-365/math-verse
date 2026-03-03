@@ -1,0 +1,461 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geometry Studio - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+    <style>
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            font-weight: bold;
+            border-radius: 999px;
+            transition: all 0.3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+        }
+
+        .tab-btn:hover {
+            background: rgba(56, 189, 248, 0.1);
+            color: #7dd3fc;
+        }
+
+        .tab-btn.active {
+            background: rgba(56, 189, 248, 0.25);
+            color: white;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
+            border-color: #38bdf8;
+        }
+
+        .shape-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            transition: all 0.3s;
+            color: #94a3b8;
+            background: rgba(30, 41, 59, 0.5);
+        }
+
+        .shape-btn:hover {
+            color: white;
+            background: rgba(56, 189, 248, 0.2);
+        }
+
+        .shape-btn.active {
+            color: white;
+            border-color: #00f0ff;
+            background: rgba(0, 240, 255, 0.2);
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8">
+    <div class="glass-panel w-full max-w-6xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-8 relative">
+        <h2
+            class="text-3xl md:text-5xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 pb-2">
+            <i class="fas fa-cubes text-cyan-400"></i> Geometry Engine
+        </h2>
+
+        <!-- Tabs -->
+        <div class="flex flex-wrap justify-center gap-4 bg-black/40 p-2 rounded-full border border-cyan-500/30 mx-auto">
+            <button class="tab-btn active" onclick="switchTab('euclidean')">Euclidean (2D/3D)</button>
+            <button class="tab-btn" onclick="switchTab('tesseract')">4D Hypercube</button>
+            <button class="tab-btn" onclick="switchTab('topology')">Exotic Topology</button>
+        </div>
+
+        <!-- Tab 1: Euclidean -->
+        <div id="tab-euclidean" class="tab-content flex flex-col items-center gap-6">
+            <div class="flex flex-wrap justify-center gap-3 md:gap-4 border-b border-gray-700 pb-6 w-full">
+                <button class="shape-btn active" data-shape="circle"><i class="far fa-circle mr-2"></i>Circle</button>
+                <button class="shape-btn" data-shape="square"><i class="far fa-square mr-2"></i>Square</button>
+                <button class="shape-btn" data-shape="triangle"><i class="fas fa-caret-up mr-2"></i>Triangle</button>
+                <button class="shape-btn" data-shape="sphere"><i class="fas fa-globe mr-2"></i>Sphere</button>
+                <button class="shape-btn" data-shape="cylinder"><i class="fas fa-database mr-2"></i>Cylinder</button>
+            </div>
+
+            <div
+                class="flex flex-col md:flex-row gap-8 items-center bg-gray-900/50 p-6 rounded-2xl border border-cyan-500/30 w-full">
+                <div id="inputsForm" class="flex-1 flex flex-col gap-4 w-full"></div>
+                <div
+                    class="flex-1 flex justify-center border-l border-gray-700 pl-0 md:pl-8 mt-4 md:mt-0 w-full relative group">
+                    <canvas id="shapeCanvas" width="240" height="240"
+                        class="rounded-xl opacity-90 shadow-[0_0_20px_rgba(0,240,255,0.2)] bg-black/50"></canvas>
+                </div>
+            </div>
+
+            <button id="calcBtn"
+                class="btn bg-cyan-600 hover:bg-cyan-500 text-white w-full py-4 rounded-xl text-xl font-bold shadow-[0_0_15px_rgba(6,182,212,0.5)]"><i
+                    class="fas fa-calculator mr-2"></i> Calculate Metrics</button>
+            <div id="results" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden w-full"></div>
+        </div>
+
+        <!-- Tab 2: Tesseract -->
+        <div id="tab-tesseract" class="tab-content hidden flex flex-col lg:flex-row gap-8">
+            <div
+                class="flex-1 bg-gray-900/50 p-8 rounded-2xl border border-purple-500/30 flex flex-col items-center justify-center text-center">
+                <h3 class="text-3xl font-bold text-purple-300 mb-4">The Tesseract (4D Cube)</h3>
+                <p class="text-gray-400 mb-6">A tesseract is the four-dimensional analogue of the cube. What you are
+                    seeing is a mathematically accurate projection from 4D to 3D, and then 3D to 2D canvas, rotating
+                    simultaneously across multiple 4D hyper-planes (XY, XZ, XW, YW).</p>
+                <div
+                    class="grid grid-cols-2 gap-4 w-full max-w-sm text-left text-sm text-purple-200 bg-black/40 p-4 rounded-xl border border-purple-500/20">
+                    <div>Vertices: 16</div>
+                    <div>Edges: 32</div>
+                    <div>Faces: 24 (Squares)</div>
+                    <div>Cells: 8 (Cubes)</div>
+                </div>
+                <button class="btn bg-purple-600 hover:bg-purple-500 mt-6 px-6 py-2 shadow-md text-white font-bold"
+                    id="toggleTesseract"><i class="fas fa-pause mr-2"></i>Pause Hyper-Rotation</button>
+            </div>
+            <div
+                class="flex-1 bg-black/60 rounded-2xl border border-purple-500/50 flex justify-center items-center p-4 shadow-[inset_0_0_40px_rgba(168,85,247,0.3)]">
+                <canvas id="tesseractCanvas" width="400" height="400" class="max-w-full h-auto"></canvas>
+            </div>
+        </div>
+
+        <!-- Tab 3: Exotic Topology -->
+        <div id="tab-topology" class="tab-content hidden flex flex-col gap-6">
+            <div class="flex flex-wrap justify-center gap-4 bg-gray-900/50 p-4 rounded-xl border border-rose-500/30">
+                <button class="btn bg-rose-600 hover:bg-rose-500 text-white px-6 py-2 shadow-md font-bold"
+                    onclick="drawTopology('mobius')">Möbius Strip</button>
+                <button class="btn bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 shadow-md font-bold"
+                    onclick="drawTopology('torus')">Standard Torus</button>
+                <button class="btn bg-fuchsia-600 hover:bg-fuchsia-500 text-white px-6 py-2 shadow-md font-bold"
+                    onclick="drawTopology('klein')">Klein Bottle (Figure-8)</button>
+            </div>
+            <div
+                class="bg-black/40 rounded-2xl border border-gray-700 p-2 min-h-[500px] flex items-center justify-center relative w-full overflow-hidden shadow-[inset_0_0_30px_rgba(0,0,0,0.8)]">
+                <h3 id="topoTitle"
+                    class="absolute top-4 left-6 text-xl font-bold tracking-widest text-white z-10 drop-shadow-lg">
+                    Select a topology</h3>
+                <div id="plotlyCanvas" class="w-full h-[500px]"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Tab system
+        function switchTab(id) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById('tab-' + id).classList.remove('hidden');
+
+            if (id === 'tesseract' && !tesRunning) startTesseract();
+            if (id === 'topology' && !document.getElementById('plotlyCanvas').querySelector('.plotly')) drawTopology('mobius');
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* TAB 1: EUCLIDEAN GEOMETRY                                                  */
+        /* -------------------------------------------------------------------------- */
+        const btns = document.querySelectorAll('.shape-btn');
+        const inputsForm = document.getElementById('inputsForm');
+        const resultsDiv = document.getElementById('results');
+        const calcBtn = document.getElementById('calcBtn');
+        const canvas = document.getElementById('shapeCanvas');
+        const ctx = canvas.getContext('2d');
+        let currentShape = 'circle';
+
+        const shapeConfig = {
+            circle: { inputs: [{ id: 'r', label: 'Radius (r)' }], draw: () => drawCircle() },
+            square: { inputs: [{ id: 's', label: 'Side Length (s)' }], draw: () => drawRect() },
+            triangle: { inputs: [{ id: 'b', label: 'Base (b)' }, { id: 'h', label: 'Height (h)' }], draw: () => drawTri() },
+            sphere: { inputs: [{ id: 'r', label: 'Radius (r)' }], draw: () => drawSphere() },
+            cylinder: { inputs: [{ id: 'r', label: 'Radius (r)' }, { id: 'h', label: 'Height (h)' }], draw: () => drawCylinder() }
+        };
+
+        function buildInputs() {
+            inputsForm.innerHTML = '';
+            shapeConfig[currentShape].inputs.forEach(inp => {
+                inputsForm.innerHTML += `
+                    <div class="flex flex-col">
+                        <label class="font-bold text-sm mb-2 text-cyan-300 uppercase tracking-widest">${inp.label}</label>
+                        <input type="number" id="inp_${inp.id}" class="input-field text-xl w-full bg-black/60 border-cyan-500/50" value="5" min="0" step="0.1">
+                    </div>`;
+            });
+            shapeConfig[currentShape].draw();
+            resultsDiv.classList.add('hidden');
+        }
+
+        btns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                btns.forEach(b => b.classList.remove('active'));
+                const target = e.target.closest('button');
+                target.classList.add('active');
+                currentShape = target.dataset.shape;
+                buildInputs();
+            });
+        });
+
+        function clearC() { ctx.clearRect(0, 0, 240, 240); ctx.strokeStyle = '#00f0ff'; ctx.lineWidth = 3; ctx.fillStyle = 'rgba(0, 240, 255, 0.15)'; }
+        function drawCircle() { clearC(); ctx.beginPath(); ctx.arc(120, 120, 90, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); }
+        function drawRect() { clearC(); ctx.fillRect(30, 30, 180, 180); ctx.strokeRect(30, 30, 180, 180); }
+        function drawTri() { clearC(); ctx.beginPath(); ctx.moveTo(120, 30); ctx.lineTo(210, 210); ctx.lineTo(30, 210); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+        function drawSphere() { drawCircle(); ctx.beginPath(); ctx.ellipse(120, 120, 90, 30, 0, 0, Math.PI * 2); ctx.stroke(); ctx.beginPath(); ctx.ellipse(120, 120, 30, 90, 0, 0, Math.PI * 2); ctx.strokeStyle = 'rgba(0,240,255,0.3)'; ctx.stroke(); }
+        function drawCylinder() {
+            clearC();
+            ctx.beginPath(); ctx.ellipse(120, 50, 70, 25, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+            ctx.beginPath(); ctx.ellipse(120, 190, 70, 25, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+            ctx.moveTo(50, 50); ctx.lineTo(50, 190); ctx.moveTo(190, 50); ctx.lineTo(190, 190); ctx.stroke();
+        }
+
+        const getVal = (id) => parseFloat(document.getElementById('inp_' + id).value) || 0;
+        const f = (n) => Number.isInteger(n) ? n : n.toFixed(3);
+
+        calcBtn.addEventListener('click', () => {
+            resultsDiv.innerHTML = '';
+            resultsDiv.classList.remove('hidden');
+
+            const pushRes = (title, val, unit) => {
+                resultsDiv.innerHTML += `
+                    <div class="bg-black/60 p-6 rounded-2xl border border-cyan-500/40 flex flex-col items-center shadow-lg hover:border-cyan-400 transition-colors">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">${title}</span>
+                        <span class="text-4xl font-black text-white drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">${val} <span class="text-xl text-cyan-500 ml-1">${unit}</span></span>
+                    </div>`;
+            };
+
+            if (currentShape === 'circle') {
+                const r = getVal('r');
+                pushRes('Area', f(Math.PI * r * r), 'u²');
+                pushRes('Circumf', f(2 * Math.PI * r), 'u');
+                pushRes('Diameter', f(2 * r), 'u');
+            } else if (currentShape === 'square') {
+                const s = getVal('s');
+                pushRes('Area', f(s * s), 'u²');
+                pushRes('Perimeter', f(4 * s), 'u');
+                pushRes('Diagonal', f(s * Math.SQRT2), 'u');
+            } else if (currentShape === 'triangle') {
+                const b = getVal('b'); const h = getVal('h');
+                const hyp = Math.sqrt((b / 2) ** 2 + h ** 2);
+                pushRes('Area', f(0.5 * b * h), 'u²');
+                pushRes('Perim (Iso)', f(b + 2 * hyp), 'u');
+            } else if (currentShape === 'sphere') {
+                const r = getVal('r');
+                pushRes('Volume', f((4 / 3) * Math.PI * r ** 3), 'u³');
+                pushRes('Surf Area', f(4 * Math.PI * r ** 2), 'u²');
+            } else if (currentShape === 'cylinder') {
+                const r = getVal('r'); const h = getVal('h');
+                pushRes('Volume', f(Math.PI * r ** 2 * h), 'u³');
+                pushRes('Surf Area', f(2 * Math.PI * r * h + 2 * Math.PI * r ** 2), 'u²');
+            }
+        });
+
+        /* -------------------------------------------------------------------------- */
+        /* TAB 2: TESSERACT (4D) ENGINE                                               */
+        /* -------------------------------------------------------------------------- */
+        const tesCanvas = document.getElementById('tesseractCanvas');
+        const tCtx = tesCanvas.getContext('2d');
+        let tesAngle = 0;
+        let tesRunning = false;
+        let tesReq;
+
+        const vertices4D = [];
+        for (let i = 0; i < 16; i++) {
+            vertices4D.push([
+                (i & 1 ? 1 : -1),
+                (i & 2 ? 1 : -1),
+                (i & 4 ? 1 : -1),
+                (i & 8 ? 1 : -1)
+            ]);
+        }
+
+        const edges4D = [];
+        for (let i = 0; i < 16; i++) {
+            for (let j = 0; j < 4; j++) {
+                let mask = 1 << j;
+                if ((i & mask) === 0) edges4D.push([i, i | mask]);
+            }
+        }
+
+        function matMul(a, b) {
+            let res = Array(a.length).fill(0).map(() => Array(b[0].length).fill(0));
+            for (let i = 0; i < a.length; i++)
+                for (let j = 0; j < b[0].length; j++)
+                    for (let k = 0; k < a[0].length; k++)
+                        res[i][j] += a[i][k] * b[k][j];
+            return res;
+        }
+
+        function drawTesseract() {
+            tCtx.fillStyle = "rgba(0, 0, 0, 1)";
+            tCtx.fillRect(0, 0, tesCanvas.width, tesCanvas.height);
+
+            const s = Math.sin(tesAngle);
+            const c = Math.cos(tesAngle);
+
+            // 4D Rotation matrices
+            const rotXY = [[c, -s, 0, 0], [s, c, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]];
+            const rotZW = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, c, -s], [0, 0, s, c]];
+
+            let projected3D = [];
+
+            for (let i = 0; i < vertices4D.length; i++) {
+                let v = [[vertices4D[i][0]], [vertices4D[i][1]], [vertices4D[i][2]], [vertices4D[i][3]]];
+
+                // Rotate
+                let r1 = matMul(rotXY, v);
+                let r2 = matMul(rotZW, r1);
+
+                // Stereographic projection 4D -> 3D
+                let w = r2[3][0];
+                let dist = 2; // Distance of camera/light
+                let wFactor = 1 / (dist - w);
+
+                const proj4to3 = [[wFactor, 0, 0, 0], [0, wFactor, 0, 0], [0, 0, wFactor, 0]];
+                let p3 = matMul(proj4to3, r2);
+                projected3D.push([p3[0][0], p3[1][0], p3[2][0]]);
+            }
+
+            // Project 3D -> 2D Canvas
+            const points2D = [];
+            for (let i = 0; i < projected3D.length; i++) {
+                let z = projected3D[i][2];
+                let zDist = 2;
+                let zFactor = 1 / (zDist - z);
+
+                let cx = projected3D[i][0] * zFactor * 200 + tesCanvas.width / 2;
+                let cy = projected3D[i][1] * zFactor * 200 + tesCanvas.height / 2;
+                points2D.push({ x: cx, y: cy });
+            }
+
+            // Draw Edges with depth glow
+            tCtx.lineWidth = 2;
+            for (let i = 0; i < edges4D.length; i++) {
+                let pA = points2D[edges4D[i][0]];
+                let pB = points2D[edges4D[i][1]];
+
+                // Color variation based on index connectivity (internal vs external visual trick)
+                let gradient = tCtx.createLinearGradient(pA.x, pA.y, pB.x, pB.y);
+                gradient.addColorStop(0, "rgba(168, 85, 247, 0.8)");
+                gradient.addColorStop(1, "rgba(6, 182, 212, 0.8)");
+
+                tCtx.strokeStyle = gradient;
+                tCtx.beginPath();
+                tCtx.moveTo(pA.x, pA.y);
+                tCtx.lineTo(pB.x, pB.y);
+                tCtx.stroke();
+            }
+
+            // Draw Nodes
+            tCtx.fillStyle = "#fff";
+            for (let i = 0; i < points2D.length; i++) {
+                tCtx.beginPath();
+                tCtx.arc(points2D[i].x, points2D[i].y, 3, 0, Math.PI * 2);
+                tCtx.fill();
+            }
+
+            tesAngle += 0.015;
+            if (tesRunning) tesReq = requestAnimationFrame(drawTesseract);
+        }
+
+        function startTesseract() {
+            if (!tesRunning) {
+                tesRunning = true;
+                drawTesseract();
+            }
+        }
+
+        document.getElementById('toggleTesseract').addEventListener('click', (e) => {
+            if (tesRunning) {
+                tesRunning = false;
+                cancelAnimationFrame(tesReq);
+                e.target.innerHTML = '<i class="fas fa-play mr-2"></i>Resume Rotation';
+            } else {
+                tesRunning = true;
+                drawTesseract();
+                e.target.innerHTML = '<i class="fas fa-pause mr-2"></i>Pause Hyper-Rotation';
+            }
+        });
+
+        /* -------------------------------------------------------------------------- */
+        /* TAB 3: EXOTIC TOPOLOGY (Plotly 3D Surfacing)                               */
+        /* -------------------------------------------------------------------------- */
+        function drawTopology(type) {
+            const uSteps = 40, vSteps = 40;
+            let xV = [], yV = [], zV = [];
+            let title = "";
+            let color = '';
+
+            // Generate Parametric UV grids
+            for (let i = 0; i <= vSteps; i++) {
+                let vRatio = i / vSteps;
+                let rowX = [], rowY = [], rowZ = [];
+
+                for (let j = 0; j <= uSteps; j++) {
+                    let uRatio = j / uSteps;
+                    let u, v, x, y, z;
+
+                    if (type === 'mobius') {
+                        // Mobius (u: 0 to 2pi, v: -1 to 1)
+                        u = uRatio * 2 * Math.PI;
+                        v = -1 + (vRatio * 2);
+                        let r = 1 + (v / 2) * Math.cos(u / 2);
+                        x = r * Math.cos(u);
+                        y = r * Math.sin(u);
+                        z = (v / 2) * Math.sin(u / 2);
+                        title = "Möbius Strip (Non-Orientable)";
+                        color = 'Plasma';
+                    }
+                    else if (type === 'torus') {
+                        // Torus (u, v: 0 to 2pi) R=2, r=1
+                        u = uRatio * 2 * Math.PI;
+                        v = vRatio * 2 * Math.PI;
+                        let R = 3, r = 1;
+                        x = (R + r * Math.cos(v)) * Math.cos(u);
+                        y = (R + r * Math.cos(v)) * Math.sin(u);
+                        z = r * Math.sin(v);
+                        title = "Standard Torus (T²)";
+                        color = 'Viridis';
+                    }
+                    else if (type === 'klein') {
+                        // Figure-8 Klein Bottle
+                        u = uRatio * 2 * Math.PI;
+                        v = vRatio * 2 * Math.PI;
+                        let r = 2, a = 1;
+                        x = (r + a * Math.cos(v)) * Math.cos(u);
+                        y = (r + a * Math.cos(v)) * Math.sin(u);
+                        z = a * Math.sin(v) * Math.cos(u / 2);
+                        title = "Klein Bottle (Figure-8 Immersion)";
+                        color = 'Magma';
+                    }
+
+                    rowX.push(x); rowY.push(y); rowZ.push(z);
+                }
+                xV.push(rowX); yV.push(rowY); zV.push(rowZ);
+            }
+
+            document.getElementById('topoTitle').innerText = title;
+
+            let trace = [{
+                x: xV, y: yV, z: zV, type: 'surface', colorscale: color, showscale: false,
+                contours: { z: { show: true, usecolormap: true, highlightcolor: "limegreen", project: { z: true } } }
+            }];
+
+            let layout = {
+                paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', margin: { t: 0, b: 0, l: 0, r: 0 },
+                scene: {
+                    xaxis: { showgrid: false, zeroline: false, showticklabels: false, title: '' },
+                    yaxis: { showgrid: false, zeroline: false, showticklabels: false, title: '' },
+                    zaxis: { showgrid: false, zeroline: false, showticklabels: false, title: '' },
+                    camera: { eye: { x: 1.5, y: 1.5, z: 1.5 } }
+                }
+            };
+
+            Plotly.newPlot('plotlyCanvas', trace, layout, { responsive: true, displayModeBar: false });
+        }
+
+        // Init basic
+        buildInputs();
+
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

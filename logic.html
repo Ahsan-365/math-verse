@@ -1,0 +1,345 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mathematical Logic - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-btn {
+            padding: .55rem 1rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .8rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(14, 165, 233, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(14, 165, 233, 0.25);
+            color: white;
+            border-color: #0ea5e9;
+            box-shadow: 0 0 12px rgba(14, 165, 233, 0.4);
+        }
+
+        .l-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(14, 165, 233, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            font-family: monospace;
+            width: 100%;
+        }
+
+        .l-input:focus {
+            border-color: #38bdf8;
+            outline: none;
+        }
+
+        .tt-t {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            font-weight: bold;
+        }
+
+        .tt-f {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            font-weight: bold;
+        }
+
+        .sym-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: .3rem .6rem;
+            border-radius: .375rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(14, 165, 233, 0.4);
+            color: #38bdf8;
+            font-family: monospace;
+            font-weight: bold;
+            cursor: pointer;
+            transition: .15s;
+            touch-action: manipulation;
+            font-size: .95rem;
+        }
+
+        .sym-btn:active {
+            background: rgba(14, 165, 233, 0.2);
+        }
+
+        .val-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(14, 165, 233, 0.4);
+            border-radius: .75rem;
+            padding: .75rem;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-500 pb-2">
+            <i class="fas fa-brain text-sky-400"></i> Mathematical Logic
+        </h2>
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-sky-500/30">
+            <button class="tab-btn active" onclick="switchTab('truth',this)">Truth Tables</button>
+            <button class="tab-btn" onclick="switchTab('laws',this)">Logic Laws</button>
+            <button class="tab-btn" onclick="switchTab('proof',this)">Proof Checker</button>
+            <button class="tab-btn" onclick="switchTab('pred',this)">Predicate Logic</button>
+        </div>
+
+        <!-- Truth Tables -->
+        <div id="tab-truth" class="tab-content flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-sky-500/30 flex flex-col gap-4">
+                <h3 class="text-sky-300 font-bold text-xl">Truth Table Generator</h3>
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs text-gray-400">Formula (use p, q, r; connectives: &amp;&amp; || ! -&gt;
+                        &lt;-&gt;)</label>
+                    <input type="text" id="logicFormula" class="l-input" value="(p && q) || (!p && r)">
+                    <div class="flex flex-wrap gap-2 mt-1">
+                        <button class="sym-btn" onclick="insertSym('p')">p</button>
+                        <button class="sym-btn" onclick="insertSym('q')">q</button>
+                        <button class="sym-btn" onclick="insertSym('r')">r</button>
+                        <button class="sym-btn" onclick="insertSym('!')">¬</button>
+                        <button class="sym-btn" onclick="insertSym(' && ')">∧</button>
+                        <button class="sym-btn" onclick="insertSym(' || ')">∨</button>
+                        <button class="sym-btn" onclick="insertSym(' -> ')">→</button>
+                        <button class="sym-btn" onclick="insertSym(' <-> ')">↔</button>
+                        <button class="sym-btn" onclick="insertSym('(')">( )</button>
+                        <button class="btn bg-sky-700 hover:bg-sky-600 font-bold text-sm"
+                            onclick="genTT()">Generate</button>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button class="btn text-xs bg-gray-800 hover:bg-gray-700"
+                        onclick="setFormula('p -> q')">p→q</button>
+                    <button class="btn text-xs bg-gray-800 hover:bg-gray-700"
+                        onclick="setFormula('p <-> q')">p↔q</button>
+                    <button class="btn text-xs bg-gray-800 hover:bg-gray-700" onclick="setFormula('!p || q')">¬p∨q
+                        (implication)</button>
+                    <button class="btn text-xs bg-gray-800 hover:bg-gray-700"
+                        onclick="setFormula('(p || !p)')">Tautology p∨¬p</button>
+                    <button class="btn text-xs bg-gray-800 hover:bg-gray-700"
+                        onclick="setFormula('p && !p')">Contradiction</button>
+                    <button class="btn text-xs bg-gray-800 hover:bg-gray-700"
+                        onclick="setFormula('(p -> q) && (!q -> !p)')">Contrapositive</button>
+                    <button class="btn text-xs bg-gray-800 hover:bg-gray-700"
+                        onclick="setFormula('!(!p || !q) <-> (p && q)')">De Morgan</button>
+                </div>
+                <div class="overflow-x-auto" id="ttOutput"></div>
+                <div class="grid grid-cols-3 gap-3" id="ttSummary"></div>
+            </div>
+        </div>
+
+        <!-- Logic Laws -->
+        <div id="tab-laws" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-sky-500/30 flex flex-col gap-4">
+                <h3 class="text-sky-300 font-bold text-xl">Laws of Propositional Logic</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm font-mono" id="lawsGrid"></div>
+            </div>
+        </div>
+
+        <!-- Proof Checker -->
+        <div id="tab-proof" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-sky-500/30 flex flex-col gap-4">
+                <h3 class="text-sky-300 font-bold text-xl">Logical Proof Checker (Modus Ponens sequence)</h3>
+                <p class="text-sm text-gray-400">Enter premises and check if the conclusion follows by Modus Ponens /
+                    Modus Tollens.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs text-gray-400">Premises (one per line, use p, q, r)</label>
+                        <textarea id="proofPremises" class="l-input h-32">p -> q
+p
+q -> r</textarea>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="text-xs text-gray-400">Conclusion to verify</label>
+                        <input type="text" id="proofConclusion" class="l-input" value="r">
+                        <button class="btn bg-sky-700 hover:bg-sky-600 font-bold" onclick="runProof()">Check
+                            Proof</button>
+                    </div>
+                </div>
+                <div id="proofResult"
+                    class="bg-black/50 border border-sky-500/40 rounded-xl p-4 text-sm font-mono text-gray-300 leading-loose">
+                </div>
+                <div class="bg-black/40 p-4 rounded-xl">
+                    <h4 class="text-sky-300 font-bold text-sm mb-2">Inference Rules Reference</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-mono text-gray-300">
+                        <div class="bg-black/30 p-3 rounded-lg">
+                            <div class="text-sky-400 font-bold mb-1">Modus Ponens (MP)</div>p→q, p ⊢ q
+                        </div>
+                        <div class="bg-black/30 p-3 rounded-lg">
+                            <div class="text-sky-400 font-bold mb-1">Modus Tollens (MT)</div>p→q, ¬q ⊢ ¬p
+                        </div>
+                        <div class="bg-black/30 p-3 rounded-lg">
+                            <div class="text-sky-400 font-bold mb-1">Hypothetical Syll. (HS)</div>p→q, q→r ⊢ p→r
+                        </div>
+                        <div class="bg-black/30 p-3 rounded-lg">
+                            <div class="text-sky-400 font-bold mb-1">Disjunctive Syll. (DS)</div>p∨q, ¬p ⊢ q
+                        </div>
+                        <div class="bg-black/30 p-3 rounded-lg">
+                            <div class="text-sky-400 font-bold mb-1">Simplification</div>p∧q ⊢ p (or q)
+                        </div>
+                        <div class="bg-black/30 p-3 rounded-lg">
+                            <div class="text-sky-400 font-bold mb-1">Conjunction</div>p, q ⊢ p∧q
+                        </div>
+                        <div class="bg-black/30 p-3 rounded-lg">
+                            <div class="text-sky-400 font-bold mb-1">Double Negation</div>¬¬p ⊢ p
+                        </div>
+                        <div class="bg-black/30 p-3 rounded-lg">
+                            <div class="text-sky-400 font-bold mb-1">Contrapositive</div>p→q ⊢ ¬q→¬p
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Predicate Logic -->
+        <div id="tab-pred" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-sky-500/30 flex flex-col gap-4">
+                <h3 class="text-sky-300 font-bold text-xl">Predicate Logic Reference & Set Membership</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-black/40 p-4 rounded-xl">
+                        <h4 class="text-sky-300 font-bold mb-3 text-sm">Quantifier Laws</h4>
+                        <div class="flex flex-col gap-2 text-sm font-mono text-gray-300" id="quantLaws"></div>
+                    </div>
+                    <div class="bg-black/40 p-4 rounded-xl">
+                        <h4 class="text-sky-300 font-bold mb-3 text-sm">Universal/Existential Checker</h4>
+                        <p class="text-xs text-gray-500 mb-2">Test ∀x P(x) or ∃x P(x) over a finite domain.</p>
+                        <div class="flex flex-col gap-2">
+                            <div><label class="text-xs text-gray-400">Domain (comma-sep integers)</label><input
+                                    type="text" id="domainInput" class="l-input" value="1,2,3,4,5" oninput="runQuant()">
+                            </div>
+                            <div><label class="text-xs text-gray-400">Predicate P(x) (JS expression, x is
+                                    variable)</label><input type="text" id="predicateInput" class="l-input"
+                                    value="x % 2 === 0" oninput="runQuant()"></div>
+                            <div class="grid grid-cols-2 gap-2 mt-2">
+                                <div class="val-card"><span class="text-xs text-gray-500 block">∀x P(x)?</span><span
+                                        id="univResult" class="text-xl font-mono text-sky-300 font-bold">—</span></div>
+                                <div class="val-card"><span class="text-xs text-gray-500 block">∃x P(x)?</span><span
+                                        id="exiResult" class="text-xl font-mono text-sky-300 font-bold">—</span></div>
+                            </div>
+                            <div id="quantDetail" class="text-xs font-mono text-gray-400 mt-1"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); document.getElementById('tab-' + id).classList.remove('hidden'); if (id === 'laws') renderLaws(); if (id === 'pred') { renderQuantLaws(); runQuant(); } if (id === 'truth') genTT(); }
+        function insertSym(s) { let el = document.getElementById('logicFormula'); let st = el.selectionStart, en = el.selectionEnd; el.value = el.value.slice(0, st) + s + el.value.slice(en); el.selectionStart = el.selectionEnd = st + s.length; el.focus(); }
+        function setFormula(f) { document.getElementById('logicFormula').value = f; genTT(); }
+
+        function evalLogic(expr, vals) {
+            let e = expr.replace(/p/g, vals.p).replace(/q/g, vals.q).replace(/r/g, vals.r);
+            e = e.replace(/<->/g, '===').replace(/->/g, '<=');
+            try { return !!eval(e); } catch { return null; }
+        }
+
+        function genTT() {
+            let formula = document.getElementById('logicFormula').value;
+            let vars = ['p', 'q', 'r'].filter(v => formula.includes(v));
+            if (!vars.length) { document.getElementById('ttOutput').innerHTML = '<div class="text-gray-500 text-sm">No variables found (use p, q, r).</div>'; return; }
+            let n = Math.pow(2, vars.length), rows = [];
+            for (let i = 0; i < n; i++) {
+                let vals = { p: false, q: false, r: false };
+                vars.forEach((v, j) => { vals[v] = !!((n >> 1 >> j) & i >> 0 ? !!(i >> 0 & n >> j >> 1 >> 0) : !!(i & n >> j >> 1)); });
+                // Better bit logic:
+                vars.forEach((v, j) => { vals[v] = !!(i & (1 << (vars.length - 1 - j))); });
+                let res = evalLogic(formula, vals);
+                rows.push({ vals: vars.map(v => vals[v]), res });
+            }
+            let header = `<tr class="bg-gray-900">${vars.map(v => `<th class="px-3 py-1 border border-gray-700 text-sky-400">${v}</th>`).join('')}<th class="px-3 py-1 border border-gray-700 text-sky-400 font-mono">${formula}</th></tr>`;
+            let body = rows.map(r => `<tr class="border-t border-gray-800">${r.vals.map(v => `<td class="px-3 py-1 border border-gray-700 text-center font-mono font-bold ${v ? 'text-green-400' : 'text-red-400'}">${v ? 'T' : 'F'}</td>`).join('')}<td class="px-3 py-1 border border-gray-700 text-center font-mono font-bold ${r.res ? 'tt-t' : 'tt-f'}">${r.res ? 'T' : 'F'}</td></tr>`).join('');
+            document.getElementById('ttOutput').innerHTML = `<table class="border-collapse text-sm w-full">${header}${body}</table>`;
+            let trues = rows.filter(r => r.res).length;
+            let isTaut = trues === n, isContra = trues === 0, isSat = trues > 0;
+            document.getElementById('ttSummary').innerHTML = [
+                ['Tautology?', isTaut ? 'Yes ✓' : 'No', isTaut ? 'text-green-400' : 'text-gray-500'],
+                ['Contradiction?', isContra ? 'Yes ✓' : 'No', isContra ? 'text-red-400' : 'text-gray-500'],
+                ['Satisfiable?', isSat ? 'Yes ✓' : 'No', isSat ? 'text-sky-300' : 'text-gray-500'],
+            ].map(([k, v, c]) => `<div class="val-card"><span class="text-xs text-gray-500 block">${k}</span><span class="font-bold ${c}">${v}</span></div>`).join('');
+        }
+
+        const lawsData = [
+            { name: 'Double Negation', law: '¬¬p ≡ p' },
+            { name: 'De Morgan (AND)', 'law': '¬(p∧q) ≡ ¬p∨¬q' },
+            { name: 'De Morgan (OR)', 'law': '¬(p∨q) ≡ ¬p∧¬q' },
+            { name: 'Idempotent (AND)', 'law': 'p∧p ≡ p' },
+            { name: 'Idempotent (OR)', 'law': 'p∨p ≡ p' },
+            { name: 'Commutative (AND)', 'law': 'p∧q ≡ q∧p' },
+            { name: 'Commutative (OR)', 'law': 'p∨q ≡ q∨p' },
+            { name: 'Associative (AND)', 'law': '(p∧q)∧r ≡ p∧(q∧r)' },
+            { name: 'Associative (OR)', 'law': '(p∨q)∨r ≡ p∨(q∨r)' },
+            { name: 'Distributive 1', 'law': 'p∧(q∨r) ≡ (p∧q)∨(p∧r)' },
+            { name: 'Distributive 2', 'law': 'p∨(q∧r) ≡ (p∨q)∧(p∨r)' },
+            { name: 'Identity (AND)', 'law': 'p∧T ≡ p; p∧F ≡ F' },
+            { name: 'Identity (OR)', 'law': 'p∨F ≡ p; p∨T ≡ T' },
+            { name: 'Complement', 'law': 'p∧¬p ≡ F; p∨¬p ≡ T' },
+            { name: 'Absorption', 'law': 'p∨(p∧q) ≡ p; p∧(p∨q) ≡ p' },
+            { name: 'Implication', 'law': 'p→q ≡ ¬p∨q' },
+            { name: 'Contrapositive', 'law': 'p→q ≡ ¬q→¬p' },
+            { name: 'Biconditional', 'law': 'p↔q ≡ (p→q)∧(q→p)' },
+            { name: 'Exportation', 'law': '(p∧q)→r ≡ p→(q→r)' },
+            { name: 'Hypothetical Syll.', 'law': '(p→q)∧(q→r) → (p→r)' },
+        ];
+        function renderLaws() { document.getElementById('lawsGrid').innerHTML = lawsData.map(l => `<div class="bg-black/40 p-3 rounded-xl border border-sky-500/20"><div class="text-sky-400 font-bold text-xs mb-1">${l.name}</div><div class="text-gray-200">${l.law}</div></div>`).join(''); }
+
+        function runProof() {
+            let premises = document.getElementById('proofPremises').value.trim().split('\n').map(s => s.trim()).filter(Boolean);
+            let conclusion = document.getElementById('proofConclusion').value.trim();
+            let known = new Set(premises); let steps = [], maxIter = 20;
+            // Modus Ponens: p->q, p => q
+            function applyMP() { let added = false; known.forEach(a => { known.forEach(b => { if (a.match(/^(.+)\s*->\s*(.+)$/)) { let [, ant, cons] = a.match(/^(.+)\s*->\s*(.+)$/); ant = ant.trim(); cons = cons.trim(); if (known.has(ant) && !known.has(cons)) { known.add(cons); steps.push(`MP: ${ant}→${cons}, ${ant} ⊢ <b class="text-sky-300">${cons}</b>`); added = true; } } }); }); return added; }
+            // Modus Tollens: p->q, !q => !p
+            function applyMT() { let added = false; known.forEach(a => { if (a.match(/^(.+)\s*->\s*(.+)$/)) { let [, ant, cons] = a.match(/^(.+)\s*->\s*(.+)$/); ant = ant.trim(); cons = cons.trim(); let negCons = cons.startsWith('!') ? cons.slice(1) : '!' + cons; let negAnt = ant.startsWith('!') ? ant.slice(1) : '!' + ant; if (known.has(negCons) && !known.has(negAnt)) { known.add(negAnt); steps.push(`MT: ${ant}→${cons}, ¬${cons} ⊢ <b class="text-sky-300">¬${ant}</b>`); added = true; } } }); return added; }
+            for (let i = 0; i < maxIter; i++) { if (!applyMP() && !applyMT()) break; }
+            let proved = known.has(conclusion);
+            document.getElementById('proofResult').innerHTML =
+                `<b class="text-sky-400">Premises:</b> ${premises.join(', ')}<br><b class="text-sky-400">Derived:</b><br>${steps.join('<br>') || '(no new steps — check premises)'}<br><br>` +
+                (proved ? `<span class="text-green-400 text-lg font-bold">✓ Proved: "${conclusion}" follows from premises</span>` : `<span class="text-red-400 text-lg font-bold">✗ Could not prove "${conclusion}" (may need additional rules)</span>`);
+        }
+
+        const quantLawsData = [
+            '¬(∀x P(x)) ≡ ∃x ¬P(x)',
+            '¬(∃x P(x)) ≡ ∀x ¬P(x)',
+            '∀x(P(x)∧Q(x)) ≡ (∀x P(x))∧(∀x Q(x))',
+            '∃x(P(x)∨Q(x)) ≡ (∃x P(x))∨(∃x Q(x))',
+            '∀x P(x) → ∃x P(x) (if domain non-empty)',
+            '∀x ∀y P(x,y) ≡ ∀y ∀x P(x,y)',
+            '∃x ∃y P(x,y) ≡ ∃y ∃x P(x,y)',
+            '∃x ∀y P(x,y) → ∀y ∃x P(x,y)',
+        ];
+        function renderQuantLaws() { document.getElementById('quantLaws').innerHTML = quantLawsData.map(l => `<div class="p-2 bg-black/30 rounded-lg border border-sky-500/20 text-sky-200">${l}</div>`).join(''); }
+
+        function runQuant() {
+            let domStr = document.getElementById('domainInput').value; let predStr = document.getElementById('predicateInput').value;
+            let domain = domStr.split(',').map(s => parseInt(s.trim())).filter(v => !isNaN(v));
+            let results = domain.map(x => { try { let x2 = x; return { x: x2, val: !!eval(predStr.replace(/\bx\b/g, x2)) }; } catch { return { x, val: null }; } });
+            let univ = results.every(r => r.val); let exis = results.some(r => r.val);
+            document.getElementById('univResult').innerHTML = univ ? '<span class="text-green-400">True</span>' : '<span class="text-red-400">False</span>';
+            document.getElementById('exiResult').innerHTML = exis ? '<span class="text-green-400">True</span>' : '<span class="text-red-400">False</span>';
+            document.getElementById('quantDetail').innerHTML = results.map(r => `x=${r.x}: P(${r.x})=${r.val === null ? 'error' : r.val ? '<span class="text-green-400">T</span>' : '<span class="text-red-400">F</span>'}`).join(' | ');
+        }
+
+        genTT();
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

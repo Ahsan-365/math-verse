@@ -1,0 +1,223 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Functional Analysis - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-btn {
+            padding: .55rem 1rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .8rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(139, 92, 246, 0.25);
+            color: white;
+            border-color: #8b5cf6;
+            box-shadow: 0 0 12px rgba(139, 92, 246, 0.4);
+        }
+
+        .f-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(139, 92, 246, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            font-family: monospace;
+            width: 100%;
+        }
+
+        .f-input:focus {
+            border-color: #a78bfa;
+            outline: none;
+        }
+
+        .val-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(139, 92, 246, 0.4);
+            border-radius: .75rem;
+            padding: .75rem;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-purple-600 pb-2">
+            <i class="fas fa-wave-square text-violet-400"></i> Functional Analysis
+        </h2>
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-violet-500/30">
+            <button class="tab-btn active" onclick="switchTab('spaces',this)">Normed Spaces</button>
+            <button class="tab-btn" onclick="switchTab('hilbert',this)">Hilbert Spaces</button>
+            <button class="tab-btn" onclick="switchTab('operators',this)">Linear Operators</button>
+            <button class="tab-btn" onclick="switchTab('theorems',this)">Big Theorems</button>
+        </div>
+
+        <!-- Normed Spaces -->
+        <div id="tab-spaces" class="tab-content flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-violet-500/30 flex flex-col gap-4">
+                <h3 class="text-violet-300 font-bold text-xl">Norms & Metric Spaces</h3>
+                <p class="text-sm text-gray-400">A norm ‖·‖ on a vector space satisfies: ‖v‖≥0 (=0 iff v=0),
+                    ‖αv‖=|α|‖v‖, ‖u+v‖≤‖u‖+‖v‖.</p>
+                <div class="flex gap-3 items-end flex-wrap">
+                    <div><label class="text-xs text-gray-400">Vector (comma-separated)</label><input type="text"
+                            id="normVec" class="f-input flex-1" value="3, -4, 0, 2" oninput="runNorms()"></div>
+                    <div><label class="text-xs text-gray-400">p for Lᵖ norm</label><input type="number" id="normP"
+                            class="f-input w-24" value="2" step="0.5" min="1" oninput="runNorms()"></div>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="normCards"></div>
+                <canvas id="normCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:220px"></canvas>
+                <div class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300">
+                    <b class="text-violet-300">Lᵖ norms (on ℝⁿ):</b><br>
+                    ‖v‖₁ = Σ|vᵢ| (taxicab/Manhattan) | ‖v‖₂ = (Σvᵢ²)^{1/2} (Euclidean) | ‖v‖ₚ = (Σ|vᵢ|ᵖ)^{1/p}<br>
+                    ‖v‖∞ = max|vᵢ| (supremum norm) | ‖v‖ₚ↓‖v‖∞ as p→∞<br>
+                    <b class="text-violet-300">Hölder's inequality:</b> |⟨u,v⟩| ≤ ‖u‖_p · ‖v‖_q (1/p+1/q=1)<br>
+                    <b class="text-violet-300">Completeness:</b> Banach space = complete normed space. L^p(μ) is Banach
+                    for p∈[1,∞].
+                </div>
+            </div>
+        </div>
+
+        <!-- Hilbert Spaces -->
+        <div id="tab-hilbert" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-violet-500/30 flex flex-col gap-4">
+                <h3 class="text-violet-300 font-bold text-xl">Hilbert Spaces — Inner Product & Orthogonality</h3>
+                <p class="text-sm text-gray-400">A Hilbert space H is a complete inner product space. The inner product
+                    ⟨·,·⟩ induces a norm ‖v‖=√⟨v,v⟩.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-3">
+                        <div><label class="text-xs text-gray-400">vector u</label><input type="text" id="hilU"
+                                class="f-input" value="1, 2, 3" oninput="runHilbert()"></div>
+                        <div><label class="text-xs text-gray-400">vector v</label><input type="text" id="hilV"
+                                class="f-input" value="4, 0, -1" oninput="runHilbert()"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3" id="hilCards"></div>
+                </div>
+                <div id="gramSchmidt" class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300"></div>
+                <div class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300">
+                    <b class="text-violet-300">Key properties:</b><br>
+                    Cauchy-Schwarz: |⟨u,v⟩|² ≤ ⟨u,u⟩⟨v,v⟩<br>
+                    Parallelogram law: ‖u+v‖²+‖u-v‖²=2(‖u‖²+‖v‖²) (characterizes inner product spaces)<br>
+                    Projection: proj_v(u) = ⟨u,v⟩/‖v‖² · v<br>
+                    Riesz representation: Every bounded linear functional = inner product with some fixed vector<br>
+                    Orthonormal basis: ⟨eᵢ,eⱼ⟩=δᵢⱼ. Parseval: ‖f‖²=Σ|⟨f,eₙ⟩|²
+                </div>
+            </div>
+        </div>
+
+        <!-- Operators -->
+        <div id="tab-operators" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-violet-500/30 flex flex-col gap-4">
+                <h3 class="text-violet-300 font-bold text-xl">Bounded Linear Operators</h3>
+                <p class="text-sm text-gray-400">T: H₁→H₂ is bounded if ‖T‖ = sup{‖Tv‖ : ‖v‖≤1} < ∞. Equivalently: T is
+                        continuous.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="opCards"></div>
+                        <div class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300">
+                            <b class="text-violet-300">Operator norm calculator:</b><br>
+                            For matrix A ∈ ℝⁿˣⁿ: ‖A‖₂ = σ_max(A) (largest singular value)<br>
+                            ‖A‖₁ = max column sum | ‖A‖∞ = max row sum | ‖A‖_F = (Σaᵢⱼ²)^{1/2} (Frobenius)
+                        </div>
+                        <div class="flex flex-col gap-3">
+                            <div><label class="text-xs text-gray-400">Matrix A (rows separated by |)</label><input
+                                    type="text" id="opMat" class="f-input" value="1 2 | -3 4" oninput="runOperator()">
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="opNorms"></div>
+                        </div>
+            </div>
+        </div>
+
+        <!-- Theorems -->
+        <div id="tab-theorems" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-violet-500/30">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="bigThms"></div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); document.getElementById('tab-' + id).classList.remove('hidden'); if (id === 'spaces') runNorms(); if (id === 'hilbert') runHilbert(); if (id === 'operators') runOperator(); if (id === 'theorems') renderThms(); }
+        function card(k, v) { return `<div class="val-card"><span class="text-xs text-gray-500 block">${k}</span><span class="font-mono text-violet-300 font-bold">${v}</span></div>`; }
+
+        function runNorms() {
+            let v = document.getElementById('normVec').value.split(',').map(Number).filter(x => !isNaN(x));
+            let p = +document.getElementById('normP').value || 2;
+            let n1 = v.reduce((s, x) => s + Math.abs(x), 0);
+            let n2 = Math.sqrt(v.reduce((s, x) => s + x * x, 0));
+            let np = Math.pow(v.reduce((s, x) => s + Math.pow(Math.abs(x), p), 0), 1 / p);
+            let nInf = Math.max(...v.map(Math.abs));
+            document.getElementById('normCards').innerHTML = [['‖v‖₁', n1.toFixed(4)], ['‖v‖₂', n2.toFixed(4)], [`‖v‖_${p.toFixed(1)}`, np.toFixed(4)], ['‖v‖∞', nInf.toFixed(4)]].map(([k, val]) => card(k, val)).join('');
+            let cv = document.getElementById('normCanvas'); cv.width = cv.offsetWidth; cv.height = 220;
+            let cx = cv.getContext('2d'), W = cv.width, H = 220, pad = 30, cx0 = W / 2, cy0 = H / 2, R = Math.min(W, H) / 2 - pad;
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H); cx.strokeStyle = '#1e293b'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(pad, cy0); cx.lineTo(W - pad, cy0); cx.moveTo(cx0, pad); cx.lineTo(cx0, H - pad); cx.stroke();
+            // Draw unit balls for L1, L2, L∞
+            function unitBall(pv, col) { cx.strokeStyle = col; cx.lineWidth = 1.5; cx.beginPath(); let pts = 360; for (let i = 0; i <= pts; i++) { let theta = i / pts * 2 * Math.PI; let x = Math.cos(theta), y = Math.sin(theta); let scale = pv === Infinity ? 1 : Math.pow(Math.pow(Math.abs(x), pv) + Math.pow(Math.abs(y), pv), -1 / pv); let sx = cx0 + x * scale * R, sy = cy0 - y * scale * R; i === 0 ? cx.moveTo(sx, sy) : cx.lineTo(sx, sy); } cx.stroke(); }
+            unitBall(1, 'rgba(255,100,100,0.7)'); unitBall(2, 'rgba(100,200,255,0.7)'); unitBall(Infinity, 'rgba(100,255,150,0.7)');
+            cx.fillStyle = '#ef4444'; cx.font = '9px monospace'; cx.fillText('L¹ (diamond)', pad, 15); cx.fillStyle = '#38bdf8'; cx.fillText('L² (circle)', pad + 80, 15); cx.fillStyle = '#34d399'; cx.fillText('L∞ (square)', pad + 155, 15);
+        }
+
+        function runHilbert() {
+            let u = document.getElementById('hilU').value.split(',').map(Number).filter(x => !isNaN(x));
+            let v = document.getElementById('hilV').value.split(',').map(Number).filter(x => !isNaN(x));
+            let n = Math.min(u.length, v.length); u = u.slice(0, n); v = v.slice(0, n);
+            let dot = u.reduce((s, x, i) => s + x * v[i], 0);
+            let nu = Math.sqrt(u.reduce((s, x) => s + x * x, 0)), nv = Math.sqrt(v.reduce((s, x) => s + x * x, 0));
+            let angle = Math.acos(Math.max(-1, Math.min(1, dot / (nu * nv)))) * 180 / Math.PI;
+            let proj = v.map(x => x * dot / (nv * nv));
+            document.getElementById('hilCards').innerHTML = [['⟨u,v⟩', dot.toFixed(4)], ['‖u‖', nu.toFixed(4)], ['‖v‖', nv.toFixed(4)], ['Angle θ', angle.toFixed(2) + '°'], ['‖u+v‖', Math.sqrt(u.map((x, i) => x + v[i]).reduce((s, x) => s + x * x, 0)).toFixed(4)], ['proj_v(u)', `[${proj.map(x => x.toFixed(2)).join(', ')}]`]].map(([k, val]) => card(k, val)).join('');
+            let gs = `<b class="text-violet-300">Gram-Schmidt (2 vectors):</b><br>e₁ = u/‖u‖ = [${u.map(x => (x / nu).toFixed(3)).join(', ')}]<br>`;
+            let proj2 = v.map((x, i) => x - dot / nu / nu * u[i]); let np2 = Math.sqrt(proj2.reduce((s, x) => s + x * x, 0));
+            if (np2 > 1e-8) gs += `e₂ = (v−proj_{e₁}v)/‖...‖ = [${proj2.map(x => (x / np2).toFixed(3)).join(', ')}]<br>Check: ⟨e₁,e₂⟩ = ${proj2.reduce((s, x, i) => s + x * u[i] / nu, 0).toFixed(6)} ≈ 0 ✓`;
+            else gs += 'v is parallel to u — G-S gives only one independent vector.';
+            document.getElementById('gramSchmidt').innerHTML = gs;
+        }
+
+        function runOperator() {
+            let rows = document.getElementById('opMat').value.split('|').map(r => r.trim().split(/\s+/).map(Number));
+            let m = rows.length, n = rows[0].length;
+            let n1 = Math.max(...rows.map(r => r.reduce((s, v) => s + Math.abs(v), 0)));
+            let nInf = rows.reduce((mx, r) => Math.max(mx, r.reduce((s, v) => s + Math.abs(v), 0)), 0);
+            let nF = Math.sqrt(rows.flat().reduce((s, v) => s + v * v, 0));
+            document.getElementById('opNorms').innerHTML = [['‖A‖₁', n1.toFixed(4)], ['‖A‖∞', nInf.toFixed(4)], ['‖A‖_F', nF.toFixed(4)], [`dim`, `${m}×${n}`]].map(([k, v]) => card(k, v)).join('');
+        }
+
+        const thms = [
+            { name: "Hahn-Banach Theorem", def: "Every bounded linear functional on a subspace extends to the whole space with the same norm. Implies dual space is 'rich enough'. Requires Axiom of Choice." },
+            { name: "Open Mapping Theorem", def: "A surjective bounded linear operator T: X→Y between Banach spaces is an open map. Consequence: if also injective, T⁻¹ is bounded." },
+            { name: "Closed Graph Theorem", def: "If T: X→Y (Banach spaces) has a closed graph {(x,Tx)}, then T is bounded. Very useful in practice." },
+            { name: "Uniform Boundedness (Banach-Steinhaus)", def: "If {Tα} is a family of bounded linear operators with sup_α‖Tα x‖<∞ for each x, then sup_α‖Tα‖<∞. Pointwise bounded ⟹ uniformly bounded." },
+            { name: "Spectral Theorem (compact, self-adjoint)", def: "Every compact self-adjoint operator T on a Hilbert space has an orthonormal basis of eigenvectors with eigenvalues→0. T = Σ λₙ⟨·,eₙ⟩eₙ." },
+            { name: "Riesz Representation Theorem", def: "Every bounded linear functional f on L²(X,μ) has the form f(g)=∫g·h̄ dμ for a unique h∈L². The dual of L² is L²." },
+            { name: "Lax-Milgram Theorem", def: "If a: H×H→ℝ is coercive and bounded bilinear form, then for every f∈H* ∃! u∈H: a(u,v)=f(v) ∀v. Foundation of finite element methods." },
+            { name: "Fredholm Alternative", def: "For compact operator K, either (I−K)x=y has a unique solution for all y, or (I−K)x=0 has non-trivial solutions (and then y must satisfy finitely many orthogonality conditions)." },
+        ];
+        function renderThms() { document.getElementById('bigThms').innerHTML = thms.map(t => `<div class="bg-black/40 p-4 rounded-xl border border-violet-500/20"><div class="text-violet-300 font-bold text-sm mb-1">${t.name}</div><div class="text-xs text-gray-400 font-mono leading-relaxed">${t.def}</div></div>`).join(''); }
+
+        const opData = [
+            { name: "Shift operator", def: "(Sx)ₙ = xₙ₋₁ on ℓ². Bounded, ‖S‖=1, isometric but not unitary. No eigenvalues (spectrum=unit circle)." },
+            { name: "Multiplication operator", def: "M_f: L²→L², (M_f g)(x)=f(x)g(x). Bounded iff f∈L∞. Self-adjoint iff f is real-valued. Spectrum = essential range of f." },
+            { name: "Integral operator", def: "(Kf)(x) = ∫K(x,y)f(y)dy. Compact if K∈L². Kernel K is the Schwartz kernel. May have continuous spectrum." },
+            { name: "Differential operator", def: "-d²/dx² on L²[0,1]: unbounded (domain=H²∩H₀¹). Self-adjoint. Eigenvalues: (nπ)², eigenfunctions: sin(nπx). Spectral theorem applies." },
+        ];
+        function renderOps() { document.getElementById('opCards').innerHTML = opData.map(o => `<div class="bg-black/40 p-4 rounded-xl border border-violet-500/20"><div class="text-violet-300 font-bold text-sm mb-1">${o.name}</div><div class="text-xs text-gray-400 font-mono leading-relaxed">${o.def}</div></div>`).join(''); }
+        runNorms(); renderOps();
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,311 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Theory - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-btn {
+            padding: .55rem 1rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .8rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(251, 191, 36, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(251, 191, 36, 0.25);
+            color: white;
+            border-color: #fbbf24;
+            box-shadow: 0 0 12px rgba(251, 191, 36, 0.4);
+        }
+
+        .gt-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(251, 191, 36, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            font-family: monospace;
+            width: 100%;
+        }
+
+        .gt-input:focus {
+            border-color: #fcd34d;
+            outline: none;
+        }
+
+        .val-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(251, 191, 36, 0.4);
+            border-radius: .75rem;
+            padding: .75rem;
+            text-align: center;
+        }
+
+        .payoff-cell {
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            text-align: center;
+            padding: .4rem;
+            font-family: monospace;
+            font-size: .85rem;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .nash-cell {
+            background: rgba(251, 191, 36, 0.2);
+            border-color: #fbbf24;
+        }
+
+        .dominant {
+            background: rgba(52, 211, 153, 0.15);
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-500 pb-2">
+            <i class="fas fa-chess text-amber-400"></i> Game Theory
+        </h2>
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-amber-500/30">
+            <button class="tab-btn active" onclick="switchTab('payoff',this)">Payoff Matrix</button>
+            <button class="tab-btn" onclick="switchTab('classic',this)">Classic Games</button>
+            <button class="tab-btn" onclick="switchTab('mixed',this)">Mixed Strategies</button>
+            <button class="tab-btn" onclick="switchTab('auction',this)">Mechanism Design</button>
+        </div>
+
+        <!-- Payoff Matrix -->
+        <div id="tab-payoff" class="tab-content flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-amber-500/30 flex flex-col gap-4">
+                <h3 class="text-amber-300 font-bold text-xl">2×2 Strategic Form Game — Nash Equilibrium Finder</h3>
+                <p class="text-sm text-gray-400">Enter payoffs (Row player, Column player). Nash equilibrium: neither
+                    player benefits from unilaterally deviating.</p>
+                <div class="flex gap-4 items-center flex-wrap text-sm">
+                    <div><label class="text-xs text-gray-400">Row strategies</label><input type="text" id="rowStrats"
+                            class="gt-input mt-1 w-32" value="Top,Bottom" oninput="runPayoff()"></div>
+                    <div><label class="text-xs text-gray-400">Col strategies</label><input type="text" id="colStrats"
+                            class="gt-input mt-1 w-32" value="Left,Right" oninput="runPayoff()"></div>
+                </div>
+                <div class="text-xs text-gray-400 mb-1">Enter payoffs as (Row, Col) — format: "a,b"</div>
+                <div class="grid grid-cols-3 gap-1" id="payoffGrid">
+                    <div class="payoff-cell bg-transparent border-transparent"></div>
+                    <div class="payoff-cell text-amber-400 text-xs font-bold">Left</div>
+                    <div class="payoff-cell text-amber-400 text-xs font-bold">Right</div>
+                    <div class="payoff-cell text-amber-400 text-xs font-bold">Top</div>
+                    <div><input type="text" class="gt-input text-center payoff-entry" value="3,3" oninput="runPayoff()">
+                    </div>
+                    <div><input type="text" class="gt-input text-center payoff-entry" value="0,5" oninput="runPayoff()">
+                    </div>
+                    <div class="payoff-cell text-amber-400 text-xs font-bold">Bottom</div>
+                    <div><input type="text" class="gt-input text-center payoff-entry" value="5,0" oninput="runPayoff()">
+                    </div>
+                    <div><input type="text" class="gt-input text-center payoff-entry" value="1,1" oninput="runPayoff()">
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button class="btn text-xs bg-amber-900 hover:bg-amber-800" onclick="preset('pd')">Prisoner's
+                        Dilemma</button>
+                    <button class="btn text-xs bg-amber-900 hover:bg-amber-800" onclick="preset('stag')">Stag
+                        Hunt</button>
+                    <button class="btn text-xs bg-amber-900 hover:bg-amber-800" onclick="preset('battle')">Battle of
+                        Sexes</button>
+                    <button class="btn text-xs bg-amber-900 hover:bg-amber-800"
+                        onclick="preset('chicken')">Chicken</button>
+                    <button class="btn text-xs bg-amber-900 hover:bg-amber-800" onclick="preset('hs')">Hawks &
+                        Doves</button>
+                    <button class="btn text-xs bg-amber-900 hover:bg-amber-800" onclick="preset('mp')">Matching
+                        Pennies</button>
+                </div>
+                <div class="overflow-x-auto" id="payoffResult"></div>
+                <div id="nashAnalysis" class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300 leading-loose">
+                </div>
+            </div>
+        </div>
+
+        <!-- Classic Games -->
+        <div id="tab-classic" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-amber-500/30 flex flex-col gap-4">
+                <h3 class="text-amber-300 font-bold text-xl">Classic Game Theory Problems</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="classicCards"></div>
+            </div>
+        </div>
+
+        <!-- Mixed Strategies -->
+        <div id="tab-mixed" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-amber-500/30 flex flex-col gap-4">
+                <h3 class="text-amber-300 font-bold text-xl">Mixed Strategy Nash Equilibrium</h3>
+                <p class="text-sm text-gray-400">For 2×2 zero-sum game: p* makes Col indifferent; q* makes Row
+                    indifferent. Value of game = expected payoff at (p*,q*).</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="text-xs text-gray-400">Row payoffs [a,b; c,d] (zero-sum: Col gets −Row)</label>
+                        <div class="grid grid-cols-2 gap-2 mt-1">
+                            <input type="number" id="za" class="gt-input" value="3" oninput="runMixed()">
+                            <input type="number" id="zb" class="gt-input" value="-2" oninput="runMixed()">
+                            <input type="number" id="zc" class="gt-input" value="-1" oninput="runMixed()">
+                            <input type="number" id="zd" class="gt-input" value="2" oninput="runMixed()">
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-3">
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="val-card"><span class="text-xs text-gray-500 block">p* (Row plays
+                                    Top)</span><span id="mixP"
+                                    class="text-xl font-mono text-amber-300 font-bold">—</span></div>
+                            <div class="val-card"><span class="text-xs text-gray-500 block">q* (Col plays
+                                    Left)</span><span id="mixQ"
+                                    class="text-xl font-mono text-amber-300 font-bold">—</span></div>
+                        </div>
+                        <div class="val-card"><span class="text-xs text-gray-500 block">Value of game V</span><span
+                                id="mixV" class="text-2xl font-mono text-amber-300 font-bold">—</span></div>
+                    </div>
+                </div>
+                <canvas id="mixCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:220px"></canvas>
+                <div id="mixExplain" class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300"></div>
+            </div>
+        </div>
+
+        <!-- Mechanism Design -->
+        <div id="tab-auction" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-amber-500/30 flex flex-col gap-4">
+                <h3 class="text-amber-300 font-bold text-xl">Auction Theory & Mechanism Design</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-black/40 p-4 rounded-xl">
+                        <h4 class="text-amber-300 font-bold text-sm mb-3">First-Price vs Second-Price Auction</h4>
+                        <div class="flex flex-col gap-2">
+                            <div><label class="text-xs text-gray-400">Bidder valuations (comma-sep)</label><input
+                                    type="text" id="auctVals" class="gt-input mt-1" value="100,85,70,60"
+                                    oninput="runAuction()"></div>
+                            <div id="auctResult" class="text-sm font-mono text-gray-300 flex flex-col gap-1 mt-2"></div>
+                        </div>
+                    </div>
+                    <div class="bg-black/40 p-4 rounded-xl">
+                        <h4 class="text-amber-300 font-bold text-sm mb-3">Revenue Equivalence Theorem</h4>
+                        <div class="text-xs text-gray-400 flex flex-col gap-2">
+                            <div>Under standard assumptions (risk-neutral, symmetric, iid values), all standard auctions
+                                yield the same expected revenue.</div>
+                            <div class="mt-2 text-amber-200 font-mono">Optimal bid in First-Price:<br>b*(v) = E[highest
+                                rival bid | your value = v]<br>= v · (n−1)/n for Uniform[0,1]</div>
+                            <div class="text-teal-300 font-mono">Second-Price (Vickrey): truthful bidding dominates.
+                                b*(v) = v</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2" id="auctionCards"></div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); document.getElementById('tab-' + id).classList.remove('hidden'); if (id === 'payoff') runPayoff(); if (id === 'classic') renderClassic(); if (id === 'mixed') runMixed(); if (id === 'auction') { runAuction(); renderAuctionCards(); } }
+
+        const presets2 = {
+            pd: { entries: [[1, 1], [5, 0], [0, 5], [3, 3]], name: "Prisoner's Dilemma", note: "Both defect (3,3) is the unique Nash, yet (1,1) is Pareto optimal. Classic social dilemma." },
+            stag: { entries: [[5, 5], [0, 3], [3, 0], [3, 3]], name: "Stag Hunt", note: "Two Nash equilibria: (Stag,Stag)=(5,5) Pareto-optimal, (Hare,Hare)=(3,3) risk-dominant." },
+            battle: { entries: [[3, 1], [0, 0], [0, 0], [1, 3]], name: "Battle of the Sexes", note: "Two pure Nash: (Opera,Opera) and (Football,Football). Coordination with conflicting preferences." },
+            chicken: { entries: [[0, 0], [1, -1], [-1, 1], [-10, -10]], name: "Chicken / Hawk-Dove", note: "Two pure Nash: (Swerve,Straight) and (Straight,Swerve). Mixed Nash also exists." },
+            hs: { entries: [[2, 2], [-1, 3], [3, -1], [0, 0]], name: "Hawks and Doves", note: "ESS (evolutionary stable strategy) exists at mixed Nash p*=1/2." },
+            mp: { entries: [[1, -1], [-1, 1], [-1, 1], [1, -1]], name: "Matching Pennies", note: "Zero-sum. No pure Nash equilibrium. Mixed Nash: each plays 50/50." },
+        };
+        function preset(name) { let p = presets2[name]; let inputs = [...document.querySelectorAll('.payoff-entry')]; p.entries.forEach(([r, c], i) => inputs[i].value = `${r},${c}`); runPayoff(); }
+
+        function parsePayoff(str) { let [a, b] = str.split(',').map(Number); return [isNaN(a) ? 0 : a, isNaN(b) ? 0 : b]; }
+        function runPayoff() {
+            let entries = [...document.querySelectorAll('.payoff-entry')].map(e => parsePayoff(e.value));
+            let [[r00, c00], [r01, c01], [r10, c10], [r11, c11]] = entries;
+            // Check best responses
+            // Row best response to Col=Left: max(r00,r10), to Col=Right: max(r01,r11)
+            let rowBRL = r00 >= r10 ? 'Top' : 'Bottom'; let rowBRR = r01 >= r11 ? 'Top' : 'Bottom';
+            // Col best response to Row=Top: max(c00,c01), to Row=Bottom: max(c10,c11)
+            let colBRT = c00 >= c01 ? 'Left' : 'Right'; let colBRB = c10 >= c11 ? 'Left' : 'Right';
+            let nash = [];
+            if (rowBRL === 'Top' && colBRT === 'Left') nash.push('(Top,Left)');
+            if (rowBRR === 'Top' && colBRT !== 'Left' || rowBRL === 'Top' && colBRT === 'Left') { }
+            // Proper check:
+            nash = [];
+            if (r00 >= r10 && c00 >= c01) nash.push('(Top,Left)');
+            if (r01 >= r11 && c01 >= c00) { }
+            if (r01 >= r11 && c01 >= c00) nash.push('(Top,Right)');
+            if (r10 >= r00 && c10 >= c11) nash.push('(Bottom,Left)');
+            if (r11 >= r01 && c11 >= c10) nash.push('(Bottom,Right)');
+            // Dominant strategies
+            let rowDom = r00 >= r10 && r01 >= r11 ? 'Top' : r10 >= r00 && r11 >= r01 ? 'Bottom' : null;
+            let colDom = c00 >= c01 && c10 >= c11 ? 'Left' : c01 >= c00 && c11 >= c10 ? 'Right' : null;
+            let rows = [['Top', r00, c00, r01, c01], ['Bottom', r10, c10, r11, c11]];
+            let headers = ['', 'Left payoffs (R,C)', '', 'Right payoffs (R,C)', ''];
+            let nash00 = nash.includes('(Top,Left)'), nash01 = nash.includes('(Top,Right)'), nash10 = nash.includes('(Bottom,Left)'), nash11 = nash.includes('(Bottom,Right)');
+            document.getElementById('payoffResult').innerHTML = `<table class="border-collapse w-full text-sm mb-2"><tr class="bg-gray-900"><td class="payoff-cell"></td><td class="payoff-cell text-amber-400 font-bold">Left</td><td class="payoff-cell text-amber-400 font-bold">Right</td></tr><tr><td class="payoff-cell text-amber-400 font-bold">Top</td><td class="payoff-cell ${nash00 ? 'nash-cell' : ''}">(${r00}, ${c00}) ${nash00 ? '★' : ''}</td><td class="payoff-cell ${nash01 ? 'nash-cell' : ''}">(${r01}, ${c01}) ${nash01 ? '★' : ''}</td></tr><tr><td class="payoff-cell text-amber-400 font-bold">Bottom</td><td class="payoff-cell ${nash10 ? 'nash-cell' : ''}">(${r10}, ${c10}) ${nash10 ? '★' : ''}</td><td class="payoff-cell ${nash11 ? 'nash-cell' : ''}">(${r11}, ${c11}) ${nash11 ? '★' : ''}</td></tr></table><div class="text-xs text-amber-400">★ = Pure Nash Equilibrium</div>`;
+            document.getElementById('nashAnalysis').innerHTML = `<b class="text-amber-400">Nash Equilibria (pure):</b> ${nash.length ? nash.join(', ') : 'None (check mixed strategies)'}<br><b class="text-amber-400">Row dominant strategy:</b> ${rowDom || 'None'}<br><b class="text-amber-400">Col dominant strategy:</b> ${colDom || 'None'}<br><br>${nash.length === 0 ? '<span class="text-yellow-400">No pure Nash — a mixed Nash equilibrium exists (see Mixed Strategies tab).</span>' : ''}${nash.length > 1 ? '<span class="text-yellow-400">Multiple equilibria — coordination problem.</span>' : ''}`;
+        }
+
+        const classicData = [
+            { name: "Prisoner's Dilemma", matrix: "[3,3 | 0,5]\n[5,0 | 1,1]", nash: "(Defect, Defect) = (1,1)", pareto: "(Cooperate, Cooperate) = (3,3)", insight: "Social dilemma: individually rational behavior leads to collectively suboptimal outcome. Foundation of social contract theory." },
+            { name: "Stag Hunt", matrix: "[5,5 | 0,3]\n[3,0 | 3,3]", nash: "(Stag,Stag) = (5,5) and (Hare,Hare) = (3,3)", pareto: "(Stag,Stag) = (5,5)", insight: "Coordination game with two Nash equilibria. Stag is Pareto-optimal, Hare is risk-dominant (safe regardless of other)." },
+            { name: "Battle of the Sexes", matrix: "[3,1 | 0,0]\n[0,0 | 1,3]", nash: "(Opera,Opera) and (Football,Football)", pareto: "Both are Pareto optimal", insight: "Coordination with conflict of interest. Players prefer to coordinate but disagree on outcome. Mixed Nash: p*=3/4, q*=3/4." },
+            { name: "Matching Pennies", matrix: "[1,−1 | −1,1]\n[−1,1 | 1,−1]", nash: "Mixed only: (1/2, 1/2)", pareto: "No Pareto dom. outcome", insight: "Zero-sum game. No pure Nash. Completely adversarial. Rock-Paper-Scissors is a 3-strategy version." },
+            { name: "Chicken / Hawk-Dove", matrix: "[0,0 | 1,−1]\n[−1,1 | −10,−10]", nash: "(Swerve,Straight) and (Straight,Swerve)", pareto: "Asymmetric NE", insight: "Anti-coordination game. Cuban Missile Crisis analogy. Crossing: both go straight → catastrophe." },
+            { name: "Public Goods Game", matrix: "N-player extension", nash: "Everyone free rides (Nash = 0 contribution)", pareto: "All contribute = efficient", insight: "Generalization of PD to n players. Tragedy of the commons. Climate change, public infrastructure economics." },
+            { name: "Centipede Game", matrix: "Sequential: 6 moves", nash: "Backward induction → defect at move 1", pareto: "Cooperate until end", insight: "Backward induction paradox. Rational play means immediate defection, yet humans often cooperate many rounds." },
+            { name: "El Farol Bar Problem", matrix: "N-player threshold game", nash: "Mixed: each attends with prob p* = (C−1)/(N−1)", pareto: "Exactly C−1 attend", insight: "Arthur 1994. If >C attend, worse than staying home. Leads to spontaneous self-organization via bounded rationality." },
+        ];
+        function renderClassic() { document.getElementById('classicCards').innerHTML = classicData.map(g => `<div class="bg-black/40 p-4 rounded-xl border border-amber-500/20"><div class="text-amber-300 font-bold mb-1">${g.name}</div><div class="text-xs font-mono text-gray-500 mb-1">Matrix: ${g.matrix}</div><div class="text-xs text-gray-400"><b class="text-emerald-400">Nash:</b> ${g.nash}</div><div class="text-xs text-gray-400"><b class="text-sky-400">Pareto:</b> ${g.pareto}</div><div class="text-xs text-gray-500 italic mt-1">${g.insight}</div></div>`).join(''); }
+
+        function runMixed() {
+            let a = +document.getElementById('za').value, b = +document.getElementById('zb').value;
+            let c = +document.getElementById('zc').value, d = +document.getElementById('zd').value;
+            // p* makes Col indifferent: a*p + c*(1-p) = b*p + d*(1-p)
+            let pNum = d - c, pDen = a - b - c + d; let p = pDen !== 0 ? pNum / pDen : 0.5;
+            let qNum = d - b, qDen = a - b - c + d; let q = qDen !== 0 ? qNum / qDen : 0.5;
+            let V = a * p * q + b * p * (1 - q) + c * (1 - p) * q + d * (1 - p) * (1 - q);
+            p = Math.max(0, Math.min(1, p)); q = Math.max(0, Math.min(1, q));
+            document.getElementById('mixP').innerText = p.toFixed(3);
+            document.getElementById('mixQ').innerText = q.toFixed(3);
+            document.getElementById('mixV').innerText = V.toFixed(3);
+            let cv = document.getElementById('mixCanvas'); cv.width = cv.offsetWidth; cv.height = 220;
+            let cx = cv.getContext('2d'), W = cv.width, H = 220, pad = 40; cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            // Draw expected payoff for Row vs p (mixed)
+            let ps = Array.from({ length: 100 }, (_, i) => i / 99);
+            let evL = ps.map(pi => pi * a + (1 - pi) * c), evR = ps.map(pi => pi * b + (1 - pi) * d);
+            let allV = [...evL, ...evR]; let minV = Math.min(...allV) - 0.1, maxV = Math.max(...allV) + 0.1;
+            const tx = pi => pad + pi * (W - 2 * pad), ty = v => H - pad - (v - minV) / (maxV - minV) * (H - 2 * pad);
+            if (minV < 0 && maxV > 0) { cx.strokeStyle = '#1e293b'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(pad, ty(0)); cx.lineTo(W - pad, ty(0)); cx.stroke(); }
+            cx.strokeStyle = '#fbbf24'; cx.lineWidth = 2; cx.beginPath(); ps.forEach((pi, i) => i === 0 ? cx.moveTo(tx(pi), ty(evL[i])) : cx.lineTo(tx(pi), ty(evL[i]))); cx.stroke();
+            cx.strokeStyle = '#f43f5e'; cx.lineWidth = 2; cx.beginPath(); ps.forEach((pi, i) => i === 0 ? cx.moveTo(tx(pi), ty(evR[i])) : cx.lineTo(tx(pi), ty(evR[i]))); cx.stroke();
+            if (p >= 0 && p <= 1) { cx.strokeStyle = 'rgba(52,211,153,0.7)'; cx.lineWidth = 1.5; cx.setLineDash([4, 4]); cx.beginPath(); cx.moveTo(tx(p), pad); cx.lineTo(tx(p), H - pad); cx.stroke(); cx.setLineDash([]); cx.fillStyle = '#34d399'; cx.font = '10px monospace'; cx.fillText('p*=' + p.toFixed(2), tx(p) + 4, ty((maxV + minV) / 2)); }
+            cx.fillStyle = '#fbbf24'; cx.font = '9px monospace'; cx.fillText('E[u] vs Left', pad, 18); cx.fillStyle = '#f43f5e'; cx.fillText('E[u] vs Right', pad + 90, 18); cx.fillStyle = '#94a3b8'; cx.fillText('p (prob Row plays Top) →', W / 2 - 60, H - 4);
+            document.getElementById('mixExplain').innerHTML = `p* = (d−c)/(a−b−c+d) = (${d}−${c})/(${a}−${b}−${c}+${d}) = <b class="text-amber-300">${p.toFixed(3)}</b><br>q* = (d−b)/(a−b−c+d) = <b class="text-amber-300">${q.toFixed(3)}</b><br>V = <b class="text-amber-300">${V.toFixed(3)}</b> (expected payoff at mixed Nash)<br><span class="text-xs text-gray-500">Note: p*,q* ∈ [0,1] required for valid mixed Nash. If outside [0,1], pure Nash exists.</span>`;
+        }
+
+        function runAuction() {
+            let vals = document.getElementById('auctVals').value.split(',').map(Number).filter(v => !isNaN(v)).sort((a, b) => b - a);
+            if (vals.length < 2) return;
+            let winner = vals[0], second = vals[1];
+            let fpWin = winner * (vals.length - 1) / vals.length;
+            document.getElementById('auctResult').innerHTML = `<div class="text-amber-300 font-bold">Winner: bidder with value ${winner}</div><div class="text-xs text-gray-300 mt-1"><b class="text-green-400">First-Price:</b> Winner pays ≈ bid b*(v)=v·(n-1)/n = <b>${fpWin.toFixed(1)}</b><br>Seller revenue ≈ <b>${fpWin.toFixed(1)}</b></div><div class="text-xs text-gray-300 mt-1"><b class="text-sky-400">Second-Price (Vickrey):</b> Winner pays second-highest = <b>${second}</b><br>Seller revenue = <b>${second}</b></div><div class="text-xs text-gray-500 mt-2 italic">Revenue Equivalence: both yield same expected revenue (≈${second.toFixed(1)} here).</div>`;
+        }
+
+        const auctionMechanisms = [
+            { name: 'English Auction', desc: 'Ascending bid. Dominant strategy: bid until your value. Winner = highest value, pays value of second.' },
+            { name: 'Dutch Auction', desc: 'Descending price clock. Strategically equivalent to First-Price (both strategic). Used in flower markets, IPOs.' },
+            { name: 'Vickrey-Clarke-Groves', desc: 'VCG mechanism: truthful revelation in multi-item settings. Each agent pays the externality they impose on others.' },
+            { name: 'Revelation Principle', desc: 'Any Bayesian Nash equilibrium of any mechanism can be replicated by a truthful direct mechanism (Myerson 1981).' },
+        ];
+        function renderAuctionCards() { document.getElementById('auctionCards').innerHTML = auctionMechanisms.map(m => `<div class="bg-black/40 p-4 rounded-xl border border-amber-500/20"><div class="text-amber-300 font-bold text-sm mb-1">${m.name}</div><div class="text-xs text-gray-400">${m.desc}</div></div>`).join(''); }
+
+        runPayoff();
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

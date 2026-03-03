@@ -1,0 +1,378 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Symbolic Algebra - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-btn {
+            padding: .55rem 1rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .8rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(168, 85, 247, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(168, 85, 247, 0.25);
+            color: white;
+            border-color: #a855f7;
+            box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
+        }
+
+        .s-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            font-family: monospace;
+            width: 100%;
+        }
+
+        .s-input:focus {
+            border-color: #c084fc;
+            outline: none;
+        }
+
+        .val-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            border-radius: .75rem;
+            padding: .75rem;
+            text-align: center;
+        }
+
+        .result-box {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: .75rem;
+            padding: 1rem;
+            font-family: monospace;
+            font-size: .9rem;
+            color: #e2e8f0;
+            min-height: 3rem;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-violet-600 pb-2">
+            <i class="fas fa-superscript text-purple-400"></i> Symbolic Algebra
+        </h2>
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-purple-500/30">
+            <button class="tab-btn active" onclick="switchTab('poly',this)">Polynomials</button>
+            <button class="tab-btn" onclick="switchTab('partial',this)">Partial Fractions</button>
+            <button class="tab-btn" onclick="switchTab('series',this)">Power Series</button>
+            <button class="tab-btn" onclick="switchTab('simplify',this)">Trig Identities</button>
+        </div>
+        <div
+            class="bg-gray-900/50 p-4 rounded-2xl border border-purple-500/30 flex items-center justify-between gap-4 max-w-2xl mx-auto w-full">
+            <div>
+                <h3 class="text-purple-300 font-bold text-base">Symbolic AI Expert</h3>
+                <p class="text-xs text-gray-400 mt-0.5">Ask about polynomial factoring, Taylor series convergence, or
+                    trig proofs.</p>
+            </div>
+            <button class="mv-ai-btn flex-shrink-0" onclick="openSymbolicAI()">🤖 Ask AI</button>
+        </div>
+
+        <!-- Polynomials -->
+        <div id="tab-poly" class="tab-content flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-purple-500/30 flex flex-col gap-4">
+                <h3 class="text-purple-300 font-bold text-xl">Polynomial Arithmetic & Roots</h3>
+                <div class="flex flex-wrap gap-3 items-end">
+                    <div class="flex-1"><label class="text-xs text-gray-400">Polynomial P(x) — enter coefficients
+                            (highest to lowest), e.g. "1 0 -5 4" for x³-5x+4</label>
+                        <input type="text" id="polyCoeffs" class="s-input mt-1" value="1 -6 11 -6" oninput="runPoly()">
+                    </div>
+                </div>
+                <div class="flex gap-2 flex-wrap">
+                    <button class="btn bg-purple-800 hover:bg-purple-700 text-sm"
+                        onclick="document.getElementById('polyCoeffs').value='1 -6 11 -6';runPoly()">x³−6x²+11x−6</button>
+                    <button class="btn bg-purple-800 hover:bg-purple-700 text-sm"
+                        onclick="document.getElementById('polyCoeffs').value='1 0 -5 0 4';runPoly()">x⁴−5x²+4</button>
+                    <button class="btn bg-purple-800 hover:bg-purple-700 text-sm"
+                        onclick="document.getElementById('polyCoeffs').value='1 0 1';runPoly()">x²+1</button>
+                    <button class="btn bg-purple-800 hover:bg-purple-700 text-sm"
+                        onclick="document.getElementById('polyCoeffs').value='1 -1 -1 1';runPoly()">x³−x²−x+1</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <div class="text-xs text-gray-400 uppercase mb-1">Polynomial Info</div>
+                        <div class="result-box" id="polyInfo"></div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-400 uppercase mb-1">Roots (Numerical)</div>
+                        <div class="result-box" id="polyRoots"></div>
+                    </div>
+                </div>
+                <div class="text-xs text-gray-400 uppercase mb-1">Factored Form</div>
+                <div class="result-box text-purple-300 font-bold" id="polyFactored"></div>
+                <canvas id="polyCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:220px"></canvas>
+
+                <div class="bg-gray-900/50 p-5 rounded-2xl border border-purple-500/20 flex flex-col gap-3 mt-2">
+                    <h4 class="text-purple-300 font-bold">Polynomial Arithmetic</h4>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="text-xs text-gray-400">P(x) coeffs</label><input type="text" id="arithP"
+                                class="s-input mt-1" value="1 2 3"></div>
+                        <div><label class="text-xs text-gray-400">Q(x) coeffs</label><input type="text" id="arithQ"
+                                class="s-input mt-1" value="1 -1"></div>
+                    </div>
+                    <div class="flex gap-2 flex-wrap">
+                        <button class="btn bg-purple-900 hover:bg-purple-800 text-sm"
+                            onclick="polyArith('add')">P+Q</button>
+                        <button class="btn bg-purple-900 hover:bg-purple-800 text-sm"
+                            onclick="polyArith('sub')">P−Q</button>
+                        <button class="btn bg-purple-900 hover:bg-purple-800 text-sm"
+                            onclick="polyArith('mul')">P×Q</button>
+                        <button class="btn bg-purple-900 hover:bg-purple-800 text-sm" onclick="polyArith('div')">P÷Q
+                            (long div)</button>
+                    </div>
+                    <div class="result-box" id="arithResult"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Partial Fractions -->
+        <div id="tab-partial" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-purple-500/30 flex flex-col gap-4">
+                <h3 class="text-purple-300 font-bold text-xl">Partial Fraction Decomposition</h3>
+                <p class="text-sm text-gray-400">Decompose N(x)/D(x) into simpler fractions. Requires deg(N) &lt; deg(D)
+                    and known factored denominator.</p>
+                <div class="flex gap-3 flex-wrap">
+                    <button class="btn bg-purple-900 hover:bg-purple-800 text-sm" onclick="loadPF(0)">3x+5 /
+                        (x²+3x+2)</button>
+                    <button class="btn bg-purple-900 hover:bg-purple-800 text-sm" onclick="loadPF(1)">1 /
+                        (x²−1)</button>
+                    <button class="btn bg-purple-900 hover:bg-purple-800 text-sm" onclick="loadPF(2)">x /
+                        (x²+x−6)</button>
+                    <button class="btn bg-purple-900 hover:bg-purple-800 text-sm" onclick="loadPF(3)">2x²+3x−1 /
+                        (x³+x²)</button>
+                    <button class="btn bg-purple-900 hover:bg-purple-800 text-sm" onclick="loadPF(4)">(x+3) /
+                        (x³−x)</button>
+                </div>
+                <div id="pfSteps" class="flex flex-col gap-2 text-sm font-mono text-gray-300"></div>
+            </div>
+        </div>
+
+        <!-- Power Series -->
+        <div id="tab-series" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-purple-500/30 flex flex-col gap-4">
+                <h3 class="text-purple-300 font-bold text-xl">Taylor / Maclaurin Power Series</h3>
+                <div class="flex flex-wrap gap-3 items-end">
+                    <div><label class="text-xs text-gray-400">Function</label>
+                        <select id="seriesFunc" class="s-input w-44 mt-1" onchange="runSeries()">
+                            <option value="sin">sin(x)</option>
+                            <option value="cos">cos(x)</option>
+                            <option value="exp">eˣ</option>
+                            <option value="ln1px">ln(1+x)</option>
+                            <option value="1over1mx">1/(1−x)</option>
+                            <option value="sqrt1px">√(1+x)</option>
+                            <option value="atan">arctan(x)</option>
+                            <option value="sinh">sinh(x)</option>
+                        </select>
+                    </div>
+                    <div><label class="text-xs text-gray-400">Terms N</label><input type="range" id="seriesN" min="1"
+                            max="15" value="5"
+                            oninput="document.getElementById('seriesNV').innerText=this.value;runSeries()"><span
+                            id="seriesNV" class="text-purple-300 font-mono font-bold ml-1">5</span></div>
+                    <div><label class="text-xs text-gray-400">Expand around a</label><input type="number" id="seriesA"
+                            class="s-input w-20" value="0" step="0.5" oninput="runSeries()"></div>
+                </div>
+                <div class="result-box text-purple-200" id="seriesFormula"></div>
+                <canvas id="seriesCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:240px"></canvas>
+                <div class="grid grid-cols-3 gap-3" id="seriesStats"></div>
+            </div>
+        </div>
+
+        <!-- Trig Identities -->
+        <div id="tab-simplify" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-purple-500/30 flex flex-col gap-4">
+                <h3 class="text-purple-300 font-bold text-xl">Trigonometric Identity Verifier</h3>
+                <div class="flex gap-3 items-end flex-wrap">
+                    <div class="flex-1"><label class="text-xs text-gray-400">LHS expression (use x for
+                            variable)</label><input type="text" id="trigLHS" class="s-input mt-1"
+                            value="sin(x)^2 + cos(x)^2" oninput="verifyTrig()"></div>
+                    <div class="flex-1"><label class="text-xs text-gray-400">RHS expression</label><input type="text"
+                            id="trigRHS" class="s-input mt-1" value="1" oninput="verifyTrig()"></div>
+                </div>
+                <div id="trigResult" class="result-box"></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-black/40 p-4 rounded-xl">
+                        <div class="text-purple-300 font-bold text-sm mb-2">Common Identity Presets</div>
+                        <div class="flex flex-col gap-1" id="trigPresets"></div>
+                    </div>
+                    <div class="bg-black/40 p-4 rounded-xl font-mono text-xs text-gray-300">
+                        <div class="text-purple-300 font-bold mb-2">Pythagorean Identities</div>
+                        sin²x+cos²x=1<br>tan²x+1=sec²x<br>1+cot²x=csc²x<br>
+                        <div class="text-purple-300 font-bold mt-2 mb-1">Double Angle</div>
+                        sin(2x)=2sin(x)cos(x)<br>cos(2x)=cos²x−sin²x<br>tan(2x)=2tan(x)/(1−tan²x)<br>
+                        <div class="text-purple-300 font-bold mt-2 mb-1">Sum-to-Product</div>
+                        sin(A)+sin(B)=2sin(½(A+B))cos(½(A−B))<br>
+                        cos(A)+cos(B)=2cos(½(A+B))cos(½(A−B))
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById('tab-' + id).classList.remove('hidden');
+            if (id === 'poly') runPoly();
+            if (id === 'partial') loadPF(0);
+            if (id === 'series') runSeries();
+            if (id === 'simplify') { verifyTrig(); renderTrigPresets(); }
+            window._activeSymbolicTab = id;
+            setTimeout(() => { if (window.injectAIButtons) window.injectAIButtons(); }, 100);
+        }
+        window._activeSymbolicTab = 'poly';
+        function openSymbolicAI() {
+            const tabs = { 'poly': 'Polynomial Analysis', 'partial': 'Partial Fractions', 'series': 'Power Series', 'simplify': 'Trig Identities' };
+            const label = tabs[window._activeSymbolicTab] || 'Symbolic Algebra';
+            if (window.openMathAI) openMathAI(label, 'Algebraic assistant specialized in symbolic manipulation, formal proofs, and identity verification.');
+        }
+
+        // --- POLYNOMIAL ---
+        function parseCoeffs(str) { return str.trim().split(/\s+/).map(Number).filter(v => !isNaN(v)); }
+        function polyStr(coeffs) { let n = coeffs.length - 1; return coeffs.map((c, i) => { let p = n - i; if (c === 0) return ''; let s = Math.abs(c) === 1 && p > 0 ? '' : Math.abs(c).toString(); let term = p === 0 ? Math.abs(c).toString() : p === 1 ? s + 'x' : s + 'x^' + p; return (i === 0 || (c > 0 && i > 0) ? '+ ' : c < 0 ? '- ' : '') + term; }).filter(Boolean).join(' ').replace(/^\+\s*/, '').replace(/\^1\b/, 'x') || '0'; }
+        function polyEval(coeffs, x) { return coeffs.reduce((s, c) => s * x + c, 0); }
+        function polyDeriv(coeffs) { let n = coeffs.length; return coeffs.slice(0, -1).map((c, i) => c * (n - 1 - i)); }
+        function polySynDiv(coeffs, r) { let out = [], acc = 0; coeffs.forEach(c => { acc = acc * r + c; out.push(acc); }); return { quotient: out.slice(0, -1), remainder: out[out.length - 1] }; }
+        function polyAdd(a, b) { let la = a.length, lb = b.length, n = Math.max(la, lb); let pa = [...new Array(n - la).fill(0), ...a], pb = [...new Array(n - lb).fill(0), ...b]; return pa.map((v, i) => v + pb[i]); }
+        function polySub(a, b) { return polyAdd(a, b.map(v => -v)); }
+        function polyMul(a, b) { let out = new Array(a.length + b.length - 1).fill(0); a.forEach((ca, i) => b.forEach((cb, j) => out[i + j] += ca * cb)); return out; }
+        function polyLongDiv(num, den) { let q = [], rem = [...num]; while (rem.length >= den.length) { let c = rem[0] / den[0]; q.push(c); let sub = den.map(v => v * c); rem = rem.slice(1).map((v, i) => v - (sub[i + 1] || 0)); } return { q, rem }; }
+
+        function newtonRoots(coeffs, maxIter = 100) {
+            let roots = [], cs = [...coeffs];
+            function findRoot(c, start) { let x = start; for (let i = 0; i < maxIter; i++) { let fx = polyEval(c, x), fpx = polyEval(polyDeriv(c), x); if (Math.abs(fpx) < 1e-12) break; let xn = x - fx / fpx; if (Math.abs(xn - x) < 1e-8) { x = xn; break; } x = xn; } return x; }
+            while (cs.length > 1) { let starts = [0, 1, -1, 2, -2, 3, -3, 0.5, -0.5, Math.PI, -Math.PI, Math.E]; let root = NaN; for (let s of starts) { let r = findRoot(cs, s); let val = polyEval(cs, r); if (Math.abs(val) < 1e-4) { root = r; break; } } if (isNaN(root) || !isFinite(root)) break; roots.push(root); let { quotient } = polySynDiv(cs, root); cs = quotient; }
+            return roots;
+        }
+
+        function runPoly() {
+            let coeffs = parseCoeffs(document.getElementById('polyCoeffs').value);
+            if (!coeffs.length) { document.getElementById('polyInfo').innerText = 'Invalid input'; return; }
+            let deg = coeffs.length - 1; let deriv = polyDeriv(coeffs);
+            document.getElementById('polyInfo').innerHTML = `Degree: <b>${deg}</b><br>P(x) = ${polyStr(coeffs)}<br>P'(x) = ${polyStr(deriv)}<br>P(0) = ${polyEval(coeffs, 0)}<br>P(1) = ${polyEval(coeffs, 1)}<br>Sum of roots (Vieta) = ${(-coeffs[1] / coeffs[0]).toFixed(4)}<br>Product of roots (Vieta) = ${(Math.pow(-1, deg) * coeffs[deg] / coeffs[0]).toFixed(4)}`;
+            let roots = newtonRoots(coeffs).map(r => Math.abs(r) < 1e-8 ? 0 : Math.round(r * 1e6) / 1e6);
+            document.getElementById('polyRoots').innerHTML = roots.length ? roots.map((r, i) => `x<sub>${i + 1}</sub> = ${r}`).join('<br>') : 'No real roots found (may be complex)';
+            let factored = coeffs[0] !== 1 ? coeffs[0] + '·' : '' + '(' + roots.map(r => `x ${r < 0 ? '+' + (-r).toString() : r === 0 ? '' : '−' + r}`).join(')(') + ')' + (roots.length < deg ? '·(irreducible)' : '');
+            document.getElementById('polyFactored').innerText = roots.length ? factored : 'Cannot fully factor over reals';
+            let cv = document.getElementById('polyCanvas'); cv.width = cv.offsetWidth; cv.height = 220;
+            let cx = cv.getContext('2d'), W = cv.width, H = 220, pad = 30; cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let xMin = -3, xMax = 3; let xs = Array.from({ length: 300 }, (_, i) => xMin + i / 299 * (xMax - xMin));
+            let ys = xs.map(x => polyEval(coeffs, x)); let minY = Math.max(Math.min(...ys), -50), maxY = Math.min(Math.max(...ys), 50); let span = maxY - minY || 1;
+            const tx = x => pad + (x - xMin) / (xMax - xMin) * (W - 2 * pad), ty = y => H - pad - (Math.max(minY, Math.min(maxY, y)) - minY) / span * (H - 2 * pad);
+            cx.strokeStyle = '#334155'; cx.lineWidth = 1; if (minY < 0 && maxY > 0) { cx.beginPath(); cx.moveTo(pad, ty(0)); cx.lineTo(W - pad, ty(0)); cx.stroke(); } cx.beginPath(); cx.moveTo(tx(0), pad); cx.lineTo(tx(0), H - pad); cx.stroke();
+            cx.strokeStyle = '#a855f7'; cx.lineWidth = 2; cx.beginPath(); xs.forEach((x, i) => { let y = polyEval(coeffs, x); if (!isFinite(y) || y < minY - span || y > maxY + span) return; i === 0 ? cx.moveTo(tx(x), ty(y)) : cx.lineTo(tx(x), ty(y)); }); cx.stroke();
+            roots.forEach(r => { if (r >= xMin && r <= xMax) { cx.beginPath(); cx.arc(tx(r), ty(0), 5, 0, Math.PI * 2); cx.fillStyle = '#f43f5e'; cx.fill(); } });
+        }
+
+        function polyArith(op) {
+            let p = parseCoeffs(document.getElementById('arithP').value), q = parseCoeffs(document.getElementById('arithQ').value);
+            let res, label;
+            if (op === 'add') { res = polyAdd(p, q); label = 'P+Q'; }
+            else if (op === 'sub') { res = polySub(p, q); label = 'P−Q'; }
+            else if (op === 'mul') { res = polyMul(p, q); label = 'P×Q'; }
+            else { let { q: qt, rem } = polyLongDiv(p, q); document.getElementById('arithResult').innerHTML = `P÷Q = ${polyStr(qt)} R ${polyStr(rem)}`; return; }
+            document.getElementById('arithResult').innerHTML = `${label} = <b class="text-purple-300">${polyStr(res)}</b><br>Coefficients: [${res.join(', ')}]`;
+        }
+
+        // --- PARTIAL FRACTIONS ---
+        const pfExamples = [
+            { n: [3, 5], d: [1, 3, 2], label: '(3x+5)/(x²+3x+2)', roots: [{ r: -1, mult: 1 }, { r: -2, mult: 1 }] },
+            { n: [1], d: [1, 0, -1], label: '1/(x²−1)', roots: [{ r: 1, mult: 1 }, { r: -1, mult: 1 }] },
+            { n: [1, 0], d: [1, 1, -6], label: 'x/(x²+x−6)', roots: [{ r: 2, mult: 1 }, { r: -3, mult: 1 }] },
+            { n: [2, 3, -1], d: [1, 1, 0, 0], label: '(2x²+3x−1)/(x³+x²)', roots: [{ r: 0, mult: 2 }, { r: -1, mult: 1 }] },
+            { n: [1, 3], d: [1, 0, -1, 0], label: '(x+3)/(x³−x)', roots: [{ r: 0, mult: 1 }, { r: 1, mult: 1 }, { r: -1, mult: 1 }] },
+        ];
+        function loadPF(idx) {
+            let { label, n, d, roots } = pfExamples[idx];
+            let steps = [`<div class="bg-black/40 p-3 rounded-xl border border-purple-500/20"><b class="text-purple-300">Decomposing:</b> ${label}</div>`];
+            steps.push(`<div class="bg-black/40 p-3 rounded-xl border border-purple-500/20"><b class="text-purple-300">Denominator roots:</b> ${roots.map(r => `x = ${r.r} (mult ${r.mult})`).join(', ')}</div>`);
+            // Compute residues via limit method
+            let residues = roots.map(({ r, mult }) => { if (mult === 1) { let num = polyEval(n, r); let den = roots.filter(root => root.r !== r).reduce((p, root) => p * (r - root.r), 1); return { r, A: num / den, mult }; } return { r, A: 0, mult }; });
+            let decomp = residues.map(({ r, A, mult }) => { let c = Math.round(A * 1000) / 1000; return c >= 0 ? `+${c}/(x${r < 0 ? '+' + (-r) : '−' + r})` : `${c}/(x${r < 0 ? '+' + (-r) : '−' + r})`; }).join(' ');
+            steps.push(`<div class="bg-black/40 p-3 rounded-xl border border-purple-500/20"><b class="text-purple-300">Method of residues (Heaviside cover-up):</b><br>${residues.map(({ r, A }) => `A at x=${r}: A = ${Math.round(A * 1000) / 1000}`).join('<br>')}</div>`);
+            steps.push(`<div class="bg-black/40 p-3 rounded-xl border border-purple-500/20 text-purple-200 font-bold"><b class="text-purple-300">Result:</b> ${label.split('/')[0]}/(${label.split('/')[1]}) = ${decomp}</div>`);
+            steps.push(`<div class="bg-black/40 p-3 rounded-xl border border-purple-500/20 text-xs text-gray-400">Verify: sum the fractions back to get the original rational function.</div>`);
+            document.getElementById('pfSteps').innerHTML = steps.join('');
+        }
+
+        // --- POWER SERIES ---
+        const seriesDefs = {
+            sin: { f: x => Math.sin(x), terms: n => n % 2 === 0 ? 0 : Math.pow(-1, (n - 1) / 2), label: 'sin(x)=Σ (−1)ⁿx^(2n+1)/(2n+1)!', domain: 'all x' },
+            cos: { f: x => Math.cos(x), terms: n => n % 2 !== 0 ? 0 : Math.pow(-1, n / 2), label: 'cos(x)=Σ (−1)ⁿx^(2n)/(2n)!', domain: 'all x' },
+            exp: { f: x => Math.exp(x), terms: n => 1, label: 'eˣ=Σ xⁿ/n!', domain: 'all x' },
+            ln1px: { f: x => Math.log(1 + x), terms: n => n === 0 ? 0 : Math.pow(-1, n + 1) / n, label: 'ln(1+x)=Σ (−1)^(n+1)xⁿ/n', domain: '|x|≤1, x≠−1' },
+            '1over1mx': { f: x => 1 / (1 - x), terms: n => 1, label: '1/(1−x)=Σ xⁿ', domain: '|x|<1' },
+            sqrt1px: { f: x => Math.sqrt(1 + x), terms: n => { if (n === 0) return 1; let num = 1; for (let k = 0; k < n; k++)num *= (0.5 - k); let den = 1; for (let k = 1; k <= n; k++)den *= k; return num / den; }, label: '√(1+x)=Σ C(½,n)xⁿ', domain: '|x|≤1' },
+            atan: { f: x => Math.atan(x), terms: n => n % 2 === 0 ? 0 : Math.pow(-1, (n - 1) / 2), label: 'arctan(x)=Σ (−1)ⁿx^(2n+1)/(2n+1)', domain: '|x|≤1' },
+            sinh: { f: x => Math.sinh(x), terms: n => n % 2 === 0 ? 0 : 1, label: 'sinh(x)=Σ x^(2n+1)/(2n+1)!', domain: 'all x' },
+        };
+        function factorial(n) { let f = 1; for (let i = 2; i <= n; i++)f *= i; return f; }
+        function taylorSum(fn, N, x, a = 0) { let sd = seriesDefs[fn]; if (!sd) return 0; let s = 0; for (let n = 0; n <= N; n++) { let t = sd.terms(n) * (x - a) ** n / factorial(n); if (!isFinite(t)) break; s += t; } return s; }
+
+        function runSeries() {
+            let fn = document.getElementById('seriesFunc').value, N = parseInt(document.getElementById('seriesN').value) || 5;
+            let a = parseFloat(document.getElementById('seriesA').value) || 0;
+            let sd = seriesDefs[fn]; if (!sd) return;
+            let terms = Array.from({ length: N + 1 }, (_, n) => { let t = sd.terms(n) * (1) ** n / factorial(n); return t; });
+            let termStr = Array.from({ length: Math.min(N + 1, 6) }, (_, n) => { let c = sd.terms(n) / factorial(n); if (Math.abs(c) < 1e-10) return null; let s = c.toFixed(5).replace(/\.?0+$/, ''); let pow = n === 0 ? '' : n === 1 ? 'x' : `x^${n}`; return `${c >= 0 && n > 0 ? '+' : ''}${s}${pow}`; }).filter(Boolean).join(' ');
+            document.getElementById('seriesFormula').innerHTML = `<b class="text-purple-300">${sd.label}</b><br>Domain: ${sd.domain}<br>T_N(x) = ${termStr} ...`;
+            let cv = document.getElementById('seriesCanvas'); cv.width = cv.offsetWidth; cv.height = 240;
+            let cx2 = cv.getContext('2d'), W = cv.width, H = 240, pad = 30; cx2.fillStyle = '#050818'; cx2.fillRect(0, 0, W, H);
+            let xMin = a - 3, xMax = a + 3, xRange = Array.from({ length: 300 }, (_, i) => xMin + i / 299 * (xMax - xMin));
+            let exact = xRange.map(x => { try { let v = sd.f(x); return Math.abs(v) > 20 ? null : v; } catch (e) { return null; } });
+            let approx = xRange.map(x => { let v = taylorSum(fn, N, x, a); return Math.abs(v) > 20 ? null : v; });
+            let allY = [...exact, ...approx].filter(v => v !== null && isFinite(v)); let minY = Math.min(...allY, -1), maxY = Math.max(...allY, 1);
+            const tx = x => pad + (x - xMin) / (xMax - xMin) * (W - 2 * pad), ty = y => H - pad - (y - minY) / (maxY - minY) * (H - 2 * pad);
+            if (minY < 0 && maxY > 0) { cx2.strokeStyle = '#1e293b'; cx2.lineWidth = 1; cx2.beginPath(); cx2.moveTo(pad, ty(0)); cx2.lineTo(W - pad, ty(0)); cx2.stroke(); }
+            cx2.strokeStyle = 'rgba(100,116,139,0.5)'; cx2.lineWidth = 2; cx2.beginPath(); exact.forEach((y, i) => { if (y === null) return; i === 0 || exact[i - 1] === null ? cx2.moveTo(tx(xRange[i]), ty(y)) : cx2.lineTo(tx(xRange[i]), ty(y)); }); cx2.stroke();
+            cx2.strokeStyle = '#a855f7'; cx2.lineWidth = 2; cx2.beginPath(); approx.forEach((y, i) => { if (y === null) return; i === 0 || approx[i - 1] === null ? cx2.moveTo(tx(xRange[i]), ty(y)) : cx2.lineTo(tx(xRange[i]), ty(y)); }); cx2.stroke();
+            cx2.fillStyle = '#64748b'; cx2.font = '10px monospace'; cx2.fillText('f(x)', pad, H - 8); cx2.fillStyle = '#a855f7'; cx2.fillText(`T_${N}(x)`, pad + 40, H - 8);
+            let errAtPi = Math.abs(sd.f?.(Math.PI - a) || 0) - Math.abs(taylorSum(fn, N, Math.PI, a));
+            document.getElementById('seriesStats').innerHTML = [['N terms', N], ['Domain', sd.domain], ['|Error| at x=π', !isNaN(errAtPi) ? Math.abs(errAtPi).toExponential(2) : '—']].map(([k, v]) => `<div class="val-card"><span class="text-xs text-gray-500 block">${k}</span><span class="font-mono text-purple-300 font-bold">${v}</span></div>`).join('');
+        }
+
+        // --- TRIG IDENTITIES ---
+        function safeMath(expr, x) { try { let e = expr.replace(/sin\(/g, 'Math.sin(').replace(/cos\(/g, 'Math.cos(').replace(/tan\(/g, 'Math.tan(').replace(/\^/g, '**').replace(/x/g, '(' + x + ')'); return eval(e); } catch (e) { return NaN; } }
+        function verifyTrig() {
+            let lhs = document.getElementById('trigLHS').value, rhs = document.getElementById('trigRHS').value;
+            let testPts = [0.1, 0.5, 1.0, 1.5, 2.0, 2.5, Math.PI / 4, Math.PI / 3, Math.PI / 6, 1.234];
+            let allMatch = testPts.every(x => { let l = safeMath(lhs, x), r = safeMath(rhs, x); return isFinite(l) && isFinite(r) && Math.abs(l - r) < 1e-6; });
+            let sample = testPts.slice(0, 4).map(x => { let l = safeMath(lhs, x), r = safeMath(rhs, x); return `x=${x.toFixed(3)}: LHS=${l.toFixed(5)}, RHS=${r.toFixed(5)}`; });
+            document.getElementById('trigResult').innerHTML = allMatch ? `<span class="text-green-400 font-bold text-lg">✓ Identity verified numerically</span><br><span class="text-xs text-gray-500">For all 10 test points, |LHS−RHS| < 10⁻⁶</span>` : `<span class="text-red-400 font-bold text-lg">✗ Not an identity</span><br>${sample.map(s => `<span class="text-xs text-gray-400">${s}</span>`).join('<br>')}`;
+        }
+        const trigPresetList = [
+            ['sin²x+cos²x=1', 'sin(x)^2 + cos(x)^2', '1'],
+            ['sin(2x)=2sin(x)cos(x)', 'sin(2*x)', '2*sin(x)*cos(x)'],
+            ['cos(2x)=1−2sin²x', 'cos(2*x)', '1-2*sin(x)^2'],
+            ['tan²x+1=sec²x', 'tan(x)^2+1', '1/cos(x)^2'],
+            ['sin(A+B)', 'sin(1.2+0.8)', 'sin(1.2)*cos(0.8)+cos(1.2)*sin(0.8)'],
+        ];
+        function renderTrigPresets() { document.getElementById('trigPresets').innerHTML = trigPresetList.map(([label, l, r]) => `<button class="text-left text-xs text-purple-300 hover:text-purple-200 py-0.5 border-b border-purple-500/10" onclick="document.getElementById('trigLHS').value='${l}';document.getElementById('trigRHS').value='${r}';verifyTrig()">${label}</button>`).join(''); }
+        renderTrigPresets(); runPoly();
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,132 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math History - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .timeline-item {
+            position: relative;
+            padding-left: 2rem;
+            margin-bottom: 1.5rem;
+            border-left: 2px solid rgba(251, 146, 60, 0.4);
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: -0.45rem;
+            top: .55rem;
+            width: .85rem;
+            height: .85rem;
+            border-radius: 50%;
+            background: #fb923c;
+            border: 2px solid #1e293b;
+            box-shadow: 0 0 8px rgba(251, 146, 60, 0.6);
+        }
+
+        .era-badge {
+            border-radius: 999px;
+            padding: .15rem .55rem;
+            font-size: .65rem;
+            font-weight: bold;
+        }
+
+        .search-box {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(251, 146, 60, 0.4);
+            color: white;
+            border-radius: .75rem;
+            padding: .6rem 1rem;
+            width: 100%;
+        }
+
+        .search-box:focus {
+            border-color: #fdba74;
+            outline: none;
+        }
+
+        .m-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(251, 146, 60, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            font-family: monospace;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-500 pb-2">
+            <i class="fas fa-landmark text-orange-400"></i> History of Mathematics
+        </h2>
+        <div class="bg-gray-900/50 p-4 rounded-2xl border border-orange-500/30 flex items-center justify-between gap-4">
+            <div>
+                <h3 class="text-orange-300 font-bold text-base">Math History AI Guide</h3>
+                <p class="text-xs text-gray-400 mt-0.5">Ask about any mathematician, theorem, or era. The AI knows the
+                    full timeline context.</p>
+            </div>
+            <button class="mv-ai-btn flex-shrink-0" onclick="openHistoryAI()">🤖 Ask AI</button>
+        </div>
+        <input type="text" id="search" class="search-box" placeholder="🔍  Search mathematicians, theorems, eras..."
+            oninput="filterTimeline()">
+        <div class="flex flex-wrap gap-1.5" id="eraFilters"></div>
+        <div class="text-xs text-gray-500" id="count"></div>
+        <div id="timeline" class="flex flex-col"></div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        const events = [
+            { year: "~2600 BCE", era: "Ancient", name: "Egyptian Mathematics", who: "Rhind Papyrus scribes", desc: "Area of circle approximated as (8/9·d)². Practical arithmetic, geometry for surveying. Moscow Mathematical Papyrus: volume of a truncated pyramid." },
+            { year: "~570–495 BCE", era: "Ancient", name: "Pythagorean Theorem", who: "Pythagoras of Samos", desc: "a²+b²=c² for right triangles (known to Babylonians earlier, but Pythagoras proved it). Founded mathematical brotherhood. Discovered irrational numbers disturbed him deeply." },
+            { year: "~300 BCE", era: "Ancient", name: "Euclid's Elements", who: "Euclid of Alexandria", desc: "13-book axiomatic geometry. Defines points, lines, planes. 5 postulates → 465 propositions. Most influential math textbook in history. Proof of infinite primes (Prop. IX.20)." },
+            { year: "~250 BCE", era: "Ancient", name: "Archimedean Mathematics", who: "Archimedes", desc: "π bounded between 223/71 and 22/7. Area under parabola by exhaustion (proto-integration). Eureka moment. On the Sphere and Cylinder, Method of Mechanical Theorems." },
+            { year: "~200 BCE", era: "Ancient", name: "Sieve of Eratosthenes", who: "Eratosthenes", desc: "First systematic prime-finding algorithm. Also measured Earth's circumference to within 2% using shadow angles. Head of Library of Alexandria." },
+            { year: "628 CE", era: "Medieval", name: "Brahmasphutasiddhanta", who: "Brahmagupta", desc: "Rules for zero: n+0=n, n−0=n, n·0=0 (though division by zero was wrong). Solved quadratic equations. Brahmagupta formula for cyclic quadrilaterals." },
+            { year: "820 CE", era: "Medieval", name: "Algebra Founded", who: "Muhammad ibn Musa al-Khwarizmi", desc: "'Al-Kitab al-mukhtasar fi hisab al-jabr wa'l-muqabala'. 'Algebra' from al-jabr. 'Algorithm' from his name. Systematic methods for linear/quadratic equations." },
+            { year: "1202", era: "Medieval", name: "Fibonacci Sequence", who: "Leonardo Fibonacci", desc: "'Liber Abaci' introduced Hindu-Arabic numerals to Europe. Posed the rabbit problem: Fₙ = Fₙ₋₁+Fₙ₋₂. Sequence appears in phyllotaxis, golden ratio φ=(1+√5)/2." },
+            { year: "1545", era: "Renaissance", name: "Cubic Formula", who: "Cardano / del Ferro / Tartaglia", desc: "Ars Magna: formula for x³+px+q=0 involving cube roots. First use of complex numbers (square root of negative numbers) as intermediate values." },
+            { year: "1637", era: "Early Modern", name: "Analytic Geometry", who: "René Descartes", desc: "La Géométrie: coordinates link algebra and geometry. The Cartesian plane. 'Cogito, ergo sum.' Also: Fermat independently developed coordinates." },
+            { year: "1665–1666", era: "Early Modern", name: "Calculus Discovered", who: "Isaac Newton", desc: "'Annus Mirabilis': fluxions (derivatives), fluents (integrals). FTC, binomial theorem, universal gravitation. Leibniz independently in 1675 with modern notation (∫, d)." },
+            { year: "1736", era: "Early Modern", name: "Graph Theory Born", who: "Leonhard Euler", desc: "Seven Bridges of Königsberg: proved no Eulerian path exists. Also: e^{iπ}+1=0, Euler characteristic V−E+F=2, Basel problem ζ(2)=π²/6, Euler's totient function." },
+            { year: "1796", era: "Modern", name: "Gauss's Disquisitiones", who: "Carl Friedrich Gauss", desc: "Proved every integer factors uniquely into primes (FTA). Classified constructible polygons. Quadratic reciprocity. Discovered non-Euclidean geometry (unpublished). Most prolific mathematician." },
+            { year: "1824", era: "Modern", name: "Quintic Unsolvability", who: "Niels Henrik Abel", desc: "Proved no general formula exists for degree-5 polynomials using radicals. Later Galois (1832) explained why via group theory (S₅ is not solvable). Both died young." },
+            { year: "1830s", era: "Modern", name: "Group Theory", who: "Évariste Galois", desc: "Created group theory aged 20. Galois correspondence: subfields ↔ subgroups. Galois group of a polynomial determines solvability. Died in a duel at 20." },
+            { year: "1854", era: "Modern", name: "Riemann Geometry", who: "Bernhard Riemann", desc: "Habilitation lecture: manifolds, curvature, metric. Riemann hypothesis (1859): all non-trivial zeros of ζ(s) have Re(s)=1/2. Riemann integral defined via partitions." },
+            { year: "1874", era: "Modern", name: "Cantor's Set Theory", who: "Georg Cantor", desc: "Proved reals are uncountable (diagonal argument). Infinite cardinal numbers: |ℕ|=ℵ₀, |ℝ|=c=2^{ℵ₀}. Continuum hypothesis. Deeply opposed by many contemporaries." },
+            { year: "1895", era: "Modern", name: "Topology Founded", who: "Henri Poincaré", desc: "Analysis Situs: fundamental groups, homology. Poincaré conjecture (every simply connected 3-manifold is S³) — posed 1904, proved by Perelman 2003. Last person to have mastered all math." },
+            { year: "1900", era: "Modern", name: "Hilbert's 23 Problems", who: "David Hilbert", desc: "At ICM Paris: 23 unsolved problems setting 20th century math agenda. RH (#8), Continuum hypothesis (#1). His formalism program later undermined by Gödel." },
+            { year: "1931", era: "20th Century", name: "Gödel's Incompleteness", who: "Kurt Gödel", desc: "Any consistent formal system strong enough to express arithmetic is incomplete: true statements unprovable within the system. Also: consistency cannot be proved from within. Devastating for Hilbert's program." },
+            { year: "1936", era: "20th Century", name: "Turing Machine", who: "Alan Turing", desc: "'On Computable Numbers': abstract model of computation. Solved Hilbert's Entscheidungsproblem (no): undecidable problems exist. Halting problem. Foundation of computer science." },
+            { year: "1945", era: "20th Century", name: "Category Theory", who: "Eilenberg & Mac Lane", desc: "Abstract algebraic structures and structure-preserving maps (functors, natural transformations). Universal language of mathematics. 'Abstract nonsense' that became central." },
+            { year: "1994", era: "Contemporary", name: "Fermat's Last Theorem Proved", who: "Andrew Wiles", desc: "xⁿ+yⁿ=zⁿ has no integer solutions for n≥3 (Fermat 1637: 'marvellous proof'). Wiles proved using elliptic curves + modular forms. 358 years to prove. Taylor-Wiles method." },
+            { year: "2002–2003", era: "Contemporary", name: "Poincaré Conjecture Proved", who: "Grigori Perelman", desc: "Every simply connected, closed 3-manifold is homeomorphic to S³. Used Ricci flow with surgery. Refused Fields Medal and $1M Millennium Prize. 'I don't want to be on display.'" },
+            { year: "2013", era: "Contemporary", name: "Bounded Gaps in Primes", who: "Yitang Zhang", desc: "First proof that there are infinitely many prime pairs with gap < 70,000,000. Breakthrough on twin prime conjecture. Zhang was 58, unknown. Polymath project reduced gap to 246." },
+        ];
+
+        const eras = [...new Set(events.map(e => e.era))];
+        const eraColors = { Ancient: 'bg-orange-900/50 text-orange-300', Medieval: 'bg-yellow-900/50 text-yellow-300', 'Early Modern': 'bg-emerald-900/50 text-emerald-300', Modern: 'bg-sky-900/50 text-sky-300', '20th Century': 'bg-purple-900/50 text-purple-300', Contemporary: 'bg-pink-900/50 text-pink-300' };
+        let activeEras = new Set();
+        document.getElementById('eraFilters').innerHTML = eras.map(e => `<span class="era-badge cursor-pointer ${eraColors[e] || ''} border border-orange-500/20" onclick="toggleEra('${e}',this)">${e}</span>`).join('');
+        function toggleEra(era, el) { if (activeEras.has(era)) { activeEras.delete(era); el.style.fontWeight = 'normal'; } else { activeEras.add(era); el.style.fontWeight = 'bold'; } filterTimeline(); }
+        function filterTimeline() {
+            let q = document.getElementById('search').value.toLowerCase();
+            let filtered = events.filter(e => (e.name.toLowerCase().includes(q) || e.who.toLowerCase().includes(q) || e.desc.toLowerCase().includes(q) || e.era.toLowerCase().includes(q)) && (activeEras.size === 0 || activeEras.has(e.era)));
+            document.getElementById('count').innerText = `Showing ${filtered.length} of ${events.length} events`;
+            document.getElementById('timeline').innerHTML = filtered.map(e => `<div class="timeline-item"><div class="timeline-dot"></div><div class="flex items-center gap-2 mb-1 flex-wrap"><span class="text-orange-400 font-mono text-xs font-bold">${e.year}</span><span class="era-badge ${eraColors[e.era] || 'bg-gray-800 text-gray-300'} border border-orange-500/20">${e.era}</span><span class="text-white font-bold text-sm">${e.name}</span></div><div class="text-sky-400 text-xs mb-0.5">${e.who}</div><div class="text-gray-400 text-xs leading-relaxed">${e.desc}</div><button class="mv-ai-btn mt-2 text-[10px]" onclick="openEventAI(${JSON.stringify(e.name)},${JSON.stringify(e.who)},${JSON.stringify(e.desc.slice(0, 180))},'${e.year}')">🤖 Ask AI about this</button></div>`).join('');
+        }
+        filterTimeline();
+        function openHistoryAI() { if (window.openMathAI) openMathAI('History of Mathematics', 'A timeline of 25+ major mathematical milestones from ancient Egypt (2600 BCE) through contemporary mathematics (2013). Covers mathematicians, theorems, and their impact.'); }
+        function openEventAI(name, who, desc, year) { if (window.openMathAI) openMathAI(name, 'Year: ' + year + '. Mathematician/contributor: ' + who + '. Historical context: ' + desc); }
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

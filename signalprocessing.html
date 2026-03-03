@@ -1,0 +1,289 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signal Processing - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-btn {
+            padding: .55rem 1rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .8rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(239, 68, 68, 0.25);
+            color: white;
+            border-color: #ef4444;
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+        }
+
+        .sp-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            font-family: monospace;
+            width: 100%;
+        }
+
+        .sp-input:focus {
+            border-color: #f87171;
+            outline: none;
+        }
+
+        .val-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            border-radius: .75rem;
+            padding: .75rem;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-orange-500 pb-2">
+            <i class="fas fa-wave-square text-red-400"></i> Signal Processing
+        </h2>
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-red-500/30">
+            <button class="tab-btn active" onclick="switchTab('fft',this)">FFT Analyzer</button>
+            <button class="tab-btn" onclick="switchTab('filters',this)">Filters</button>
+            <button class="tab-btn" onclick="switchTab('convolution',this)">Convolution</button>
+            <button class="tab-btn" onclick="switchTab('sampling',this)">Sampling Theorem</button>
+        </div>
+
+        <!-- FFT -->
+        <div id="tab-fft" class="tab-content flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-red-500/30 flex flex-col gap-4">
+                <h3 class="text-red-300 font-bold text-xl">FFT Spectrum Analyzer</h3>
+                <div class="text-xs text-gray-400">Build a signal from sinusoidal components (A × wave(2π·f·t + φ°))
+                </div>
+                <div id="fftComponents" class="flex flex-col gap-2">
+                    <div class="grid grid-cols-4 gap-2 items-end">
+                        <div><label class="text-xs text-gray-400">Amplitude</label><input type="number"
+                                class="sp-input comp-A" value="1" step="0.1" min="0" oninput="renderFFT()"></div>
+                        <div><label class="text-xs text-gray-400">Freq Hz</label><input type="number"
+                                class="sp-input comp-F" value="2" step="1" min="0" oninput="renderFFT()"></div>
+                        <div><label class="text-xs text-gray-400">Phase °</label><input type="number"
+                                class="sp-input comp-P" value="0" step="15" oninput="renderFFT()"></div>
+                        <div><label class="text-xs text-gray-400">Wave</label><select class="sp-input comp-T"
+                                onchange="renderFFT()">
+                                <option value="sin">Sin</option>
+                                <option value="cos">Cos</option>
+                                <option value="sqr">Square</option>
+                                <option value="saw">Saw</option>
+                            </select></div>
+                    </div>
+                </div>
+                <div class="flex gap-2 flex-wrap">
+                    <button class="btn bg-red-900 hover:bg-red-800 text-sm" onclick="addComp()">+ Component</button>
+                    <button class="btn bg-gray-700 hover:bg-gray-600 text-xs" onclick="loadP('chord')">Musical
+                        Chord</button>
+                    <button class="btn bg-gray-700 hover:bg-gray-600 text-xs" onclick="loadP('am')">AM Signal</button>
+                    <button class="btn bg-gray-700 hover:bg-gray-600 text-xs"
+                        onclick="loadP('speech')">Speech-like</button>
+                </div>
+                <div class="text-xs text-gray-500 uppercase">Time Domain</div>
+                <canvas id="fftTC" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:140px"></canvas>
+                <div class="text-xs text-gray-500 uppercase">Frequency Spectrum (DFT)</div>
+                <canvas id="fftFC" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:170px"></canvas>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Dominant freq</span><span id="fDom"
+                            class="text-xl font-mono text-red-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">RMS</span><span id="fRMS"
+                            class="text-xl font-mono text-red-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Centroid</span><span id="fCent"
+                            class="text-xl font-mono text-red-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Components</span><span id="fN"
+                            class="text-xl font-mono text-red-300 font-bold">—</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div id="tab-filters" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-red-500/30 flex flex-col gap-4">
+                <h3 class="text-red-300 font-bold text-xl">Digital Filter Frequency Response</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div><label class="text-xs text-gray-400">Type</label><select id="fType" class="sp-input mt-1"
+                            onchange="runFilter()">
+                            <option value="lp">Low-pass</option>
+                            <option value="hp">High-pass</option>
+                            <option value="bp">Band-pass</option>
+                            <option value="bs">Band-stop</option>
+                        </select></div>
+                    <div><label class="text-xs text-gray-400">Cutoff f₁ Hz</label><input type="number" id="fc1"
+                            class="sp-input" value="5" min="0.1" oninput="runFilter()"></div>
+                    <div><label class="text-xs text-gray-400">Cutoff f₂ Hz</label><input type="number" id="fc2"
+                            class="sp-input" value="10" min="0.1" oninput="runFilter()"></div>
+                    <div><label class="text-xs text-gray-400">Order n</label><input type="number" id="fOrder"
+                            class="sp-input" value="2" min="1" max="6" oninput="runFilter()"></div>
+                </div>
+                <canvas id="filterC" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:250px"></canvas>
+                <div class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300">
+                    <b class="text-red-300">Butterworth:</b> |H(jω)| = 1/√(1+(ω/ωc)^2n)<br>
+                    Roll-off = <span id="rolloff">40</span> dB/decade. −3dB at ω=ωc always.
+                </div>
+            </div>
+        </div>
+
+        <!-- Convolution -->
+        <div id="tab-convolution" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-red-500/30 flex flex-col gap-4">
+                <h3 class="text-red-300 font-bold text-xl">Discrete Convolution (f * g)[n]</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="text-xs text-gray-400">Signal f</label><select id="cvF" class="sp-input mt-1"
+                            onchange="runConv()">
+                            <option value="rect">Rectangle</option>
+                            <option value="tri">Triangle</option>
+                            <option value="gauss">Gaussian</option>
+                            <option value="delta">Delta</option>
+                        </select></div>
+                    <div><label class="text-xs text-gray-400">Kernel g</label><select id="cvG" class="sp-input mt-1"
+                            onchange="runConv()">
+                            <option value="rect">Box filter</option>
+                            <option value="tri">Tent filter</option>
+                            <option value="gauss">Gaussian blur</option>
+                            <option value="delta">Identity (δ)</option>
+                        </select></div>
+                </div>
+                <canvas id="convC" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:280px"></canvas>
+                <div class="bg-black/40 p-4 rounded-xl text-xs font-mono text-gray-300 grid grid-cols-2 gap-2">
+                    <div>f*g = g*f (commutativity)</div>
+                    <div>(f*g)*h = f*(g*h) (associativity)</div>
+                    <div>f*δ = f (identity element)</div>
+                    <div>ℱ{f*g} = F·G (convolution theorem)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sampling -->
+        <div id="tab-sampling" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-red-500/30 flex flex-col gap-4">
+                <h3 class="text-red-300 font-bold text-xl">Nyquist–Shannon Sampling Theorem</h3>
+                <p class="text-sm text-gray-400">f_s ≥ 2·f_max required for perfect reconstruction. Below Nyquist →
+                    aliasing.</p>
+                <div class="flex gap-3 flex-wrap items-end">
+                    <div><label class="text-xs text-gray-400">Signal f (Hz)</label><input type="number" id="sigF"
+                            class="sp-input w-28" value="3" min="1" max="20" oninput="runSamp()"></div>
+                    <div><label class="text-xs text-gray-400">Sample rate f_s (Hz)</label><input type="number"
+                            id="sampFs" class="sp-input w-28" value="5" min="1" max="50" oninput="runSamp()"></div>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Nyquist rate</span><span id="nyqR"
+                            class="text-xl font-mono text-red-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Status</span><span id="nyqS"
+                            class="text-xl font-mono font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Alias freq</span><span id="aliasF"
+                            class="text-xl font-mono text-red-300 font-bold">—</span></div>
+                </div>
+                <canvas id="sampC" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:250px"></canvas>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); document.getElementById('tab-' + id).classList.remove('hidden'); if (id === 'fft') renderFFT(); if (id === 'filters') runFilter(); if (id === 'convolution') runConv(); if (id === 'sampling') runSamp(); }
+
+        function addComp() { let row = document.createElement('div'); row.className = 'grid grid-cols-4 gap-2 items-end'; row.innerHTML = `<div><input type="number" class="sp-input comp-A" value="0.5" step="0.1" min="0" oninput="renderFFT()"></div><div><input type="number" class="sp-input comp-F" value="5" step="1" min="0" oninput="renderFFT()"></div><div><input type="number" class="sp-input comp-P" value="0" step="15" oninput="renderFFT()"></div><div class="flex gap-1"><select class="sp-input comp-T flex-1" onchange="renderFFT()"><option>sin</option><option>cos</option><option>sqr</option><option>saw</option></select><button class="btn bg-red-900 text-xs px-2" onclick="this.closest('.grid').remove();renderFFT()">✕</button></div>`; document.getElementById('fftComponents').appendChild(row); renderFFT(); }
+
+        function loadP(name) { let presets = { chord: [[1, 4, 0, 'sin'], [1, 5, 0, 'sin'], [0.7, 6, 0, 'sin']], am: [[1, 10, 0, 'sin'], [0.5, 8, 0, 'sin'], [0.5, 12, 0, 'sin']], speech: [[1, 1, 0, 'sin'], [0.5, 2, 0, 'sin'], [0.3, 4, 0, 'sin'], [0.15, 7, 0, 'sin']] }; document.getElementById('fftComponents').innerHTML = ''; let c = presets[name]; c.forEach(([A, F, P, T]) => { let row = document.createElement('div'); row.className = 'grid grid-cols-4 gap-2 items-end'; row.innerHTML = `<div><input type="number" class="sp-input comp-A" value="${A}" step="0.1" oninput="renderFFT()"></div><div><input type="number" class="sp-input comp-F" value="${F}" step="1" oninput="renderFFT()"></div><div><input type="number" class="sp-input comp-P" value="${P}" step="15" oninput="renderFFT()"></div><div class="flex gap-1"><select class="sp-input comp-T flex-1" onchange="renderFFT()"><option value="sin" ${T === 'sin' ? 'selected' : ''}>sin</option><option value="cos" ${T === 'cos' ? 'selected' : ''}>cos</option></select><button class="btn bg-red-900 text-xs px-2" onclick="this.closest('.grid').remove();renderFFT()">✕</button></div>`; document.getElementById('fftComponents').appendChild(row); }); renderFFT(); }
+
+        function getComps() { let As = [...document.querySelectorAll('.comp-A')].map(e => +e.value || 0); let Fs = [...document.querySelectorAll('.comp-F')].map(e => +e.value || 0); let Ps = [...document.querySelectorAll('.comp-P')].map(e => +e.value || 0); let Ts = [...document.querySelectorAll('.comp-T')].map(e => e.value); return As.map((a, i) => ({ a, f: Fs[i], p: Ps[i] * Math.PI / 180, t: Ts[i] })); }
+        function evalSig(comps, t) { return comps.reduce((s, { a, f, p, ty }) => { let x = 2 * Math.PI * f * t + p; if (ty === 'sin' || !ty) return s + a * Math.sin(x); if (ty === 'cos') return s + a * Math.cos(x); if (ty === 'sqr') return s + a * Math.sign(Math.sin(x)); return s + a * (2 * (f * t % 1 + 1) % 1 - 1); }, 0); }
+        function dft(sig) { let N = sig.length, mags = []; for (let k = 0; k < N / 2; k++) { let re = 0, im = 0; for (let n = 0; n < N; n++) { let phi = 2 * Math.PI * k * n / N; re += sig[n] * Math.cos(phi); im -= sig[n] * Math.sin(phi); } mags.push(Math.sqrt(re * re + im * im) / N); } return mags; }
+
+        function renderFFT() {
+            let comps = getComps(); let N = 512, fs = 64;
+            let sig = Array.from({ length: N }, (_, i) => evalSig(comps, i / fs));
+            let cv1 = document.getElementById('fftTC'); cv1.width = cv1.offsetWidth; cv1.height = 140;
+            drawLine(cv1, '#ef4444', sig);
+            let mags = dft(sig);
+            let cv2 = document.getElementById('fftFC'); cv2.width = cv2.offsetWidth; cv2.height = 170;
+            let cx = cv2.getContext('2d'), W = cv2.width, H = 170, pad = 30, halfN = Math.min(N / 4, 64);
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let maxM = Math.max(...mags.slice(0, halfN), 0.0001), bw = (W - 2 * pad) / halfN;
+            mags.slice(0, halfN).forEach((m, i) => { let bh = m / maxM * (H - 2 * pad); cx.fillStyle = `hsl(${i * 4},80%,55%)`; cx.fillRect(pad + i * bw, H - pad - bh, Math.max(1, bw - 1), bh); });
+            cx.fillStyle = '#64748b'; cx.font = '9px monospace'; cx.textAlign = 'center'; for (let v = 0; v <= halfN; v += 8)cx.fillText(v + 'Hz', pad + v / halfN * (W - 2 * pad), H - pad + 11); cx.textAlign = 'start';
+            let domI = mags.slice(1, halfN).indexOf(Math.max(...mags.slice(1, halfN))) + 1;
+            let rms = Math.sqrt(sig.reduce((s, v) => s + v * v, 0) / N);
+            let cent = mags.slice(0, halfN).reduce((s, m, i) => s + m * i, 0) / mags.slice(0, halfN).reduce((s, m) => s + m, 0.001);
+            document.getElementById('fDom').innerText = (domI / N * fs).toFixed(1) + ' Hz';
+            document.getElementById('fRMS').innerText = rms.toFixed(3);
+            document.getElementById('fCent').innerText = (cent / N * fs).toFixed(1) + ' Hz';
+            document.getElementById('fN').innerText = comps.length;
+        }
+
+        function drawLine(cv, color, arr) { let cx = cv.getContext('2d'), W = cv.offsetWidth || cv.width, H = cv.height || 150, pad = 25; cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H); let min = Math.min(...arr), max = Math.max(...arr), span = Math.max(0.01, max - min); const tx = i => pad + i / arr.length * (W - 2 * pad), ty = v => H - pad - (v - min) / span * (H - 2 * pad); if (min < 0 && max > 0) { cx.strokeStyle = '#1e293b'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(pad, ty(0)); cx.lineTo(W - pad, ty(0)); cx.stroke(); } cx.strokeStyle = color; cx.lineWidth = 1.5; cx.beginPath(); arr.forEach((v, i) => i === 0 ? cx.moveTo(tx(i), ty(v)) : cx.lineTo(tx(i), ty(v))); cx.stroke(); }
+
+        function runFilter() {
+            let type = document.getElementById('fType').value, fc1 = +document.getElementById('fc1').value || 5, fc2 = +document.getElementById('fc2').value || 10, n = +document.getElementById('fOrder').value || 2;
+            document.getElementById('rolloff').innerText = 20 * n;
+            let cv = document.getElementById('filterC'); cv.width = cv.offsetWidth; cv.height = 250;
+            let cx = cv.getContext('2d'), W = cv.width, H = 250, pad = 45; cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let maxF = 2 * Math.max(fc2, fc1) * 3, pts = 300;
+            let fs = Array.from({ length: pts }, (_, i) => i / pts * maxF);
+            let hs = fs.map(f => { if (!f) f = 0.001; let r1 = f / fc1, r2 = f / (fc2 || fc1 * 2); if (type === 'lp') return 1 / Math.sqrt(1 + Math.pow(r1, 2 * n)); if (type === 'hp') return 1 / Math.sqrt(1 + Math.pow(1 / r1, 2 * n)); if (type === 'bp') { let f0 = Math.sqrt(fc1 * fc2), bw = fc2 - fc1, q = f0 / bw; let x = q * (f / f0 - f0 / f); return 1 / Math.sqrt(1 + x * x); } let f0 = Math.sqrt(fc1 * fc2), bw = fc2 - fc1, q = f0 / bw; let x = q * (f / f0 - f0 / f); return Math.abs(x) / Math.sqrt(1 + x * x); });
+            let maxH = Math.max(...hs, 0.01);
+            const tx = v => pad + v / maxF * (W - 2 * pad), ty = v => H - pad - v / maxH * (H - 2 * pad);
+            [0, 0.25, 0.5, 0.75, 1].forEach(v => { cx.strokeStyle = '#1e293b'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(pad, ty(v)); cx.lineTo(W - pad, ty(v)); cx.stroke(); cx.fillStyle = '#475569'; cx.font = '9px monospace'; cx.textAlign = 'right'; cx.fillText((v * maxH).toFixed(2), pad - 4, ty(v) + 4); });
+            cx.strokeStyle = '#ef4444'; cx.lineWidth = 2; cx.beginPath(); fs.forEach((f, i) => i === 0 ? cx.moveTo(tx(f), ty(hs[i])) : cx.lineTo(tx(f), ty(hs[i]))); cx.stroke();
+            let h3 = 1 / Math.sqrt(2); cx.strokeStyle = 'rgba(251,191,36,0.5)'; cx.lineWidth = 1; cx.setLineDash([4, 4]); cx.beginPath(); cx.moveTo(pad, ty(h3)); cx.lineTo(W - pad, ty(h3)); cx.stroke(); cx.setLineDash([]); cx.fillStyle = '#fbbf24'; cx.font = '9px monospace'; cx.textAlign = 'start'; cx.fillText('−3 dB', pad, ty(h3) - 4);
+            cx.fillStyle = '#64748b';[0, maxF / 4, maxF / 2, 3 * maxF / 4, maxF].forEach(v => { cx.textAlign = 'center'; cx.fillText(v.toFixed(0) + 'Hz', tx(v), H - pad + 12); }); cx.textAlign = 'start';
+        }
+
+        function makeSig2(type, N) { let s = new Array(N).fill(0); let m = Math.floor(N / 5); if (type === 'rect') { for (let i = N / 2 - m; i < N / 2 + m; i++)s[i] = 1; } else if (type === 'tri') { for (let i = N / 2 - m; i < N / 2 + m; i++)s[i] = 1 - Math.abs(i - N / 2) / m; } else if (type === 'gauss') { let sig = m / 2; for (let i = 0; i < N; i++)s[i] = Math.exp(-0.5 * ((i - N / 2) / sig) ** 2); } else if (type === 'delta') { s[Math.floor(N / 2)] = 10; } return s; }
+        function convolve2(f, g) { let N = f.length, M = g.length, L = N + M - 1, out = new Array(L).fill(0); for (let n = 0; n < L; n++)for (let k = 0; k < M; k++)if (n - k >= 0 && n - k < N) out[n] += f[n - k] * g[k]; return out; }
+
+        function runConv() {
+            let N = 100, f = makeSig2(document.getElementById('cvF').value, N), g = makeSig2(document.getElementById('cvG').value, N), h = convolve2(f, g);
+            let cv = document.getElementById('convC'); cv.width = cv.offsetWidth; cv.height = 280;
+            let cx = cv.getContext('2d'), W = cv.width, H = 280, pad = 25; cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            function row(arr, yc, color, label) { let max = Math.max(...arr.map(Math.abs), 0.01), rowH = 70; const tx = i => pad + i / arr.length * (W - 2 * pad), ty = v => yc - v / max * rowH / 2.2; cx.strokeStyle = '#1e293b'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(pad, yc); cx.lineTo(W - pad, yc); cx.stroke(); cx.strokeStyle = color; cx.lineWidth = 1.5; cx.beginPath(); arr.forEach((v, i) => i === 0 ? cx.moveTo(tx(i), ty(v)) : cx.lineTo(tx(i), ty(v))); cx.stroke(); cx.fillStyle = color; cx.font = 'bold 11px monospace'; cx.fillText(label, pad, yc - 40); }
+            row(f, 70, '#ef4444', 'f(t)'); row(g, 165, '#60a5fa', 'g(t)'); row(h, 250, '#34d399', '(f*g)(t)');
+        }
+
+        function runSamp() {
+            let sigF = +document.getElementById('sigF').value || 3, sampFs = +document.getElementById('sampFs').value || 8;
+            let nyq = 2 * sigF; document.getElementById('nyqR').innerText = nyq + ' Hz';
+            let ok = sampFs >= nyq;
+            document.getElementById('nyqS').innerHTML = ok ? '<span class="text-green-400">OK ✓</span>' : '<span class="text-red-400">Alias ✗</span>';
+            document.getElementById('aliasF').innerText = ok ? 'None' : `${Math.abs(sampFs - sigF)} Hz`;
+            let cv = document.getElementById('sampC'); cv.width = cv.offsetWidth; cv.height = 250;
+            let cx = cv.getContext('2d'), W = cv.width, H = 250, pad = 30; cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let T = 2, N = 500; let xs = Array.from({ length: N }, (_, i) => i / N * T);
+            let sig = xs.map(t => Math.sin(2 * Math.PI * sigF * t));
+            const tx = t => pad + t / T * (W - 2 * pad), ty = v => H / 2 - v * (H / 2 - pad) * 0.85;
+            cx.strokeStyle = '#1e293b'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(pad, H / 2); cx.lineTo(W - pad, H / 2); cx.stroke();
+            cx.strokeStyle = '#ef4444'; cx.lineWidth = 1.5; cx.beginPath(); xs.forEach((t, i) => i === 0 ? cx.moveTo(tx(t), ty(sig[i])) : cx.lineTo(tx(t), ty(sig[i]))); cx.stroke();
+            if (!ok) { let alias = xs.map(t => Math.sin(2 * Math.PI * Math.abs(sampFs - sigF) * t)); cx.strokeStyle = 'rgba(251,191,36,0.7)'; cx.lineWidth = 1.5; cx.setLineDash([4, 4]); cx.beginPath(); xs.forEach((t, i) => i === 0 ? cx.moveTo(tx(t), ty(alias[i])) : cx.lineTo(tx(t), ty(alias[i]))); cx.stroke(); cx.setLineDash([]); cx.fillStyle = '#fbbf24'; cx.font = '10px monospace'; cx.fillText('Alias: ' + Math.abs(sampFs - sigF) + 'Hz', W / 2, H - 8); }
+            let nS = Math.floor(T * sampFs); for (let i = 0; i <= nS; i++) { let t = i / sampFs, v = Math.sin(2 * Math.PI * sigF * t); cx.beginPath(); cx.arc(tx(t), ty(v), 4, 0, Math.PI * 2); cx.fillStyle = '#60a5fa'; cx.fill(); cx.strokeStyle = 'rgba(96,165,250,0.5)'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(tx(t), H / 2); cx.lineTo(tx(t), ty(v)); cx.stroke(); }
+        }
+
+        renderFFT();
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

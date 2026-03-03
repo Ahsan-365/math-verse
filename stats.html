@@ -1,0 +1,629 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistical Analysis - Math Verse</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+    <!-- jStat for p-values and advanced distributions -->
+    <script src="https://cdn.jsdelivr.net/npm/jstat@latest/dist/jstat.min.js"></script>
+    <style>
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            font-weight: bold;
+            border-radius: 999px;
+            transition: all 0.3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+        }
+
+        .tab-btn:hover {
+            background: rgba(59, 130, 246, 0.1);
+            color: #60a5fa;
+        }
+
+        .tab-btn.active {
+            background: rgba(59, 130, 246, 0.25);
+            color: white;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+            border-color: #3b82f6;
+        }
+
+        .math-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            color: white;
+            border-radius: 8px;
+            font-family: monospace;
+            padding: 0.5rem 1rem;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .math-input:focus {
+            border-color: #60a5fa;
+            outline: none;
+            box-shadow: 0 0 10px rgba(96, 165, 250, 0.4);
+        }
+
+        .stat-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 0.75rem;
+            padding: 1rem;
+        }
+
+        .grid-input {
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #475569;
+            color: white;
+            width: 60px;
+            height: 40px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .grid-input:focus {
+            border-color: #10b981;
+            outline: none;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8">
+    <div class="glass-panel w-full max-w-6xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-8 relative">
+        <h2
+            class="text-3xl md:text-5xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500 pb-2">
+            <i class="fas fa-chart-pie text-blue-400"></i> Statistical Inference Lab
+        </h2>
+
+        <!-- Tabs -->
+        <div
+            class="flex flex-wrap justify-center gap-4 bg-black/40 p-2 rounded-full border border-blue-500/30 mx-auto w-full max-w-3xl">
+            <button class="tab-btn active" onclick="switchTab('desc')">Descriptive & Plots</button>
+            <button class="tab-btn" onclick="switchTab('hypo')">T-Test / ANOVA</button>
+            <button class="tab-btn" onclick="switchTab('chi')">Chi-Square Independence</button>
+            <button class="tab-btn" onclick="switchTab('linreg')">Linear Regression</button>
+            <button class="tab-btn" onclick="switchTab('polyreg')">Polynomial Fit</button>
+            <button class="tab-btn" onclick="switchTab('probdist')">Probability Distributions</button>
+        </div>
+
+        <div id="errorBox"
+            class="hidden text-rose-400 font-bold bg-rose-900/30 border border-rose-500/50 p-3 rounded-xl text-center max-w-lg mx-auto w-full">
+        </div>
+
+        <!-- Tab 1: Descriptive -->
+        <div id="tab-desc" class="tab-content flex flex-col lg:flex-row gap-8">
+            <div class="w-full lg:w-1/3 flex flex-col gap-4">
+                <div class="bg-gray-900/50 p-6 rounded-2xl border border-sky-500/30 shadow-lg relative">
+                    <label class="text-xs font-bold text-sky-400 uppercase tracking-widest block mb-2">Raw Dataset
+                        (Comma/Space separated)</label>
+                    <textarea id="descInput" class="math-input h-32 resize-none"
+                        placeholder="e.g. 12, 15, 18, 22, 25, 25, 12, 9"></textarea>
+                    <button
+                        class="btn bg-sky-600 hover:bg-sky-500 text-white font-bold py-3 mt-4 w-full shadow-[0_0_15px_rgba(56,189,248,0.4)]"
+                        onclick="runDescriptive()">Calculate</button>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3" id="descStatsGrid">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <div class="flex-1 flex flex-col gap-4">
+                <div
+                    class="bg-black/60 border border-gray-700 rounded-2xl p-2 h-[300px] shadow-[inset_0_0_50px_rgba(0,0,0,0.8)] flex items-center justify-center">
+                    <div id="histPlot" class="w-full h-full"></div>
+                </div>
+                <div
+                    class="bg-black/60 border border-gray-700 rounded-2xl p-2 h-[200px] shadow-[inset_0_0_50px_rgba(0,0,0,0.8)] flex items-center justify-center">
+                    <div id="boxPlot" class="w-full h-full"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Hypothesis Testing (ANOVA/T-Test) -->
+        <div id="tab-hypo" class="tab-content hidden flex flex-col gap-8 w-full max-w-4xl mx-auto">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-indigo-500/30 shadow-lg">
+                <h3 class="text-2xl font-bold text-indigo-300 border-b border-gray-700 pb-2 mb-4">Compare Means</h3>
+                <p class="text-xs text-gray-400 mb-6 w-3/4">Automatically performs an Independent 2-Sample Welch's
+                    T-Test for two groups, or a One-Way ANOVA if three or more groups are provided.</p>
+
+                <div id="groupContainer" class="flex flex-col gap-4 mb-4">
+                    <!-- Groups -->
+                    <div class="flex gap-4 items-start group-row">
+                        <span class="text-indigo-400 font-bold mt-2">Group 1:</span>
+                        <input type="text" class="math-input flex-1 group-input" placeholder="e.g. 4, 5, 4, 3, 2">
+                    </div>
+                    <div class="flex gap-4 items-start group-row">
+                        <span class="text-indigo-400 font-bold mt-2">Group 2:</span>
+                        <input type="text" class="math-input flex-1 group-input" placeholder="e.g. 7, 8, 6, 9, 8">
+                    </div>
+                    <!-- End Groups -->
+                </div>
+
+                <div class="flex gap-4">
+                    <button class="btn border border-indigo-500/50 text-indigo-300 hover:bg-indigo-900/40 px-4"
+                        onclick="addGroup()"><i class="fas fa-plus mr-2"></i>Add Group</button>
+                    <button
+                        class="btn bg-indigo-600 hover:bg-indigo-500 text-white font-bold flex-1 shadow-[0_0_15px_rgba(99,102,241,0.4)]"
+                        onclick="runHypothesis()">Run Analysis</button>
+                </div>
+            </div>
+
+            <div id="hypoOut"
+                class="hidden bg-black/60 p-6 rounded-2xl border border-indigo-500/50 shadow-[inset_0_0_30px_rgba(0,0,0,0.8)] text-center">
+                <!-- Results -->
+            </div>
+        </div>
+
+        <!-- Tab 3: Chi-Square -->
+        <div id="tab-chi" class="tab-content hidden flex flex-col gap-8 w-full max-w-3xl mx-auto">
+            <div
+                class="bg-gray-900/50 p-6 rounded-2xl border border-emerald-500/30 shadow-lg flex flex-col items-center">
+                <h3 class="text-2xl font-bold text-emerald-300 border-b border-gray-700 pb-2 mb-4 w-full text-center">
+                    Contingency Table (Independence)</h3>
+                <p class="text-xs text-gray-400 mb-6 text-center">Tests whether two categorical variables are
+                    independent. Input observed frequencies below.</p>
+
+                <div class="flex items-center gap-4 mb-6">
+                    <div>
+                        <label class="text-xs text-emerald-400 font-bold uppercase">Rows</label>
+                        <input type="number" id="chiR" value="2" min="2" max="5" class="math-input w-20 text-center"
+                            onchange="buildChiGrid()">
+                    </div>
+                    <i class="fas fa-times text-gray-500 mt-4"></i>
+                    <div>
+                        <label class="text-xs text-emerald-400 font-bold uppercase">Cols</label>
+                        <input type="number" id="chiC" value="2" min="2" max="5" class="math-input w-20 text-center"
+                            onchange="buildChiGrid()">
+                    </div>
+                </div>
+
+                <div id="chiGrid"
+                    class="flex flex-col gap-2 mb-6 bg-black/40 p-4 rounded-xl border border-emerald-500/20">
+                    <!-- Grid built by JS -->
+                </div>
+
+                <button
+                    class="btn bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-12 py-3 shadow-[0_0_15px_rgba(16,185,129,0.4)]"
+                    onclick="runChiSquare()">Compute Statistic</button>
+            </div>
+
+            <div id="chiOut"
+                class="hidden bg-black/60 p-6 rounded-2xl border border-emerald-500/50 shadow-[inset_0_0_30px_rgba(0,0,0,0.8)] text-center">
+                <!-- Results -->
+            </div>
+        </div>
+
+    </div>
+
+    
+        <!-- Regression: Linear -->
+        <div id="tab-linreg" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-sky-500/30 flex flex-col gap-4">
+                <h3 class="text-sky-300 font-bold text-xl">Linear Regression (Least Squares)</h3>
+                <p class="text-xs text-gray-400">Enter x,y pairs (one per line). Finds ŷ = a + bx minimizing Σ(yᵢ − ŷᵢ)².</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><label class="text-xs text-gray-400">Data points (x,y one per line)</label>
+                        <textarea id="lrData" class="bg-black/60 border border-sky-500/40 text-white rounded p-2 font-mono text-sm w-full mt-1" rows="8" placeholder="1,2&#10;2,3.5&#10;3,5&#10;4,6.2&#10;5,8">1,2
+2,3.5
+3,5
+4,6.2
+5,8</textarea></div>
+                    <div class="flex flex-col gap-3">
+                        <button class="btn bg-sky-700 hover:bg-sky-600 font-bold" onclick="runLinReg()">Fit Line</button>
+                        <div id="lrResult" class="bg-black/50 border border-sky-500/40 rounded-xl p-4 flex flex-col gap-2">
+                            <div class="text-xs text-gray-500">Results appear here…</div>
+                        </div>
+                        <canvas id="lrCanvas" class="w-full rounded-xl bg-black/60 border border-gray-700" style="height:180px"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Regression: Polynomial Fit -->
+        <div id="tab-polyreg" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-violet-500/30 flex flex-col gap-4">
+                <h3 class="text-violet-300 font-bold text-xl">Polynomial Regression</h3>
+                <p class="text-xs text-gray-400">Fits a polynomial of chosen degree to x,y data using Vandermonde matrix.</p>
+                <div class="flex gap-4 flex-wrap items-end">
+                    <div><label class="text-xs text-gray-400">Degree</label><input type="number" id="polyDeg" class="bg-black/60 border border-violet-500/40 text-white rounded p-1.5 w-20 mt-1" value="2" min="1" max="8"></div>
+                    <div class="flex-1"><label class="text-xs text-gray-400">Data (x,y per line)</label><textarea id="polyData" class="bg-black/60 border border-violet-500/40 text-white rounded p-2 font-mono text-sm w-full mt-1" rows="5">-3,9
+-1,1
+0,0.5
+1,1.5
+3,8.5
+5,24</textarea></div>
+                    <button class="btn bg-violet-700 hover:bg-violet-600 font-bold self-end" onclick="runPolyReg()">Fit</button>
+                </div>
+                <div id="polyResult" class="bg-black/50 border border-violet-500/40 rounded-xl p-4 text-sm font-mono text-violet-200">Coefficients appear here…</div>
+                <canvas id="polyCanvas" class="w-full rounded-xl bg-black/60 border border-gray-700" style="height:200px"></canvas>
+            </div>
+        </div>
+
+        <!-- Probability Distributions -->
+        <div id="tab-probdist" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-pink-500/30 flex flex-col gap-4">
+                <h3 class="text-pink-300 font-bold text-xl">Probability Distribution Calculator</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-3">
+                        <div><label class="text-xs text-gray-400">Distribution</label>
+                            <select id="distName" class="bg-black/60 border border-pink-500/40 text-white rounded p-2 w-full mt-1" onchange="updateDistParams()">
+                                <option value="normal">Normal (μ, σ)</option>
+                                <option value="binomial">Binomial (n, p)</option>
+                                <option value="poisson">Poisson (λ)</option>
+                                <option value="exponential">Exponential (λ)</option>
+                            </select>
+                        </div>
+                        <div id="distParams" class="flex gap-2"></div>
+                        <div><label class="text-xs text-gray-400">X value for P(X≤x)</label>
+                            <input type="number" id="distX" class="bg-black/60 border border-pink-500/40 text-white rounded p-2 w-full mt-1" value="1" step="0.1">
+                        </div>
+                        <button class="btn bg-pink-700 hover:bg-pink-600 font-bold" onclick="calcDist()">Calculate</button>
+                        <div id="distResultText" class="bg-black/50 border border-pink-500/40 rounded-xl p-4 text-sm font-mono space-y-1"></div>
+                    </div>
+                    <canvas id="distPdfCanvas" class="w-full rounded-xl bg-black/60 border border-gray-700" style="height:280px"></canvas>
+                </div>
+            </div>
+        </div>
+    <script src="script.js"></script>
+    <script>
+        // Inter-Tab Routing
+        function switchTab(id) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById('tab-' + id).classList.remove('hidden');
+            document.getElementById('errorBox').classList.add('hidden');
+
+            if (id === 'desc') setTimeout(() => { Plotly.Plots.resize('histPlot'); Plotly.Plots.resize('boxPlot'); }, 100);
+            if (id === 'chi' && document.getElementById('chiGrid').innerHTML === '') buildChiGrid();
+        }
+
+        const outError = (msg) => { const eb = document.getElementById('errorBox'); eb.innerText = msg; eb.classList.remove('hidden'); };
+        const clearError = () => document.getElementById('errorBox').classList.add('hidden');
+
+        // Number parser helper
+        function parseArray(str) {
+            return str.replace(/,/g, ' ').split(/\s+/).filter(x => x.trim() !== '').map(Number);
+        }
+        function round4(x) { return Math.round(x * 10000) / 10000; }
+
+        /* -------------------------------------------------------------------------- */
+        /* Descriptive Statistics & Plotly                                            */
+        /* -------------------------------------------------------------------------- */
+        function runDescriptive() {
+            clearError();
+            let rawData = parseArray(document.getElementById('descInput').value);
+            if (rawData.length === 0) return outError("Dataset is empty.");
+            if (rawData.some(isNaN)) return outError("Non-numeric elements detected in set.");
+
+            let n = rawData.length;
+            let sum = jStat.sum(rawData);
+            let mean = jStat.mean(rawData);
+            let median = jStat.median(rawData);
+            let variance = jStat.variance(rawData, true); // sample variance
+            let stdev = jStat.stdev(rawData, true); // sample sd
+            let min = jStat.min(rawData);
+            let max = jStat.max(rawData);
+
+            // Render Stats Grid
+            const gridHTML = [
+                { k: "Count (N)", v: n }, { k: "Mean (\u03bc)", v: round4(mean) },
+                { k: "Median", v: round4(median) }, { k: "Std Dev (s)", v: round4(stdev) },
+                { k: "Variance (s\u00b2)", v: round4(variance) }, { k: "Sum (\u03a3)", v: round4(sum) },
+                { k: "Range", v: round4(max - min) }, { k: "Min / Max", v: `${round4(min)} / ${round4(max)}` }
+            ].map(item => `
+                <div class="stat-card flex flex-col p-3 text-center">
+                    <span class="text-[10px] uppercase font-bold text-sky-500 tracking-wider">${item.k}</span>
+                    <span class="text-xl font-black text-white mt-1">${item.v}</span>
+                </div>
+            `).join('');
+            document.getElementById('descStatsGrid').innerHTML = gridHTML;
+
+            // Plotly
+            let layoutVars = { paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', font: { color: '#94a3b8' }, margin: { t: 30, b: 30, l: 40, r: 20 } };
+
+            Plotly.newPlot('histPlot', [{ x: rawData, type: 'histogram', marker: { color: '#38bdf8', opacity: 0.8 } }], {
+                ...layoutVars, title: { text: 'Frequency Histogram', font: { color: '#38bdf8' } },
+                xaxis: { gridcolor: '#334155', zerolinecolor: '#475569' }, yaxis: { gridcolor: '#334155', zerolinecolor: '#475569' }
+            }, { displayModeBar: false, responsive: true });
+
+            Plotly.newPlot('boxPlot', [{ x: rawData, type: 'box', marker: { color: '#818cf8' }, boxpoints: 'all', jitter: 0.3, pointpos: -1.8 }], {
+                ...layoutVars, margin: { t: 10, b: 30, l: 20, r: 20 }, xaxis: { gridcolor: '#334155', zerolinecolor: '#475569' }
+            }, { displayModeBar: false, responsive: true });
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* Hypothesis Testing (T-Test / ANOVA)                                        */
+        /* -------------------------------------------------------------------------- */
+        let groupCount = 2;
+        function addGroup() {
+            if (groupCount >= 6) return outError("Max 6 groups supported in UI.");
+            groupCount++;
+            let div = document.createElement('div');
+            div.className = "flex gap-4 items-start group-row";
+            div.innerHTML = `
+                <span class="text-indigo-400 font-bold mt-2">Group ${groupCount}:</span>
+                <input type="text" class="math-input flex-1 group-input" placeholder="Dataset ${groupCount}">
+            `;
+            document.getElementById('groupContainer').appendChild(div);
+        }
+
+        function runHypothesis() {
+            clearError();
+            let inputs = document.querySelectorAll('.group-input');
+            let groups = [];
+            for (let i = 0; i < inputs.length; i++) {
+                let arr = parseArray(inputs[i].value);
+                if (arr.length > 0) {
+                    if (arr.some(isNaN)) return outError(`Group ${i + 1} contains invalid numbers.`);
+                    groups.push(arr);
+                }
+            }
+
+            if (groups.length < 2) return outError("At least 2 valid groups required.");
+
+            const out = document.getElementById('hypoOut');
+            out.classList.remove('hidden');
+
+            if (groups.length === 2) {
+                // Welch's T-Test (Unequal variances assumed)
+                let a = groups[0], b = groups[1];
+                let mean1 = jStat.mean(a), mean2 = jStat.mean(b);
+                let var1 = jStat.variance(a, true), var2 = jStat.variance(b, true);
+                let n1 = a.length, n2 = b.length;
+
+                let tStat = (mean1 - mean2) / Math.sqrt((var1 / n1) + (var2 / n2));
+                // Welch-Satterthwaite DF
+                let dfNum = Math.pow((var1 / n1) + (var2 / n2), 2);
+                let dfDen = (Math.pow(var1 / n1, 2) / (n1 - 1)) + (Math.pow(var2 / n2, 2) / (n2 - 1));
+                let df = dfNum / dfDen;
+
+                // Two-tailed p-value
+                let pValue = 2 * (1 - jStat.studentt.cdf(Math.abs(tStat), df));
+
+                out.innerHTML = `
+                    <div class="text-xs text-indigo-400 font-bold uppercase tracking-widest mb-4">Welch's Independent 2-Sample T-Test</div>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="bg-black/50 p-4 rounded border border-indigo-500/20"><span class="block text-sm text-gray-400 mb-1">T-Statistic</span><span class="font-mono text-xl text-white">${round4(tStat)}</span></div>
+                        <div class="bg-black/50 p-4 rounded border border-indigo-500/20"><span class="block text-sm text-gray-400 mb-1">Degrees of Freedom</span><span class="font-mono text-xl text-white">${round4(df)}</span></div>
+                        <div class="bg-indigo-900/40 p-4 rounded border border-indigo-400"><span class="block text-sm text-indigo-200 mb-1">P-Value (2-Tail)</span><span class="font-mono text-2xl font-black text-white">${pValue < 0.0001 ? "< 0.0001" : round4(pValue)}</span></div>
+                    </div>
+                `;
+            } else {
+                // One-Way ANOVA
+                let k = groups.length;
+                let N = 0;
+                let totalSum = 0;
+                let sumSqTotal = 0;
+
+                groups.forEach(g => {
+                    N += g.length;
+                    g.forEach(v => {
+                        totalSum += v;
+                        sumSqTotal += v * v;
+                    });
+                });
+
+                let grandMean = totalSum / N;
+
+                let sst = 0; // total sum of squares
+                let ssb = 0; // between groups
+                let ssw = 0; // within groups
+
+                groups.forEach(g => {
+                    let groupMean = jStat.mean(g);
+                    ssb += g.length * Math.pow(groupMean - grandMean, 2);
+                    g.forEach(v => {
+                        ssw += Math.pow(v - groupMean, 2);
+                        sst += Math.pow(v - grandMean, 2);
+                    });
+                });
+
+                let dfb = k - 1;
+                let dfw = N - k;
+
+                let msb = ssb / dfb;
+                let msw = ssw / dfw;
+
+                let fStat = msb / msw;
+                let pValue = 1 - jStat.centralF.cdf(fStat, dfb, dfw);
+
+                out.innerHTML = `
+                    <div class="text-xs text-indigo-400 font-bold uppercase tracking-widest mb-4">One-Way ANOVA (Analysis of Variance)</div>
+                    <table class="w-full text-left text-sm text-gray-300 border-collapse">
+                        <thead><tr class="border-b border-gray-700 text-gray-400"><th class="py-2">Source</th><th>DF</th><th>Sum Sq (SS)</th><th>Mean Sq (MS)</th><th class="text-indigo-300">F-Stat</th><th class="text-indigo-300">P-Value</th></tr></thead>
+                        <tbody>
+                            <tr class="border-b border-gray-800"><td class="py-2 font-bold text-gray-200">Between Groups</td><td>${dfb}</td><td>${round4(ssb)}</td><td>${round4(msb)}</td><td class="font-mono text-lg font-bold text-white border-l border-indigo-500/30 pl-2" rowspan="2">${round4(fStat)}</td><td class="font-mono text-lg font-black text-indigo-300 border-l border-b border-indigo-500/30 pl-2" rowspan="2">${pValue < 0.0001 ? "< 0.0001" : round4(pValue)}</td></tr>
+                            <tr class="border-b border-gray-800"><td class="py-2 font-bold text-gray-200">Within Groups (Error)</td><td>${dfw}</td><td>${round4(ssw)}</td><td>${round4(msw)}</td></tr>
+                            <tr><td class="py-2 font-bold text-gray-200">Total</td><td>${N - 1}</td><td>${round4(sst)}</td><td></td><td></td><td></td></tr>
+                        </tbody>
+                    </table>
+                `;
+            }
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* Chi-Square Independence Test                                               */
+        /* -------------------------------------------------------------------------- */
+        function buildChiGrid() {
+            let r = parseInt(document.getElementById('chiR').value);
+            let c = parseInt(document.getElementById('chiC').value);
+            if (r < 2 || c < 2 || r > 5 || c > 5) return;
+
+            let grid = document.getElementById('chiGrid');
+            grid.innerHTML = '';
+            for (let i = 0; i < r; i++) {
+                let rowDiv = document.createElement('div');
+                rowDiv.className = "flex gap-2";
+                for (let j = 0; j < c; j++) {
+                    let inp = document.createElement('input');
+                    inp.type = "text";
+                    inp.className = "grid-input rounded";
+                    inp.dataset.r = i; inp.dataset.c = j;
+                    inp.value = Math.floor(Math.random() * 50) + 10; // dummy data
+                    rowDiv.appendChild(inp);
+                }
+                grid.appendChild(rowDiv);
+            }
+        }
+
+        function runChiSquare() {
+            clearError();
+            let r = parseInt(document.getElementById('chiR').value);
+            let c = parseInt(document.getElementById('chiC').value);
+
+            let matrix = [];
+            let inputs = document.querySelectorAll('#chiGrid input');
+            let idx = 0;
+            let totalSum = 0;
+            let rowSums = Array(r).fill(0);
+            let colSums = Array(c).fill(0);
+
+            for (let i = 0; i < r; i++) {
+                matrix[i] = [];
+                for (let j = 0; j < c; j++) {
+                    let valStr = inputs[idx++].value;
+                    if (!valStr) return outError("All grid cells must be filled.");
+                    let val = parseInt(valStr);
+                    if (isNaN(val) || val < 0) return outError("Data must be non-negative integers.");
+                    matrix[i][j] = val;
+                    rowSums[i] += val;
+                    colSums[j] += val;
+                    totalSum += val;
+                }
+            }
+
+            if (totalSum === 0) return outError("Total sum is 0, cannot proceed.");
+
+            let chiSq = 0;
+            for (let i = 0; i < r; i++) {
+                for (let j = 0; j < c; j++) {
+                    let expected = (rowSums[i] * colSums[j]) / totalSum;
+                    if (expected <= 0) return outError("Expected count <= 0. Not viable for Chi-Square.");
+                    let obs = matrix[i][j];
+                    chiSq += Math.pow(obs - expected, 2) / expected;
+                }
+            }
+
+            let df = (r - 1) * (c - 1);
+            let pValue = 1 - jStat.chisquare.cdf(chiSq, df);
+
+            const out = document.getElementById('chiOut');
+            out.innerHTML = `
+                <div class="text-xs text-emerald-400 font-bold uppercase tracking-widest mb-4">Chi-Square Test of Independence</div>
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-6">
+                    <div class="bg-black/40 p-4 border border-emerald-500/20 rounded shadow w-full sm:w-auto"><span class="block text-gray-500 text-xs mb-1">Degrees of Freedom</span><span class="text-xl font-mono text-emerald-100">${df}</span></div>
+                    <div class="bg-black/40 p-4 border border-emerald-500/20 rounded shadow w-full sm:w-auto"><span class="block text-gray-500 text-xs mb-1">Chi-Square (\u03C7\u00b2)</span><span class="text-2xl font-mono font-bold text-white">${round4(chiSq)}</span></div>
+                    <div class="bg-emerald-900/30 p-4 border border-emerald-500 rounded shadow w-full sm:w-auto"><span class="block text-emerald-300 text-xs font-bold mb-1">P-Value</span><span class="text-3xl font-mono font-black text-emerald-400">${pValue < 0.0001 ? "< 0.0001" : round4(pValue)}</span></div>
+                </div>
+            `;
+            out.classList.remove('hidden');
+        }
+
+    
+        /* ===== LINEAR REGRESSION ===== */
+        function parseData(id) {
+            return document.getElementById(id).value.trim().split('\n').map(l => {
+                let p = l.split(','); return [parseFloat(p[0]), parseFloat(p[1])];
+            }).filter(p => !isNaN(p[0]) && !isNaN(p[1]));
+        }
+        function runLinReg() {
+            let pts = parseData('lrData'); let n = pts.length;
+            if (n < 2) { document.getElementById('lrResult').innerHTML = '<span class="text-rose-400">Need ≥ 2 points</span>'; return; }
+            let sx=0,sy=0,sxy=0,sxx=0;
+            pts.forEach(([x,y])=>{sx+=x;sy+=y;sxy+=x*y;sxx+=x*x;});
+            let b=(n*sxy-sx*sy)/(n*sxx-sx*sx), a=(sy-b*sx)/n;
+            let ybar=sy/n, ss_tot=0, ss_res=0;
+            pts.forEach(([x,y])=>{ss_tot+=(y-ybar)**2;ss_res+=(y-(a+b*x))**2;});
+            let r2=1-ss_res/ss_tot;
+            document.getElementById('lrResult').innerHTML=`<div class="text-sky-200 font-bold text-lg">ŷ = ${a.toFixed(4)} + ${b.toFixed(4)}x</div><div class="text-gray-400 text-xs">R² = <span class="text-emerald-400">${r2.toFixed(6)}</span></div><div class="text-gray-400 text-xs">Intercept a = ${a.toFixed(4)} | Slope b = ${b.toFixed(4)}</div>`;
+            const c=document.getElementById('lrCanvas'); c.width=c.offsetWidth; c.height=180;
+            const cx=c.getContext('2d'),W=c.width,H=180,pad=30;
+            cx.fillStyle='#0f172a';cx.fillRect(0,0,W,H);
+            let xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
+            let xmin=Math.min(...xs),xmax=Math.max(...xs),ymin=Math.min(...ys),ymax=Math.max(...ys);
+            let xr=xmax-xmin||1,yr=ymax-ymin||1;
+            const px=(x)=>pad+(x-xmin)/xr*(W-2*pad), py=(y)=>H-pad-(y-ymin)/yr*(H-2*pad);
+            cx.strokeStyle='#38bdf8';cx.lineWidth=2;cx.beginPath();cx.moveTo(px(xmin),py(a+b*xmin));cx.lineTo(px(xmax),py(a+b*xmax));cx.stroke();
+            pts.forEach(([x,y])=>{cx.beginPath();cx.arc(px(x),py(y),4,0,Math.PI*2);cx.fillStyle='#f87171';cx.fill();});
+        }
+
+        /* ===== POLYNOMIAL REGRESSION ===== */
+        function runPolyReg() {
+            let pts = parseData('polyData'), deg = parseInt(document.getElementById('polyDeg').value)||2;
+            if (pts.length <= deg) { document.getElementById('polyResult').innerText = 'Need more points than degree'; return; }
+            let n=pts.length, m=deg+1;
+            // Build Vandermonde matrix and solve normal equations
+            function matT(A){return A[0].map((_,j)=>A.map(r=>r[j]));}
+            function matMul2(A,B){return A.map(r=>B[0].map((_,j)=>r.reduce((s,_,k)=>s+r[k]*B[k][j],0)));}
+            let V=pts.map(([x])=>Array.from({length:m},(_,k)=>Math.pow(x,k)));
+            let Vt=matT(V), VtV=matMul2(Vt,V);
+            let Vty=Vt.map(r=>r.reduce((s,v,i)=>s+v*pts[i][1],0));
+            // Gaussian elimination
+            let A=VtV.map((r,i)=>[...r,Vty[i]]);
+            for(let p=0;p<m;p++){let mx=p;for(let r=p+1;r<m;r++)if(Math.abs(A[r][p])>Math.abs(A[mx][p]))mx=r;[A[p],A[mx]]=[A[mx],A[p]];for(let r=p+1;r<m;r++){let f=A[r][p]/A[p][p];for(let c=p;c<=m;c++)A[r][c]-=f*A[p][c];}}
+            let coefs=new Array(m).fill(0);
+            for(let i=m-1;i>=0;i--){coefs[i]=A[i][m];for(let j=i+1;j<m;j++)coefs[i]-=A[i][j]*coefs[j];coefs[i]/=A[i][i];}
+            let polyStr=coefs.map((c,i)=>i===0?c.toFixed(4):` + ${c.toFixed(4)}x${i>1?'⁰¹²³⁴⁵⁶⁷⁸'[i]:''}`).join('');
+            document.getElementById('polyResult').innerHTML=`ŷ = ${polyStr}`;
+            const c=document.getElementById('polyCanvas');c.width=c.offsetWidth;c.height=200;
+            const cx=c.getContext('2d'),W=c.width,H=200,pad=30;
+            cx.fillStyle='#0f172a';cx.fillRect(0,0,W,H);
+            let xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
+            let xmin=Math.min(...xs)-1,xmax=Math.max(...xs)+1;
+            const polyEval=(x)=>coefs.reduce((s,c,i)=>s+c*Math.pow(x,i),0);
+            let cx_arr=Array.from({length:200},(_,k)=>xmin+k*(xmax-xmin)/199);
+            let fy_arr=cx_arr.map(x=>polyEval(x));
+            let ymin=Math.min(...ys,...fy_arr),ymax=Math.max(...ys,...fy_arr),yr=ymax-ymin||1;
+            const px2=(x)=>pad+(x-xmin)/(xmax-xmin)*(W-2*pad), py2=(y)=>H-pad-(y-ymin)/yr*(H-2*pad);
+            cx.strokeStyle='#a78bfa';cx.lineWidth=2;cx.beginPath();cx_arr.forEach((x,i)=>i===0?cx.moveTo(px2(x),py2(fy_arr[i])):cx.lineTo(px2(x),py2(fy_arr[i])));cx.stroke();
+            pts.forEach(([x,y])=>{cx.beginPath();cx.arc(px2(x),py2(y),4,0,Math.PI*2);cx.fillStyle='#f9a8d4';cx.fill();});
+        }
+
+        /* ===== PROBABILITY DISTRIBUTIONS ===== */
+        function updateDistParams() {
+            let d=document.getElementById('distName').value;
+            let params=document.getElementById('distParams');
+            let html='';
+            if(d==='normal') html='<div><label class="text-xs text-gray-400">μ</label><input type="number" id="dp1" class="bg-black/60 border border-pink-500/40 text-white rounded p-1.5 w-20 mt-1" value="0"></div><div><label class="text-xs text-gray-400">σ</label><input type="number" id="dp2" class="bg-black/60 border border-pink-500/40 text-white rounded p-1.5 w-20 mt-1" value="1" min="0.01"></div>';
+            else if(d==='binomial') html='<div><label class="text-xs text-gray-400">n</label><input type="number" id="dp1" class="bg-black/60 border border-pink-500/40 text-white rounded p-1.5 w-20 mt-1" value="10"></div><div><label class="text-xs text-gray-400">p</label><input type="number" id="dp2" class="bg-black/60 border border-pink-500/40 text-white rounded p-1.5 w-20 mt-1" value="0.5" min="0" max="1" step="0.01"></div>';
+            else if(d==='poisson') html='<div><label class="text-xs text-gray-400">λ</label><input type="number" id="dp1" class="bg-black/60 border border-pink-500/40 text-white rounded p-1.5 w-20 mt-1" value="3" min="0.1"></div>';
+            else if(d==='exponential') html='<div><label class="text-xs text-gray-400">λ</label><input type="number" id="dp1" class="bg-black/60 border border-pink-500/40 text-white rounded p-1.5 w-20 mt-1" value="1" min="0.1"></div>';
+            params.innerHTML=html;
+        }
+        function calcDist() {
+            let d=document.getElementById('distName').value;
+            let x=parseFloat(document.getElementById('distX').value)||0;
+            let p1=parseFloat(document.getElementById('dp1')?.value)||0;
+            let p2=parseFloat(document.getElementById('dp2')?.value)||1;
+            let pdf_arr=[], cdf_v=0, pdf_v=0, mean_v=0, var_v=0, range=[];
+            if(d==='normal'){const erfApprox=(x)=>{let t=1/(1+0.3275911*Math.abs(x));let y=(((1.061405429*t-1.453152027)*t+1.421413741)*t-0.284496736)*t+0.254829592;y=1-(y*Math.exp(-x*x));return x>=0?y:-y;};mean_v=p1;var_v=p2**2;let cdf=(v)=>0.5*(1+erfApprox((v-p1)/(p2*Math.SQRT2)));cdf_v=cdf(x);pdf_v=Math.exp(-0.5*((x-p1)/p2)**2)/(p2*Math.sqrt(2*Math.PI));let lo=p1-4*p2,hi=p1+4*p2;range=Array.from({length:100},(_,i)=>lo+i*(hi-lo)/99);pdf_arr=range.map(v=>Math.exp(-0.5*((v-p1)/p2)**2)/(p2*Math.sqrt(2*Math.PI)));}
+            else if(d==='poisson'){mean_v=p1;var_v=p1;function poissPDF(k,lam){let logP=-lam;for(let i=1;i<=k;i++)logP+=Math.log(lam)-Math.log(i);return Math.exp(logP);}range=Array.from({length:Math.ceil(p1*3+10)},(_,i)=>i);pdf_arr=range.map(k=>poissPDF(k,p1));let ki=Math.floor(x);cdf_v=range.filter(k=>k<=ki).reduce((s,k)=>s+poissPDF(k,p1),0);pdf_v=ki>=0?poissPDF(ki,p1):0;}
+            else if(d==='binomial'){let n=Math.floor(p1);mean_v=n*p2;var_v=n*p2*(1-p2);function binomPDF(k,n,p){let logC=0;for(let i=1;i<=k;i++)logC+=Math.log(n-k+i)-Math.log(i);return Math.exp(logC+k*Math.log(p)+(n-k)*Math.log(1-p));}range=Array.from({length:n+1},(_,i)=>i);pdf_arr=range.map(k=>binomPDF(k,n,p2));let ki=Math.floor(x);cdf_v=range.filter(k=>k<=ki).reduce((s,k)=>s+binomPDF(k,n,p2),0);pdf_v=ki>=0&&ki<=n?binomPDF(ki,n,p2):0;}
+            else if(d==='exponential'){mean_v=1/p1;var_v=1/(p1**2);let hi=6/p1;range=Array.from({length:100},(_,i)=>i*hi/99);pdf_arr=range.map(v=>p1*Math.exp(-p1*v));cdf_v=x>=0?1-Math.exp(-p1*x):0;pdf_v=x>=0?p1*Math.exp(-p1*x):0;}
+            document.getElementById('distResultText').innerHTML=`<div class="text-pink-200">P(X≤${x}) = <span class="text-white font-bold">${cdf_v.toFixed(6)}</span></div><div class="text-gray-400">PDF/PMF(${x}) = ${pdf_v.toFixed(6)}</div><div class="text-gray-400">Mean = ${mean_v.toFixed(4)} | Var = ${var_v.toFixed(4)}</div>`;
+            const c=document.getElementById('distPdfCanvas');c.width=c.offsetWidth;c.height=280;
+            const cx=c.getContext('2d'),W=c.width,H=280,pad=35;
+            cx.fillStyle='#0f172a';cx.fillRect(0,0,W,H);
+            let ym=Math.max(...pdf_arr)||1;
+            const rx=(v,i)=>pad+i*(W-2*pad)/(range.length-1), ry=(v)=>H-pad-v/ym*(H-2*pad);
+            cx.fillStyle='rgba(236,72,153,0.25)';cx.beginPath();cx.moveTo(rx(0,0),H-pad);
+            range.forEach((_,i)=>cx.lineTo(rx(0,i),ry(pdf_arr[i])));cx.lineTo(rx(0,range.length-1),H-pad);cx.closePath();cx.fill();
+            cx.strokeStyle='#ec4899';cx.lineWidth=2;cx.beginPath();range.forEach((_,i)=>i===0?cx.moveTo(rx(0,i),ry(pdf_arr[i])):cx.lineTo(rx(0,i),ry(pdf_arr[i])));cx.stroke();
+        }
+        updateDistParams();
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>
+

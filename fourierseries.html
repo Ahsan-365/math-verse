@@ -1,0 +1,277 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fourier Series - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-btn {
+            padding: .55rem 1rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .8rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(99, 102, 241, 0.25);
+            color: white;
+            border-color: #6366f1;
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.4);
+        }
+
+        .f-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            font-family: monospace;
+            width: 100%;
+        }
+
+        .f-input:focus {
+            border-color: #818cf8;
+            outline: none;
+        }
+
+        .val-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            border-radius: .75rem;
+            padding: .75rem;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-500 pb-2">
+            <i class="fas fa-water text-indigo-400"></i> Fourier Series
+        </h2>
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-indigo-500/30">
+            <button class="tab-btn active" onclick="switchTab('partial',this)">Partial Sums</button>
+            <button class="tab-btn" onclick="switchTab('circles',this)">Rotating Circles</button>
+            <button class="tab-btn" onclick="switchTab('coeffs',this)">Coefficients</button>
+            <button class="tab-btn" onclick="switchTab('gibbs',this)">Gibbs Phenomenon</button>
+        </div>
+
+        <!-- Partial Sums -->
+        <div id="tab-partial" class="tab-content flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-indigo-500/30 flex flex-col gap-4">
+                <h3 class="text-indigo-300 font-bold text-xl">Fourier Series Partial Sum Visualizer</h3>
+                <div class="flex flex-wrap gap-3 items-end">
+                    <div><label class="text-xs text-gray-400">Function f(x)</label>
+                        <select id="fsFunc" class="f-input mt-1 w-44" onchange="renderPartial()">
+                            <option value="square">Square wave</option>
+                            <option value="sawtooth">Sawtooth wave</option>
+                            <option value="triangle">Triangle wave</option>
+                            <option value="pulse">Pulse train</option>
+                            <option value="abs">f(x) = |x|</option>
+                        </select>
+                    </div>
+                    <div><label class="text-xs text-gray-400">Terms N</label><input type="range" id="fsN" min="1"
+                            max="50" value="5"
+                            oninput="document.getElementById('fsNVal').innerText=this.value;renderPartial()"></div>
+                    <span id="fsNVal" class="text-indigo-300 font-mono font-bold">5</span>
+                </div>
+                <canvas id="partialCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:280px"></canvas>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="partialStats"></div>
+                <div id="partialFormula" class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300"></div>
+            </div>
+        </div>
+
+        <!-- Rotating Circles (Epicycles) -->
+        <div id="tab-circles" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-indigo-500/30 flex flex-col gap-4">
+                <h3 class="text-indigo-300 font-bold text-xl">Epicycle Drawing Machine</h3>
+                <p class="text-sm text-gray-400">Each Fourier term = rotating circle (epicycle) with amplitude aₙ and
+                    frequency n×ω.</p>
+                <div class="flex flex-wrap gap-3 items-center">
+                    <div><label class="text-xs text-gray-400">Signal</label>
+                        <select id="epicFunc" class="f-input mt-1 w-36" onchange="resetEpicycle()">
+                            <option value="square">Square wave</option>
+                            <option value="sawtooth">Sawtooth</option>
+                            <option value="triangle">Triangle</option>
+                        </select>
+                    </div>
+                    <div><label class="text-xs text-gray-400">Circles N</label><input type="range" id="epicN" min="1"
+                            max="15" value="5"
+                            oninput="document.getElementById('epicNVal').innerText=this.value;resetEpicycle()"><span
+                            id="epicNVal" class="text-indigo-300 font-mono font-bold ml-1">5</span></div>
+                    <div><label class="text-xs text-gray-400">Speed</label><input type="range" id="epicSpeed" min="0.2"
+                            max="4" step="0.2" value="1"></div>
+                    <button class="btn bg-indigo-700 hover:bg-indigo-600 text-sm"
+                        onclick="resetEpicycle()">Reset</button>
+                </div>
+                <canvas id="epicCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:380px"></canvas>
+            </div>
+        </div>
+
+        <!-- Coefficients -->
+        <div id="tab-coeffs" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-indigo-500/30 flex flex-col gap-4">
+                <h3 class="text-indigo-300 font-bold text-xl">Fourier Coefficients aₙ & bₙ</h3>
+                <div class="flex flex-wrap gap-3 items-end">
+                    <div><label class="text-xs text-gray-400">Function</label>
+                        <select id="coeffFunc" class="f-input mt-1 w-44" onchange="renderCoeffs()">
+                            <option value="square">Square wave</option>
+                            <option value="sawtooth">Sawtooth wave</option>
+                            <option value="triangle">Triangle wave</option>
+                            <option value="abs">|x| on [−π,π]</option>
+                            <option value="halfwave">Half-wave rectified sin</option>
+                        </select>
+                    </div>
+                    <div><label class="text-xs text-gray-400">Max n</label><input type="number" id="coeffN"
+                            class="f-input w-20" value="10" min="2" max="30" oninput="renderCoeffs()"></div>
+                </div>
+                <div class="flex flex-col md:flex-row gap-4">
+                    <canvas id="coeffCanvas" class="rounded-xl bg-black border border-gray-700 flex-1"
+                        style="height:260px"></canvas>
+                    <div id="coeffTable" class="overflow-y-auto max-h-64 flex-1 text-xs font-mono"></div>
+                </div>
+                <div id="coeffFormula" class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300"></div>
+            </div>
+        </div>
+
+        <!-- Gibbs -->
+        <div id="tab-gibbs" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-indigo-500/30 flex flex-col gap-4">
+                <h3 class="text-indigo-300 font-bold text-xl">Gibbs Phenomenon</h3>
+                <p class="text-sm text-gray-400">Near a discontinuity, the partial sum overshoots by ~8.9% regardless of
+                    how many terms N you add. This does NOT go away — it just moves closer to the jump.</p>
+                <div class="flex gap-3 items-center flex-wrap">
+                    <div><label class="text-xs text-gray-400">N terms</label><input type="range" id="gibbsN" min="1"
+                            max="100" value="10"
+                            oninput="document.getElementById('gibbsNVal').innerText=this.value;renderGibbs()"><span
+                            id="gibbsNVal" class="text-indigo-300 font-mono font-bold ml-1">10</span></div>
+                </div>
+                <canvas id="gibbsCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:280px"></canvas>
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Peak overshoot</span><span
+                            id="gibbsPeak" class="text-xl font-mono text-indigo-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">% above theoretical</span><span
+                            id="gibbsPct" class="text-xl font-mono text-indigo-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Limiting overshoot</span><span
+                            class="text-xl font-mono text-indigo-200 font-bold">≈8.9%</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); document.getElementById('tab-' + id).classList.remove('hidden'); if (id === 'partial') renderPartial(); if (id === 'circles') startEpicycle(); if (id === 'coeffs') renderCoeffs(); if (id === 'gibbs') renderGibbs(); }
+
+        const funcs = {
+            square: { f: x => x > 0 ? 1 : -1, an: (n) => 0, bn: (n) => n % 2 === 1 ? 4 / (Math.PI * n) : 0, formula: 'f(x) = 4/π Σ sin((2k−1)x)/(2k−1) (odd harmonics only)' },
+            sawtooth: { f: x => x / Math.PI, an: (n) => 0, bn: (n) => n === 0 ? 0 : (2 * (-1) ** (n + 1)) / (n), formula: 'f(x) = 2/π Σ (−1)^(n+1) sin(nx)/n' },
+            triangle: { f: x => { let xn = ((x + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI; return Math.abs(xn); }, an: (n) => n % 2 === 1 ? (-4 / (Math.PI * n * n)) : 0, bn: (n) => 0, formula: 'f(x) = π/2 − 4/π Σ cos((2k−1)x)/(2k−1)²' },
+            abs: { f: x => Math.abs(x), an: (n) => n === 0 ? Math.PI / 2 : (n % 2 === 0 ? -4 / (Math.PI * n * n) : 0), bn: () => 0, formula: '|x| = π/2 − 4/π Σ cos((2k−1)x)/(2k−1)²' },
+            pulse: { f: x => Math.abs(x) < 0.5 ? 1 : 0, an: (n) => n === 0 ? 1 / (2 * Math.PI) : Math.sin(n * 0.5) / (n * Math.PI), bn: () => 0, formula: 'Pulse: aₙ = sin(n·w)/(nπ)' },
+            halfwave: { f: x => Math.max(0, Math.sin(x)), an: (n) => n === 0 ? 1 / Math.PI : (n === 1 ? 0 : n % 2 === 0 ? -2 / (Math.PI * (n * n - 1)) : 0), bn: (n) => n === 1 ? 0.5 : 0, formula: 'Half-wave: aₙ = −2/(π(n²−1)) for even n' },
+        };
+
+        function fourierSum(fn, N, x) { let fn2 = funcs[fn]; let s = fn2.an(0) / 2; for (let n = 1; n <= N; n++)s += fn2.an(n) * Math.cos(n * x) + fn2.bn(n) * Math.sin(n * x); return s; }
+
+        function renderPartial() {
+            let fn = document.getElementById('fsFunc').value, N = parseInt(document.getElementById('fsN').value) || 5;
+            let cv = document.getElementById('partialCanvas'); cv.width = cv.offsetWidth; cv.height = 280;
+            let cx = cv.getContext('2d'), W = cv.width, H = 280, pad = 30;
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let xs = Array.from({ length: 400 }, (_, i) => (i / 399 - 0.5) * 2 * Math.PI);
+            let actual = xs.map(x => funcs[fn].f(x)); let approx = xs.map(x => fourierSum(fn, N, x));
+            let allY = [...actual, ...approx], minY = Math.min(...allY) - 0.1, maxY = Math.max(...allY) + 0.1;
+            const tx = x => pad + (x + Math.PI) / (2 * Math.PI) * (W - 2 * pad), ty = y => H - pad - (y - minY) / (maxY - minY) * (H - 2 * pad);
+            cx.strokeStyle = '#334155'; cx.lineWidth = 1; if (minY < 0 && maxY > 0) { cx.beginPath(); cx.moveTo(pad, ty(0)); cx.lineTo(W - pad, ty(0)); cx.stroke(); }
+            cx.strokeStyle = 'rgba(100,116,139,0.5)'; cx.lineWidth = 1.5; cx.beginPath(); xs.forEach((x, i) => i === 0 ? cx.moveTo(tx(x), ty(actual[i])) : cx.lineTo(tx(x), ty(actual[i]))); cx.stroke();
+            cx.strokeStyle = '#6366f1'; cx.lineWidth = 2; cx.beginPath(); xs.forEach((x, i) => i === 0 ? cx.moveTo(tx(x), ty(approx[i])) : cx.lineTo(tx(x), ty(approx[i]))); cx.stroke();
+            cx.fillStyle = '#6366f1'; cx.font = '10px monospace'; cx.fillText(`N=${N} terms`, pad, 16); cx.fillStyle = '#64748b'; cx.fillText('Original', W - 90, 16);
+            let mse = xs.reduce((s, x, i) => s + (actual[i] - approx[i]) ** 2, 0) / xs.length;
+            document.getElementById('partialStats').innerHTML = [['N terms', N], ['Max coeff |aₙ|+|bₙ|', (Math.max(...Array.from({ length: N }, (_, k) => Math.abs(funcs[fn].an(k + 1)) + Math.abs(funcs[fn].bn(k + 1))))).toFixed(4)], ['MSE', mse.toFixed(5)], ['Fundamental ω₀', '2π/T = 1']].map(([k, v]) => `<div class="val-card"><span class="text-xs text-gray-500 block">${k}</span><span class="font-mono text-indigo-300 font-bold text-sm">${v}</span></div>`).join('');
+            document.getElementById('partialFormula').innerHTML = `<b class="text-indigo-300">Formula:</b> ${funcs[fn].formula}<br>f(x) = a₀/2 + Σ[aₙcos(nx) + bₙsin(nx)]`;
+        }
+
+        // ---- EPICYCLES ----
+        let epicAngle = 0, epicPath = [], epicAnim = null;
+        function getEpicCoeffs(fn, N) { let coeffs = []; for (let n = 1; n <= N; n++) { let a = funcs[fn].an(n), b = funcs[fn].bn(n); let amp = Math.sqrt(a * a + b * b), phase = Math.atan2(a, b) || 0; if (amp > 0.001) coeffs.push({ freq: n, amp, phase }); } return coeffs.sort((a, b) => b.amp - a.amp); }
+        function resetEpicycle() { epicAngle = 0; epicPath = []; if (epicAnim) cancelAnimationFrame(epicAnim); startEpicycle(); }
+        function startEpicycle() {
+            if (epicAnim) cancelAnimationFrame(epicAnim);
+            let cv = document.getElementById('epicCanvas'); cv.width = cv.offsetWidth || 700; cv.height = 380;
+            function frame() {
+                let fn = document.getElementById('epicFunc').value; let N = parseInt(document.getElementById('epicN').value) || 5;
+                let speed = parseFloat(document.getElementById('epicSpeed').value) || 1;
+                epicAngle += 0.02 * speed;
+                let cx2 = cv.getContext('2d'), W = cv.width, H = 380; let ox = W / 3, oy = H / 2, scale = Math.min(W / 18, 20);
+                cx2.fillStyle = 'rgba(5,8,24,0.3)'; cx2.fillRect(0, 0, W, H);
+                let coeffs = getEpicCoeffs(fn, N); let x = ox, y = oy;
+                cx2.strokeStyle = 'rgba(99,102,241,0.3)'; cx2.lineWidth = 1;
+                coeffs.forEach(({ freq, amp, phase }) => { let angle = freq * epicAngle + phase; let r = amp * scale; cx2.beginPath(); cx2.arc(x, y, r, 0, Math.PI * 2); cx2.stroke(); let nx = x + r * Math.cos(angle), ny = y + r * Math.sin(angle); cx2.strokeStyle = 'rgba(165,180,252,0.6)'; cx2.lineWidth = 1.5; cx2.beginPath(); cx2.moveTo(x, y); cx2.lineTo(nx, ny); cx2.stroke(); x = nx; y = ny; cx2.strokeStyle = 'rgba(99,102,241,0.3)'; });
+                epicPath.push({ x, y }); if (epicPath.length > 700) epicPath.shift();
+                cx2.strokeStyle = '#6366f1'; cx2.lineWidth = 2; cx2.beginPath(); epicPath.forEach((p, i) => i === 0 ? cx2.moveTo(p.x, p.y) : cx2.lineTo(p.x, p.y)); cx2.stroke();
+                cx2.beginPath(); cx2.arc(x, y, 4, 0, Math.PI * 2); cx2.fillStyle = '#f43f5e'; cx2.fill();
+                // Plot on right side
+                let plotX = W / 2 + 20; cx2.strokeStyle = 'rgba(251,191,36,0.5)'; cx2.lineWidth = 1; cx2.beginPath(); cx2.moveTo(plotX, cy => cy)(y); cx2.moveTo(x, y); let plotY = W * 2 / 3 + oy - y;
+                epicAnim = requestAnimationFrame(frame);
+            }
+            frame();
+        }
+
+        // ---- COEFFICIENTS ----
+        function renderCoeffs() {
+            let fn = document.getElementById('coeffFunc').value, N = parseInt(document.getElementById('coeffN').value) || 10;
+            let cv = document.getElementById('coeffCanvas'); cv.width = cv.offsetWidth || 400; cv.height = 260;
+            let cx = cv.getContext('2d'), W = cv.width, H = 260, pad = 35;
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let ans = Array.from({ length: N + 1 }, (_, n) => funcs[fn].an(n));
+            let bns = Array.from({ length: N + 1 }, (_, n) => funcs[fn].bn(n));
+            let maxV = Math.max(...ans.map(Math.abs), ...bns.map(Math.abs), 0.01);
+            let bw = (W - 2 * pad) / (2 * (N + 1) + 1);
+            ans.forEach((a, n) => { let bh = Math.abs(a) / maxV * (H / 2 - 10); cx.fillStyle = '#6366f1'; cx.fillRect(pad + n * 2 * bw, H / 2 - bh, bw - 1, bh); if (a < 0) cx.fillRect(pad + n * 2 * bw, H / 2, bw - 1, bh); });
+            bns.forEach((b, n) => { let bh = Math.abs(b) / maxV * (H / 2 - 10); cx.fillStyle = '#f43f5e'; cx.fillRect(pad + (n * 2 + 1) * bw, H / 2 - bh, bw - 1, bh); if (b < 0) cx.fillRect(pad + (n * 2 + 1) * bw, H / 2, bw - 1, bh); });
+            cx.strokeStyle = '#334155'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(pad, H / 2); cx.lineTo(W - pad, H / 2); cx.stroke();
+            cx.fillStyle = '#6366f1'; cx.font = '9px monospace'; cx.fillText('aₙ', pad, 12); cx.fillStyle = '#f43f5e'; cx.fillText('bₙ', pad + 20, 12);
+            let rows = Array.from({ length: Math.min(N + 1, 15) }, (_, n) => `<div class="flex gap-3 text-gray-300 border-b border-gray-800 py-0.5"><span class="text-gray-500 w-6">n=${n}</span><span class="text-indigo-400">aₙ=${ans[n].toFixed(4)}</span><span class="text-red-400">bₙ=${bns[n].toFixed(4)}</span></div>`).join('');
+            document.getElementById('coeffTable').innerHTML = rows;
+            document.getElementById('coeffFormula').innerHTML = `<b class="text-indigo-300">aₙ = 1/π ∫₋π^π f(x)cos(nx)dx</b><br><b class="text-red-400">bₙ = 1/π ∫₋π^π f(x)sin(nx)dx</b><br><span class="text-gray-500 text-xs">${funcs[fn].formula}</span>`;
+        }
+
+        // ---- GIBBS ----
+        function renderGibbs() {
+            let N = parseInt(document.getElementById('gibbsN').value) || 10;
+            let cv = document.getElementById('gibbsCanvas'); cv.width = cv.offsetWidth; cv.height = 280;
+            let cx = cv.getContext('2d'), W = cv.width, H = 280, pad = 30;
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let xs = Array.from({ length: 600 }, (_, i) => (i / 599 - 0.5) * 2 * Math.PI);
+            let approx = xs.map(x => fourierSum('square', N, x));
+            let maxV = Math.max(...approx), minV = Math.min(...approx);
+            const tx = x => pad + (x + Math.PI) / (2 * Math.PI) * (W - 2 * pad), ty = y => H - pad - (y - minV) / (maxV - minV + 0.01) * (H - 2 * pad);
+            cx.strokeStyle = 'rgba(100,116,139,0.4)'; cx.lineWidth = 1.5; cx.beginPath(); xs.forEach((x, i) => { let v = funcs.square.f(x); i === 0 ? cx.moveTo(tx(x), ty(v)) : cx.lineTo(tx(x), ty(v)); }); cx.stroke();
+            cx.strokeStyle = '#6366f1'; cx.lineWidth = 2; cx.beginPath(); xs.forEach((x, i) => i === 0 ? cx.moveTo(tx(x), ty(approx[i])) : cx.lineTo(tx(x), ty(approx[i]))); cx.stroke();
+            cx.strokeStyle = 'rgba(251,191,36,0.5)'; cx.lineWidth = 1; cx.setLineDash([4, 4]); cx.beginPath(); cx.moveTo(pad, ty(maxV)); cx.lineTo(W - pad, ty(maxV)); cx.stroke(); cx.setLineDash([]);
+            cx.fillStyle = '#fbbf24'; cx.font = '10px monospace'; cx.fillText(`Peak: ${maxV.toFixed(4)}`, pad, ty(maxV) - 6);
+            document.getElementById('gibbsPeak').innerText = maxV.toFixed(4);
+            document.getElementById('gibbsPct').innerText = ((maxV - 1) * 100).toFixed(2) + '%';
+        }
+
+        renderPartial();
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

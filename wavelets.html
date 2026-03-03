@@ -1,0 +1,352 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wavelets - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-btn {
+            padding: .55rem 1rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .8rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(251, 146, 60, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(251, 146, 60, 0.25);
+            color: white;
+            border-color: #fb923c;
+            box-shadow: 0 0 12px rgba(251, 146, 60, 0.4);
+        }
+
+        .w-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(251, 146, 60, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            font-family: monospace;
+            width: 100%;
+        }
+
+        .w-input:focus {
+            border-color: #fdba74;
+            outline: none;
+        }
+
+        .val-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(251, 146, 60, 0.4);
+            border-radius: .75rem;
+            padding: .75rem;
+            text-align: center;
+        }
+
+        .coeff-bar {
+            display: inline-block;
+            background: rgba(251, 146, 60, 0.7);
+            min-width: 4px;
+            transition: .2s;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-500 pb-2">
+            <i class="fas fa-chart-area text-orange-400"></i> Wavelet Analysis
+        </h2>
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-orange-500/30">
+            <button class="tab-btn active" onclick="switchTab('haar',this)">Haar DWT</button>
+            <button class="tab-btn" onclick="switchTab('reconstruct',this)">Reconstruction</button>
+            <button class="tab-btn" onclick="switchTab('db',this)">Daubechies Wavelet</button>
+            <button class="tab-btn" onclick="switchTab('compare',this)">Wavelet vs Fourier</button>
+        </div>
+        <div class="bg-gray-900/50 p-4 rounded-2xl border border-orange-500/30 flex items-center justify-between gap-4">
+            <div>
+                <h3 class="text-orange-300 font-bold text-base">Wavelets AI Assistant</h3>
+                <p class="text-xs text-gray-400 mt-0.5">Ask the AI to explain wavelet decomposition, denoising levels,
+                    or comparison with Fourier transforms.</p>
+            </div>
+            <button class="mv-ai-btn flex-shrink-0" onclick="openActiveWaveletAI()">🤖 Ask AI</button>
+        </div>
+
+        <!-- Haar DWT -->
+        <div id="tab-haar" class="tab-content flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-orange-500/30 flex flex-col gap-4">
+                <h3 class="text-orange-300 font-bold text-xl">Haar Wavelet Decomposition</h3>
+                <div class="flex flex-wrap gap-3 items-end">
+                    <div><label class="text-xs text-gray-400">Signal preset</label>
+                        <select id="haarSig" class="w-input mt-1 w-44" onchange="runHaar()">
+                            <option value="sine">Sine wave</option>
+                            <option value="step">Step function</option>
+                            <option value="chirp">Chirp signal</option>
+                            <option value="noisy">Noisy sine</option>
+                            <option value="spike">Spike signal</option>
+                            <option value="sawtooth">Sawtooth</option>
+                        </select>
+                    </div>
+                    <div><label class="text-xs text-gray-400">Levels</label><input type="number" id="haarLevels"
+                            class="w-input w-20" value="4" min="1" max="6" oninput="runHaar()"></div>
+                    <div><label class="text-xs text-gray-400">Threshold (denoise)</label><input type="number"
+                            id="haarThresh" class="w-input w-24" value="0" step="0.1" min="0" max="5"
+                            oninput="runHaar()"></div>
+                    <button class="btn bg-orange-700 hover:bg-orange-600 font-bold"
+                        onclick="runHaar()">Decompose</button>
+                </div>
+                <div class="text-xs text-gray-500 uppercase">Original Signal (N=64)</div>
+                <canvas id="haarOrig" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:120px"></canvas>
+                <div class="text-xs text-gray-500 uppercase">Wavelet Coefficients (by level)</div>
+                <canvas id="haarCoeffs" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:200px"></canvas>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Levels</span><span id="hwLevels"
+                            class="text-2xl font-mono text-orange-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Max coeff |W|</span><span id="hwMax"
+                            class="text-2xl font-mono text-orange-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Energy retained</span><span
+                            id="hwEnergy" class="text-2xl font-mono text-orange-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Sparse coeffs</span><span
+                            id="hwSparse" class="text-2xl font-mono text-orange-300 font-bold">—</span></div>
+                </div>
+                <div class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300">
+                    <b class="text-orange-300">Haar transform:</b> s[n] = (x[2n]+x[2n+1])/√2 (approx/scaling), d[n] =
+                    (x[2n]−x[2n+1])/√2 (detail/wavelet)<br>
+                    Multi-level: apply recursively to scaling coefficients at each level.
+                </div>
+            </div>
+        </div>
+
+        <!-- Reconstruction -->
+        <div id="tab-reconstruct" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-orange-500/30 flex flex-col gap-4">
+                <h3 class="text-orange-300 font-bold text-xl">Signal Reconstruction & Thresholding (Denoising)</h3>
+                <div class="flex flex-wrap gap-3 items-end">
+                    <div><label class="text-xs text-gray-400">Threshold τ</label><input type="range" id="recThresh"
+                            min="0" max="3" step="0.05" value="0"
+                            oninput="document.getElementById('recThreshVal').innerText=this.value;runReconstruct();" />
+                    </div>
+                    <span id="recThreshVal" class="text-orange-300 font-mono font-bold">0</span>
+                    <div class="flex items-center gap-2"><input type="checkbox" id="softThresh"
+                            onchange="runReconstruct()"><label class="text-xs text-gray-400">Soft thresholding</label>
+                    </div>
+                </div>
+                <div class="text-xs text-gray-500 uppercase">Original vs Reconstructed</div>
+                <canvas id="recCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:220px"></canvas>
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="val-card"><span class="text-xs text-gray-500 block">MSE (error)</span><span id="recMSE"
+                            class="text-xl font-mono text-orange-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Coeffs zeroed</span><span
+                            id="recZeroed" class="text-xl font-mono text-orange-300 font-bold">—</span></div>
+                    <div class="val-card"><span class="text-xs text-gray-500 block">Compression ratio</span><span
+                            id="recCR" class="text-xl font-mono text-orange-300 font-bold">—</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daubechies -->
+        <div id="tab-db" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-orange-500/30 flex flex-col gap-4">
+                <h3 class="text-orange-300 font-bold text-xl">Daubechies D4 Wavelet</h3>
+                <canvas id="db4Canvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:280px"></canvas>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300">
+                        <b class="text-orange-300">D4 Scaling coefficients h:</b><br>
+                        h₀ = (1+√3)/4√2<br>h₁ = (3+√3)/4√2<br>h₂ = (3−√3)/4√2<br>h₃ = (1−√3)/4√2<br>
+                        <br><b class="text-orange-300">Properties:</b><br>
+                        • 2 vanishing moments<br>• Compact support [0,3]<br>• Smooth (C^0.55)<br>• Orthogonal filter
+                        bank
+                    </div>
+                    <div class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300">
+                        <b class="text-orange-300">Wavelet families:</b><br>
+                        Haar (D2): simplest, discontinuous<br>
+                        Daubechies D4: 2 vanishing moments<br>
+                        Daubechies D6: 3 vanishing moments<br>
+                        Coiflets: near-symmetry<br>
+                        Symlets: improved symmetry<br>
+                        Biorthogonal: symmetric, used in JPEG2000<br>
+                        Mexican Hat: ψ(t)=(1−t²)e^(−t²/2)<br>
+                        Morlet: ψ(t)=e^(iω₀t)e^(−t²/2)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Compare -->
+        <div id="tab-compare" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-orange-500/30 flex flex-col gap-4">
+                <h3 class="text-orange-300 font-bold text-xl">Wavelet vs Fourier Analysis</h3>
+                <div class="flex gap-3 flex-wrap items-end">
+                    <div><label class="text-xs text-gray-400">Test signal</label>
+                        <select id="cmpSig" class="w-input mt-1 w-40" onchange="runCompare()">
+                            <option value="step">Step function</option>
+                            <option value="chirp">Chirp (sweep)</option>
+                            <option value="spike">Single spike</option>
+                            <option value="smooth">Smooth sine</option>
+                        </select>
+                    </div>
+                    <button class="btn bg-orange-700 hover:bg-orange-600 font-bold"
+                        onclick="runCompare()">Compare</button>
+                </div>
+                <canvas id="cmpCanvas" class="w-full rounded-xl bg-black border border-gray-700"
+                    style="height:320px"></canvas>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-black/40 p-4 rounded-xl">
+                        <div class="text-orange-300 font-bold text-sm mb-2">Fourier Transform</div>
+                        <div class="text-xs text-gray-400 flex flex-col gap-1">
+                            <div>✓ Global frequency content</div>
+                            <div>✓ Perfect freq resolution</div>
+                            <div>✗ No time localization</div>
+                            <div>✗ Bad for transient/non-stationary signals</div>
+                            <div>✗ Gibbs phenomenon at discontinuities</div>
+                        </div>
+                    </div>
+                    <div class="bg-black/40 p-4 rounded-xl">
+                        <div class="text-orange-300 font-bold text-sm mb-2">Wavelet Transform</div>
+                        <div class="text-xs text-gray-400 flex flex-col gap-1">
+                            <div>✓ Time-frequency localization</div>
+                            <div>✓ Multi-resolution analysis</div>
+                            <div>✓ Good for transients & edges</div>
+                            <div>✓ Used in JPEG2000, EEG, audio</div>
+                            <div>✗ Must choose right wavelet family</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById('tab-' + id).classList.remove('hidden');
+            if (id === 'haar') runHaar();
+            if (id === 'reconstruct') runReconstruct();
+            if (id === 'db') drawDB4();
+            if (id === 'compare') runCompare();
+            window._activeWaveletTab = id;
+            setTimeout(() => { if (window.injectAIButtons) window.injectAIButtons(); }, 100);
+        }
+        window._activeWaveletTab = 'haar';
+        const waveTabInfo = {
+            haar: { label: 'Haar Wavelets', ctx: 'Multi-level Haar Discrete Wavelet Transform (DWT). Decomposition into scaling and detail coefficients.' },
+            reconstruct: { label: 'Wavelet Reconstruction', ctx: 'Inverse Haar DWT and signal denoising using hard or soft thresholding.' },
+            db: { label: 'Daubechies Wavelets', ctx: 'Daubechies D4 wavelet family, scaling functions, and compact support properties.' },
+            compare: { label: 'Wavelet vs Fourier', ctx: 'Analyzing time-frequency localization differences between Fourier (global) and Wavelets (local).' },
+        };
+        function openActiveWaveletAI() {
+            const tab = window._activeWaveletTab || 'haar';
+            const info = waveTabInfo[tab] || waveTabInfo['haar'];
+            if (window.openMathAI) openMathAI(info.label, info.ctx);
+        }
+
+        function drawLine(cv, arr, color, pad = 20, alpha = 1) { let cx = cv.getContext('2d'), W = cv.width || cv.offsetWidth, H = cv.height; if (!W) { cv.width = cv.offsetWidth; W = cv.width; } cx.strokeStyle = `rgba(${hexToRgb(color)},${alpha})`; cx.lineWidth = 1.5; let min = Math.min(...arr), max = Math.max(...arr), span = max - min || 1; const tx = i => pad + i / arr.length * (W - 2 * pad), ty = v => H - pad - (v - min) / span * (H - 2 * pad); cx.beginPath(); arr.forEach((v, i) => i === 0 ? cx.moveTo(tx(i), ty(v)) : cx.lineTo(tx(i), ty(v))); cx.stroke(); }
+        function hexToRgb(h) { let r = parseInt(h.slice(1, 3), 16), g = parseInt(h.slice(3, 5), 16), b = parseInt(h.slice(5, 7), 16); return `${r},${g},${b}`; }
+        function clearCanvas(cv, bg = '#050818') { let cx = cv.getContext('2d'); cx.fillStyle = bg; cx.fillRect(0, 0, cv.width, cv.height); }
+        function initCanvas(id, h = 120) { let cv = document.getElementById(id); cv.width = cv.offsetWidth || 600; cv.height = h; clearCanvas(cv); return cv; }
+
+        let haarOrigSig = [];
+        function makeSig(type, N = 64) { let s = new Array(N); for (let i = 0; i < N; i++) { let t = i / N; if (type === 'sine') s[i] = Math.sin(2 * Math.PI * 3 * t); else if (type === 'step') s[i] = t < 0.5 ? 1 : -1; else if (type === 'chirp') s[i] = Math.sin(2 * Math.PI * t * (1 + 10 * t)); else if (type === 'noisy') s[i] = Math.sin(2 * Math.PI * 3 * t) + (Math.random() - 0.5) * 0.8; else if (type === 'spike') s[i] = i === N / 2 ? 3 : 0; else if (type === 'sawtooth') s[i] = 2 * (t % 0.25) / 0.25 - 1; else s[i] = Math.sin(2 * Math.PI * 3 * t); } return s; }
+
+        function haarFwd(s) { let N = s.length; let c = [...s]; let levels = []; while (N >= 2) { let next = new Array(N); for (let i = 0; i < N / 2; i++) { next[i] = (c[2 * i] + c[2 * i + 1]) / Math.SQRT2; next[N / 2 + i] = (c[2 * i] - c[2 * i + 1]) / Math.SQRT2; } let detail = next.slice(N / 2, N); levels.push({ n: N, detail: [...detail] }); for (let i = 0; i < N; i++)c[i] = next[i]; N = Math.floor(N / 2); } levels.push({ n: 1, approx: [c[0]] }); return { coeffs: c, levels }; }
+        function haarInv(c, N) { let s = [...c]; let n = 1; while (n < N) { let next = new Array(2 * n); for (let i = 0; i < n; i++) { next[2 * i] = (s[i] + s[n + i]) / Math.SQRT2; next[2 * i + 1] = (s[i] - s[n + i]) / Math.SQRT2; } for (let i = 0; i < 2 * n; i++)s[i] = next[i]; n *= 2; } return s.slice(0, N); }
+
+        let haarCoeffsCurrent = [];
+        function runHaar() {
+            let type = document.getElementById('haarSig').value, levels = parseInt(document.getElementById('haarLevels').value) || 4;
+            let thresh = parseFloat(document.getElementById('haarThresh').value) || 0;
+            let N = 64; haarOrigSig = makeSig(type, N);
+            let cv1 = initCanvas('haarOrig', 120); clearCanvas(cv1); drawLine(cv1, haarOrigSig, '#fb923c');
+            let { coeffs, levels: lv } = haarFwd(haarOrigSig);
+            if (thresh > 0) coeffs = coeffs.map((v, i) => i === 0 ? v : Math.abs(v) > thresh ? v : 0);
+            haarCoeffsCurrent = [...coeffs];
+            let cv2 = initCanvas('haarCoeffs', 200); clearCanvas(cv2);
+            let cx2 = cv2.getContext('2d'), W2 = cv2.width, H2 = 200, pad = 20;
+            let maxC = Math.max(...coeffs.map(Math.abs), 0.01);
+            let bw = (W2 - 2 * pad) / N;
+            coeffs.forEach((v, i) => { let bh = Math.abs(v) / maxC * (H2 / 2 - 10); let x = pad + i * bw; cx2.fillStyle = v >= 0 ? `#fb923c` : `#60a5fa`; cx2.fillRect(x, H2 / 2 - bh, Math.max(1, bw - 1), bh); if (v < 0) cx2.fillRect(x, H2 / 2, Math.max(1, bw - 1), bh); });
+            cx2.strokeStyle = '#334155'; cx2.lineWidth = 1; cx2.beginPath(); cx2.moveTo(pad, H2 / 2); cx2.lineTo(W2 - pad, H2 / 2); cx2.stroke();
+            let energy0 = haarOrigSig.reduce((s, v) => s + v * v, 0); let energyK = coeffs.reduce((s, v) => s + v * v, 0);
+            let sparse = coeffs.filter(v => Math.abs(v) > 0.01).length;
+            document.getElementById('hwLevels').innerText = levels;
+            document.getElementById('hwMax').innerText = maxC.toFixed(3);
+            document.getElementById('hwEnergy').innerText = (energyK / energy0 * 100).toFixed(1) + '%';
+            document.getElementById('hwSparse').innerText = sparse + '/' + N;
+        }
+
+        function runReconstruct() {
+            if (!haarOrigSig.length) runHaar();
+            let thresh = parseFloat(document.getElementById('recThresh').value) || 0; let soft = document.getElementById('softThresh').checked;
+            let coeffs = [...haarCoeffsCurrent];
+            let zeroed = 0;
+            coeffs = coeffs.map((v, i) => { if (i === 0) return v; if (Math.abs(v) <= thresh) { zeroed++; return 0; } return soft ? Math.sign(v) * (Math.abs(v) - thresh) : v; });
+            let recon = haarInv(coeffs, 64);
+            let cv = initCanvas('recCanvas', 220); clearCanvas(cv);
+            drawLine(cv, haarOrigSig, '#ef4444', 20, 0.7); drawLine(cv, recon, '#34d399', 20, 1);
+            let cx = cv.getContext('2d'), W = cv.width; cx.fillStyle = '#ef4444'; cx.font = '10px monospace'; cx.fillText('Original', W - 90, 18); cx.fillStyle = '#34d399'; cx.fillText('Reconstructed', W - 120, 32);
+            let mse = haarOrigSig.reduce((s, v, i) => s + (v - recon[i]) ** 2, 0) / 64;
+            document.getElementById('recMSE').innerText = mse.toFixed(5);
+            document.getElementById('recZeroed').innerText = zeroed + '/' + haarCoeffsCurrent.length;
+            document.getElementById('recCR').innerText = ((haarCoeffsCurrent.length / (haarCoeffsCurrent.length - zeroed)) * 1).toFixed(2) + '×';
+        }
+
+        function drawDB4() {
+            let cv = initCanvas('db4Canvas', 280); clearCanvas(cv);
+            let sq3 = Math.sqrt(3), s4 = 4 * Math.SQRT2;
+            let h = [((1 + sq3) / s4), ((3 + sq3) / s4), ((3 - sq3) / s4), ((1 - sq3) / s4)];
+            // Cascade algorithm for D4 scaling function
+            let N = 256; let phi = new Array(N).fill(0); phi[0] = 1;
+            for (let iter = 0; iter < 9; iter++) { let next = new Array(N * 2).fill(0); for (let k = 0; k < N; k++)for (let j = 0; j < 4; j++) { let idx = 2 * k + j; if (idx < N * 2) next[idx] += Math.SQRT2 * h[j] * phi[k]; } phi = next.slice(0, N); }
+            let maxP = Math.max(...phi.map(Math.abs), 0.01); phi = phi.map(v => v / maxP);
+            let cx = cv.getContext('2d'), W = cv.width, H = 280, pad = 30;
+            cx.strokeStyle = '#334155'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(pad, H / 2); cx.lineTo(W - pad, H / 2); cx.stroke();
+            cx.strokeStyle = '#fb923c'; cx.lineWidth = 2; cx.beginPath(); phi.forEach((v, i) => i === 0 ? cx.moveTo(pad + i / N * (W - 2 * pad), H / 2 - v * (H / 2 - pad)) : cx.lineTo(pad + i / N * (W - 2 * pad), H / 2 - v * (H / 2 - pad))); cx.stroke();
+            // Wavelet from scaling coefficients
+            let psi = new Array(N).fill(0); psi[0] = 1;
+            let g = [h[3], -h[2], h[1], -h[0]];
+            for (let iter = 0; iter < 9; iter++) { let next = new Array(N * 2).fill(0); for (let k = 0; k < N; k++)for (let j = 0; j < 4; j++) { let idx = 2 * k + j; if (idx < N * 2) next[idx] += Math.SQRT2 * (j < g.length ? g[j] : 0) * psi[k]; } psi = next.slice(0, N); }
+            let maxPsi = Math.max(...psi.map(Math.abs), 0.01); psi = psi.map(v => v / maxPsi);
+            cx.strokeStyle = '#60a5fa'; cx.lineWidth = 2; cx.beginPath(); psi.forEach((v, i) => i === 0 ? cx.moveTo(pad + i / N * (W - 2 * pad), H / 2 - v * (H / 2 - pad)) : cx.lineTo(pad + i / N * (W - 2 * pad), H / 2 - v * (H / 2 - pad))); cx.stroke();
+            cx.fillStyle = '#fb923c'; cx.font = '11px monospace'; cx.fillText('Scaling φ', pad, 20); cx.fillStyle = '#60a5fa'; cx.fillText('Wavelet ψ', pad + 100, 20);
+        }
+
+        function runCompare() {
+            let type = document.getElementById('cmpSig').value; let N = 64; let sig = makeSig(type, N);
+            // Haar wavelet coeffs
+            let { coeffs } = haarFwd(sig);
+            // DFT magnitudes
+            let mags = []; for (let k = 0; k < N / 2; k++) { let re = 0, im = 0; for (let n = 0; n < N; n++) { let phi = 2 * Math.PI * k * n / N; re += sig[n] * Math.cos(phi); im -= sig[n] * Math.sin(phi); } mags.push(Math.sqrt(re * re + im * im) / N); }
+            let cv = initCanvas('cmpCanvas', 320); clearCanvas(cv);
+            let cx = cv.getContext('2d'), W = cv.width, H = 320, pad = 30;
+            let rowH = (H - 3 * pad) / 3;
+            function drawR(arr, y, color, label) { let max = Math.max(...arr.map(Math.abs), 0.01); const tx = i => pad + i / arr.length * (W - 2 * pad), ty = v => y + rowH / 2 - v / max * rowH / 2.2; cx.strokeStyle = '#1e293b'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(pad, y + rowH / 2); cx.lineTo(W - pad, y + rowH / 2); cx.stroke(); cx.strokeStyle = color; cx.lineWidth = 1.5; cx.beginPath(); arr.forEach((v, i) => i === 0 ? cx.moveTo(tx(i), ty(v)) : cx.lineTo(tx(i), ty(v))); cx.stroke(); cx.fillStyle = color; cx.font = 'bold 10px monospace'; cx.fillText(label, pad, y + 12); }
+            function drawBars(arr, y, color, label) { let max = Math.max(...arr.map(Math.abs), 0.01); let bw = (W - 2 * pad) / arr.length; arr.forEach((v, i) => { let bh = Math.abs(v) / max * rowH / 2.2; cx.fillStyle = color; cx.fillRect(pad + i * bw, y + rowH / 2 - bh, Math.max(1, bw - 1), bh); if (v < 0) cx.fillRect(pad + i * bw, y + rowH / 2, Math.max(1, bw - 1), bh); }); cx.fillStyle = color; cx.font = 'bold 10px monospace'; cx.fillText(label, pad, y + 12); }
+            drawR(sig, 0, '#fb923c', 'Signal');
+            drawBars(mags, rowH + pad, '#ef4444', 'Fourier spectrum (global freq, no time info)');
+            drawBars(coeffs, 2 * (rowH + pad), '#34d399', 'Haar wavelet coeffs (time-freq localized)');
+        }
+
+        runHaar();
+        setTimeout(() => { runReconstruct(); }, 100);
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

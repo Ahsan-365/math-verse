@@ -1,0 +1,305 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sequences & Series - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-btn {
+            padding: .6rem 1.25rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .85rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(168, 85, 247, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(168, 85, 247, 0.25);
+            color: white;
+            border-color: #a855f7;
+            box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
+        }
+
+        .s-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            width: 100%;
+            font-family: monospace;
+            transition: .2s;
+        }
+
+        .s-input:focus {
+            border-color: #c084fc;
+            outline: none;
+            box-shadow: 0 0 8px rgba(168, 85, 247, 0.3);
+        }
+
+        .seq-col {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .35rem;
+        }
+
+        .seq-item {
+            background: rgba(168, 85, 247, 0.15);
+            border: 1px solid rgba(168, 85, 247, 0.35);
+            color: #e9d5ff;
+            border-radius: .35rem;
+            padding: .2rem .5rem;
+            font-family: monospace;
+            font-size: .9rem;
+        }
+
+        .result-tag {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(168, 85, 247, 0.5);
+            border-radius: .75rem;
+            padding: .75rem 1.25rem;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-5xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-fuchsia-500 pb-2">
+            <i class="fas fa-ellipsis-h text-purple-400"></i> Sequences & Series Lab
+        </h2>
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-purple-500/30">
+            <button class="tab-btn active" onclick="switchTab('arith',this)">Arithmetic</button>
+            <button class="tab-btn" onclick="switchTab('geo',this)">Geometric</button>
+            <button class="tab-btn" onclick="switchTab('fib',this)">Fibonacci & Lucas</button>
+            <button class="tab-btn" onclick="switchTab('spec',this)">Special Sequences</button>
+            <button class="tab-btn" onclick="switchTab('series',this)">Infinite Series</button>
+        </div>
+
+        <!-- Arithmetic Sequence -->
+        <div id="tab-arith" class="tab-content flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-purple-500/30 flex flex-col gap-4">
+                <h3 class="text-purple-300 font-bold text-xl">Arithmetic Sequence</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div><label class="text-xs text-gray-400">First term a₁</label><input type="number" id="arA"
+                            class="s-input" value="3" oninput="runArith()"></div>
+                    <div><label class="text-xs text-gray-400">Common diff d</label><input type="number" id="arD"
+                            class="s-input" value="4" oninput="runArith()"></div>
+                    <div><label class="text-xs text-gray-400">n-th term (n)</label><input type="number" id="arN"
+                            class="s-input" value="10" oninput="runArith()"></div>
+                    <div><label class="text-xs text-gray-400">Sum first N terms</label><input type="number" id="arSN"
+                            class="s-input" value="20" oninput="runArith()"></div>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div class="result-tag"><span class="text-xs text-gray-500 block mb-1">aₙ = a₁ + (n-1)d</span><span
+                            id="arAn" class="text-2xl font-mono text-purple-300 font-bold">—</span></div>
+                    <div class="result-tag"><span class="text-xs text-gray-500 block mb-1">Sₙ = n(a₁+aₙ)/2</span><span
+                            id="arSn" class="text-2xl font-mono text-purple-300 font-bold">—</span></div>
+                    <div class="result-tag"><span class="text-xs text-gray-500 block mb-1">Arithmetic Mean</span><span
+                            id="arMean" class="text-2xl font-mono text-purple-300 font-bold">—</span></div>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-widest font-bold mb-2">Terms</p>
+                    <div id="arTerms" class="seq-col"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Geometric Sequence -->
+        <div id="tab-geo" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-purple-500/30 flex flex-col gap-4">
+                <h3 class="text-purple-300 font-bold text-xl">Geometric Sequence</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div><label class="text-xs text-gray-400">First term a₁</label><input type="number" id="gA"
+                            class="s-input" value="2" step="any" oninput="runGeo()"></div>
+                    <div><label class="text-xs text-gray-400">Common ratio r</label><input type="number" id="gR"
+                            class="s-input" value="3" step="any" oninput="runGeo()"></div>
+                    <div><label class="text-xs text-gray-400">n-th term (n)</label><input type="number" id="gN"
+                            class="s-input" value="8" oninput="runGeo()"></div>
+                    <div><label class="text-xs text-gray-400">Sum of first N terms</label><input type="number" id="gSN"
+                            class="s-input" value="10" oninput="runGeo()"></div>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div class="result-tag"><span class="text-xs text-gray-500 block mb-1">aₙ = a₁ · rⁿ⁻¹</span><span
+                            id="gAn" class="text-2xl font-mono text-purple-300 font-bold">—</span></div>
+                    <div class="result-tag"><span class="text-xs text-gray-500 block mb-1">Sₙ =
+                            a(rⁿ-1)/(r-1)</span><span id="gSn"
+                            class="text-2xl font-mono text-purple-300 font-bold">—</span></div>
+                    <div class="result-tag"><span class="text-xs text-gray-500 block mb-1">S∞ (|r|&lt;1)</span><span
+                            id="gInf" class="text-2xl font-mono text-fuchsia-300 font-bold">—</span></div>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-widest font-bold mb-2">Terms</p>
+                    <div id="gTerms" class="seq-col"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fibonacci & Lucas -->
+        <div id="tab-fib" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-purple-500/30 flex flex-col gap-4">
+                <h3 class="text-purple-300 font-bold text-xl">Fibonacci & Lucas Sequences</h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="text-xs text-gray-400">Number of terms</label><input type="number" id="fibN"
+                            class="s-input" value="15" max="80" oninput="runFib()"></div>
+                    <div><label class="text-xs text-gray-400">Find n-th Fibonacci</label><input type="number" id="fibK"
+                            class="s-input" value="20" max="80" oninput="runFib()"></div>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="result-tag"><span class="text-xs text-gray-500 block mb-1">F(k)</span><span id="fibKth"
+                            class="text-2xl font-mono text-purple-300 font-bold">—</span></div>
+                    <div class="result-tag"><span class="text-xs text-gray-500 block mb-1">Sum F(1)..F(n)</span><span
+                            id="fibSum" class="text-2xl font-mono text-purple-300 font-bold">—</span></div>
+                    <div class="result-tag"><span class="text-xs text-gray-500 block mb-1">φ (Golden Ratio)</span><span
+                            id="fibPhi" class="text-2xl font-mono text-fuchsia-300 font-bold">—</span></div>
+                    <div class="result-tag"><span class="text-xs text-gray-500 block mb-1">F(n)/F(n-1) ratio</span><span
+                            id="fibRatio" class="text-2xl font-mono text-fuchsia-300 font-bold">—</span></div>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 font-bold uppercase tracking-widest mb-2">Fibonacci</p>
+                    <div id="fibTerms" class="seq-col"></div>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-500 font-bold uppercase tracking-widest mb-2">Lucas (2, 1, 3, 4, 7, …)
+                    </p>
+                    <div id="lucTerms" class="seq-col"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Special Sequences -->
+        <div id="tab-spec" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-purple-500/30 flex flex-col gap-4">
+                <h3 class="text-purple-300 font-bold text-xl">Special Sequences</h3>
+                <div><label class="text-xs text-gray-400">Number of terms (max 30)</label><input type="number"
+                        id="specN" class="s-input" value="12" max="30" oninput="runSpec()"></div>
+                <div class="grid grid-cols-1 gap-3" id="specContainer"></div>
+            </div>
+        </div>
+
+        <!-- Infinite Series -->
+        <div id="tab-series" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-purple-500/30 flex flex-col gap-4">
+                <h3 class="text-purple-300 font-bold text-xl">Famous Infinite Series</h3>
+                <div><label class="text-xs text-gray-400">Terms to sum (k)</label><input type="number" id="serK"
+                        class="s-input w-32" value="100" oninput="runSeries()"></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="seriesContainer"></div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById('tab-' + id).classList.remove('hidden');
+        }
+        function f(x, d = 4) { return parseFloat(x.toFixed(d)); }
+        function tags(arr) { return arr.map((v, i) => `<div class="seq-item" title="a${i + 1}">${v}</div>`).join(''); }
+
+        function runArith() {
+            let a = parseFloat(document.getElementById('arA').value) || 3, d = parseFloat(document.getElementById('arD').value) || 4;
+            let n = parseInt(document.getElementById('arN').value) || 10, sn = parseInt(document.getElementById('arSN').value) || 20;
+            let an = a + (n - 1) * d;
+            let S = sn * (2 * a + (sn - 1) * d) / 2;
+            document.getElementById('arAn').innerText = f(an);
+            document.getElementById('arSn').innerText = f(S);
+            document.getElementById('arMean').innerText = f(a + (sn - 1) * d / 2);
+            let terms = Array.from({ length: Math.min(sn, 20) }, (_, i) => f(a + i * d));
+            document.getElementById('arTerms').innerHTML = tags(terms) + (sn > 20 ? `<div class="seq-item text-gray-500">+${sn - 20} more…</div>` : '');
+        }
+
+        function runGeo() {
+            let a = parseFloat(document.getElementById('gA').value) || 2, r2 = parseFloat(document.getElementById('gR').value) || 3;
+            let n = parseInt(document.getElementById('gN').value) || 8, sn = parseInt(document.getElementById('gSN').value) || 10;
+            let an = a * Math.pow(r2, n - 1);
+            let S = Math.abs(r2) !== 1 ? a * (Math.pow(r2, sn) - 1) / (r2 - 1) : a * sn;
+            let sinf = Math.abs(r2) < 1 ? a / (1 - r2) : null;
+            document.getElementById('gAn').innerText = f(an);
+            document.getElementById('gSn').innerText = f(S);
+            document.getElementById('gInf').innerText = sinf !== null ? f(sinf) : 'Diverges';
+            let terms = Array.from({ length: Math.min(sn, 15) }, (_, i) => f(a * Math.pow(r2, i)));
+            document.getElementById('gTerms').innerHTML = tags(terms) + (sn > 15 ? `<div class="seq-item text-gray-500">+${sn - 15} more…</div>` : '');
+        }
+
+        function bigFib(n) {
+            let a = 0n, b = 1n;
+            for (let i = 0; i < n; i++) { [a, b] = [b, a + b]; }
+            return a;
+        }
+        function runFib() {
+            let n = Math.min(parseInt(document.getElementById('fibN').value) || 15, 80);
+            let k = Math.min(parseInt(document.getElementById('fibK').value) || 20, 80);
+            let fibs = [], sum = 0n;
+            for (let i = 0; i < n; i++) { let v = bigFib(i + 1); fibs.push(v.toString()); sum += v; }
+            document.getElementById('fibKth').innerText = bigFib(k).toString();
+            document.getElementById('fibSum').innerText = sum.toString();
+            document.getElementById('fibPhi').innerText = '≈ 1.6180339887…';
+            let fn = Number(bigFib(n)), fn1 = Number(bigFib(n - 1));
+            document.getElementById('fibRatio').innerText = (fn / fn1).toFixed(8);
+            document.getElementById('fibTerms').innerHTML = tags(fibs);
+            let luc = []; let la = 2n, lb = 1n;
+            for (let i = 0; i < n; i++) { luc.push(la.toString());[la, lb] = [la + lb, la]; }
+            document.getElementById('lucTerms').innerHTML = tags(luc);
+        }
+
+        function runSpec() {
+            let n = Math.min(parseInt(document.getElementById('specN').value) || 12, 30);
+            const seqs = [
+                { name: 'Triangular  T(n) = n(n+1)/2', fn: i => i * (i + 1) / 2, color: 'text-violet-300' },
+                { name: 'Square  n²', fn: i => i * i, color: 'text-blue-300' },
+                { name: 'Pentagonal  n(3n-1)/2', fn: i => i * (3 * i - 1) / 2, color: 'text-teal-300' },
+                { name: 'Hexagonal  n(2n-1)', fn: i => i * (2 * i - 1), color: 'text-emerald-300' },
+                { name: 'Cube numbers  n³', fn: i => i * i * i, color: 'text-amber-300' },
+                { name: 'Lazy Caterer  n(n+1)/2 + 1', fn: i => i * (i + 1) / 2 + 1, color: 'text-orange-300' },
+                { name: 'Catalan C(n)= C(2n,n)/(n+1)', fn: i => { let c = 1; for (let j = 0; j < i; j++)c = c * 2 * (2 * j + 1) / ((j + 2)); return Math.round(c); }, color: 'text-rose-300' },
+            ];
+            let html = '';
+            seqs.forEach(s => {
+                let terms = Array.from({ length: n }, (_, i) => s.fn(i + 1));
+                html += `<div class="bg-black/40 p-3 rounded-xl border border-purple-500/20">
+                <p class="text-xs font-bold uppercase tracking-widest mb-2 ${s.color}">${s.name}</p>
+                <div class="seq-col">${tags(terms)}</div></div>`;
+            });
+            document.getElementById('specContainer').innerHTML = html;
+        }
+
+        function runSeries() {
+            let k = Math.max(1, Math.min(parseInt(document.getElementById('serK').value) || 100, 10000));
+            const SERIES = [
+                { name: 'Basel Problem Σ 1/n²', fn: i => 1 / (i * i), known: 'π²/6 ≈ 1.6449341…' },
+                { name: 'Leibniz π/4 = Σ (-1)ⁿ/(2n+1)', fn: i => Math.pow(-1, i) / (2 * i + 1), factor: 4, known: 'π ≈ 3.14159…' },
+                { name: 'Harmonic Series Σ 1/n', fn: i => 1 / i, known: 'Diverges (∞)' },
+                { name: 'Euler–Mascheroni Σ(1/n − ln(n))', fn: (i, sum, n) => 1 / n, known: 'γ ≈ 0.57721…' },
+                { name: 'Gregory-Leibniz Σ (-1)ⁿ⁺¹/n for ln2', fn: i => Math.pow(-1, i + 1) / i, known: 'ln 2 ≈ 0.69315…' },
+                { name: 'Apéry ζ(3) Σ 1/n³', fn: i => 1 / (i * i * i), known: '≈ 1.20206…' },
+            ];
+            let html = '';
+            SERIES.forEach(s => {
+                let sum = 0;
+                for (let i = 1; i <= k; i++) sum += s.fn(i, sum, i);
+                if (s.factor) sum *= s.factor;
+                html += `<div class="result-tag"><span class="text-xs text-gray-500 block mb-1">${s.name}</span>
+                <span class="text-xl font-mono text-purple-300 font-bold">${sum.toFixed(8)}</span>
+                <span class="text-xs text-gray-600 block mt-1">True value: ${s.known}</span></div>`;
+            });
+            document.getElementById('seriesContainer').innerHTML = html;
+        }
+
+        runArith(); runGeo(); runFib(); runSpec(); runSeries();
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

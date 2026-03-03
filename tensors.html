@@ -1,0 +1,241 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tensor Calculus - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-btn {
+            padding: .55rem 1rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .8rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(16, 185, 129, 0.25);
+            color: white;
+            border-color: #10b981;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+        }
+
+        .t-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            font-family: monospace;
+            width: 100%;
+        }
+
+        .t-input:focus {
+            border-color: #34d399;
+            outline: none;
+        }
+
+        .val-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            border-radius: .75rem;
+            padding: .75rem;
+            text-align: center;
+        }
+
+        .tensor-cell {
+            display: inline-block;
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: .25rem;
+            padding: .2rem .4rem;
+            margin: .1rem;
+            font-family: monospace;
+            font-size: .8rem;
+            min-width: 3rem;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-500 pb-2">
+            <i class="fas fa-cube text-emerald-400"></i> Tensor Calculus
+        </h2>
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-emerald-500/30">
+            <button class="tab-btn active" onclick="switchTab('index',this)">Index Notation</button>
+            <button class="tab-btn" onclick="switchTab('metric',this)">Metric Tensor</button>
+            <button class="tab-btn" onclick="switchTab('christoffel',this)">Christoffel Symbols</button>
+            <button class="tab-btn" onclick="switchTab('ops',this)">Tensor Operations</button>
+            <button class="tab-btn" onclick="switchTab('reference',this)">Reference</button>
+        </div>
+
+        <!-- Index Notation -->
+        <div id="tab-index" class="tab-content flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-emerald-500/30 flex flex-col gap-4">
+                <h3 class="text-emerald-300 font-bold text-xl">Einstein Summation Convention</h3>
+                <p class="text-sm text-gray-400">Any repeated index (one up, one down) is summed over all dimensions. No
+                    explicit Σ needed.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="einCards"></div>
+                <div class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300">
+                    <b class="text-emerald-300">Examples in 3D:</b><br>
+                    aⁱbᵢ = a¹b₁ + a²b₂ + a³b₃ (dot product)<br>
+                    AⁱⱼBʲ = Σⱼ AⁱⱼBʲ (matrix-vector product)<br>
+                    AⁱⱼBʲₖ = Σⱼ AⁱⱼBʲₖ (matrix product)<br>
+                    Aⁱᵢ = Σᵢ Aⁱᵢ = trace(A) (trace is a contraction)<br>
+                    δⁱⱼ = Kronecker delta (identity tensor)<br>
+                    εᵢⱼₖ = Levi-Civita symbol (⁺1, ⁻1, or 0)
+                </div>
+                <div class="bg-gray-900/50 p-4 rounded-xl flex flex-col gap-3">
+                    <h4 class="text-emerald-300 font-bold text-sm">Levi-Civita Symbol ε_{ijk}</h4>
+                    <div id="leviCivita" class="overflow-x-auto text-sm font-mono"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metric Tensor -->
+        <div id="tab-metric" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-emerald-500/30 flex flex-col gap-4">
+                <h3 class="text-emerald-300 font-bold text-xl">Metric Tensor gᵢⱼ</h3>
+                <p class="text-sm text-gray-400">The metric tensor defines distances and angles on a manifold. ds² = gᵢⱼ
+                    dxⁱ dxʲ.</p>
+                <div class="flex gap-3 items-end flex-wrap">
+                    <div><label class="text-xs text-gray-400">Coordinate system</label>
+                        <select id="metricType" class="t-input w-52 mt-1" onchange="runMetric()">
+                            <option value="cartesian">Cartesian (ℝ³)</option>
+                            <option value="spherical">Spherical (r,θ,φ)</option>
+                            <option value="cylindrical">Cylindrical (r,φ,z)</option>
+                            <option value="minkowski">Minkowski (t,x,y,z) — SR</option>
+                            <option value="schwarzschild">Schwarzschild (exterior)</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="metricMatrix" class="overflow-x-auto text-sm font-mono"></div>
+                <div id="metricInfo" class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300"></div>
+            </div>
+        </div>
+
+        <!-- Christoffel Symbols -->
+        <div id="tab-christoffel" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-emerald-500/30 flex flex-col gap-4">
+                <h3 class="text-emerald-300 font-bold text-xl">Christoffel Symbols Γᵏᵢⱼ</h3>
+                <p class="text-sm text-gray-400">Connection coefficients that define parallel transport. Γᵏᵢⱼ =
+                    ½gᵏˡ(∂ᵢgⱼˡ + ∂ⱼgᵢˡ − ∂ˡgᵢⱼ)</p>
+                <div class="flex gap-3 items-end">
+                    <div><label class="text-xs text-gray-400">Coordinate system</label>
+                        <select id="christType" class="t-input w-52 mt-1" onchange="runChristoffel()">
+                            <option value="spherical">Spherical (non-zero only)</option>
+                            <option value="cylindrical">Cylindrical</option>
+                            <option value="polar2d">Polar 2D (r,φ)</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="christTable" class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300"></div>
+                <div class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300">
+                    <b class="text-emerald-300">Geodesic equation:</b> d²xᵏ/dτ² + Γᵏᵢⱼ ·(dxⁱ/dτ)(dxʲ/dτ) = 0<br>
+                    <b class="text-emerald-300">Covariant derivative:</b> ∇ᵢVᵏ = ∂ᵢVᵏ + ΓᵏᵢⱼVʲ<br>
+                    <b class="text-emerald-300">Riemann curvature from Christoffel:</b><br>
+                    Rˡₖᵢⱼ = ∂ᵢΓˡⱼₖ − ∂ⱼΓˡᵢₖ + ΓˡᵢₘΓᵐⱼₖ − ΓˡⱼₘΓᵐᵢₖ<br>
+                    Γ=0 everywhere ⟺ flat space (in suitable coordinates)
+                </div>
+            </div>
+        </div>
+
+        <!-- Tensor Operations -->
+        <div id="tab-ops" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-emerald-500/30 flex flex-col gap-4">
+                <h3 class="text-emerald-300 font-bold text-xl">Tensor Operations — Rank-2 Tensors (3×3)</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-2">
+                        <div><label class="text-xs text-gray-400">Tensor A (rows separated by |, values by
+                                space)</label><input type="text" id="tensorA" class="t-input"
+                                value="1 2 3 | 4 5 6 | 7 8 9" oninput="runTensorOps()"></div>
+                        <div><label class="text-xs text-gray-400">Tensor B</label><input type="text" id="tensorB"
+                                class="t-input" value="9 8 7 | 6 5 4 | 3 2 1" oninput="runTensorOps()"></div>
+                        <button class="btn bg-emerald-700 hover:bg-emerald-600 font-bold"
+                            onclick="runTensorOps()">Compute</button>
+                    </div>
+                    <div id="tensorResult" class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reference -->
+        <div id="tab-reference" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-emerald-500/30">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="tensorRef"></div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); document.getElementById('tab-' + id).classList.remove('hidden'); if (id === 'index') renderIndex(); if (id === 'metric') runMetric(); if (id === 'christoffel') runChristoffel(); if (id === 'ops') runTensorOps(); if (id === 'reference') renderRef(); }
+        function card(k, v) { return `<div class="val-card"><span class="text-xs text-gray-500 block">${k}</span><span class="font-mono text-emerald-300 font-bold text-sm">${v}</span></div>`; }
+        function matrixHTML(M, labels) { let h = '<div class="flex flex-col gap-0.5">'; if (labels) { h += `<div class="flex gap-0.5"><span class="tensor-cell bg-transparent border-0"> </span>${labels.map(l => `<span class="tensor-cell text-emerald-400">${l}</span>`).join('')}</div>`; } M.forEach((row, i) => { h += `<div class="flex gap-0.5">${labels ? `<span class="tensor-cell text-emerald-400">${labels[i]}</span>` : ''}${row.map(v => `<span class="tensor-cell">${typeof v === 'number' ? v.toFixed(3) : v}</span>`).join('')}</div>`; }); return h + '</div>'; }
+
+        function renderIndex() {
+            document.getElementById('einCards').innerHTML = [['aⁱbᵢ (contraction)', 'Scalar = dot product'], ['AⁱⱼBʲ', 'Vector = mat-vec product'], ['AⁱⱼBʲₖ', 'Tensor = mat multiplication'], ['δⁱⱼ', 'Kronecker delta = Identity']].map(([k, v]) => card(k, v)).join('');
+            let lc = '<div class="text-emerald-300 mb-1">ε_{ijk}: +1 if (i,j,k) is even perm of (1,2,3); -1 if odd; 0 if repeated</div>';
+            for (let i = 1; i <= 3; i++) { for (let j = 1; j <= 3; j++) { for (let k = 1; k <= 3; k++) { let perm = [i, j, k]; let val = 0; if (new Set(perm).size === 3) { let sorted = [...perm].sort(); let swaps = 0; let p = [...perm]; for (let a = 0; a < 3; a++)for (let b = a + 1; b < 3; b++)if (p[a] > p[b]) { [p[a], p[b]] = [p[b], p[a]]; swaps++; } val = swaps % 2 === 0 ? 1 : -1; } lc += `<span class="tensor-cell ${val === 1 ? 'text-green-400' : val === -1 ? 'text-red-400' : 'text-gray-600'}">ε_{${i}${j}${k}}=${val}</span>`; } lc += '<br>'; } }
+            document.getElementById('leviCivita').innerHTML = lc;
+        }
+
+        const metrics = {
+            cartesian: { name: 'Cartesian (x,y,z)', M: [[1, 0, 0], [0, 1, 0], [0, 0, 1]], info: 'All Christoffel symbols = 0. Flat space. ds² = dx²+dy²+dz².', labels: ['x', 'y', 'z'] },
+            spherical: { name: 'Spherical (r,θ,φ)', M: [['1', '0', '0'], ['0', 'r²', '0'], ['0', '0', 'r²sin²θ']], info: 'ds² = dr² + r²dθ² + r²sin²θ·dφ². Non-zero Γ: Γ^r_{θθ}=−r, Γ^r_{φφ}=−r·sin²θ, Γ^θ_{rθ}=1/r, Γ^θ_{φφ}=−sinθ·cosθ, Γ^φ_{rφ}=1/r, Γ^φ_{θφ}=cosθ/sinθ.', labels: ['r', 'θ', 'φ'] },
+            cylindrical: { name: 'Cylindrical (r,φ,z)', M: [['1', '0', '0'], ['0', 'r²', '0'], ['0', '0', '1']], info: 'ds² = dr² + r²dφ² + dz². Non-zero Γ: Γ^r_{φφ}=−r, Γ^φ_{rφ}=1/r.', labels: ['r', 'φ', 'z'] },
+            minkowski: { name: 'Minkowski (t,x,y,z) SR', M: [['-c²', '0', '0', '0'], ['0', '1', '0', '0'], ['0', '0', '1', '0'], ['0', '0', '0', '1']], info: 'ds² = −c²dt² + dx² + dy² + dz². Signature (−,+,+,+). All Γ = 0 (flat). Invariant interval separates timelike/spacelike/lightlike.', labels: ['t', 'x', 'y', 'z'] },
+            schwarzschild: { name: 'Schwarzschild (t,r,θ,φ)', M: [['−(1−2GM/rc²)', '0', '0', '0'], ['0', '1/(1−2GM/rc²)', '0', '0'], ['0', '0', 'r²', '0'], ['0', '0', '0', 'r²sin²θ']], info: 'Exact solution to Einstein\'s equations for spherical mass M. Singularity at r=0. Event horizon at r_s = 2GM/c² (Schwarzschild radius).', labels: ['t', 'r', 'θ', 'φ'] },
+        };
+        function runMetric() { let m = metrics[document.getElementById('metricType').value]; document.getElementById('metricMatrix').innerHTML = `<div class="text-emerald-300 font-bold mb-1">${m.name}: gᵢⱼ =</div>` + matrixHTML(m.M, m.labels); document.getElementById('metricInfo').innerHTML = m.info; }
+
+        const christData = {
+            spherical: '<b class="text-emerald-300">Non-zero Christoffel symbols (spherical):</b><br>Γʳ_{θθ} = −r<br>Γʳ_{φφ} = −r·sin²θ<br>Γ^θ_{rθ} = Γ^θ_{θr} = 1/r<br>Γ^θ_{φφ} = −sinθ·cosθ<br>Γ^φ_{rφ} = Γ^φ_{φr} = 1/r<br>Γ^φ_{θφ} = Γ^φ_{φθ} = cosθ/sinθ<br><br>All others = 0.',
+            cylindrical: '<b class="text-emerald-300">Non-zero Christoffel symbols (cylindrical):</b><br>Γʳ_{φφ} = −r<br>Γ^φ_{rφ} = Γ^φ_{φr} = 1/r<br><br>All others = 0.',
+            polar2d: '<b class="text-emerald-300">Polar 2D (r,φ) — non-zero:</b><br>Γʳ_{φφ} = −r<br>Γ^φ_{rφ} = Γ^φ_{φr} = 1/r<br><br>Geodesic equation becomes: r̈ − r·φ̇² = 0 | φ̈ + (2/r)ṙφ̇ = 0',
+        };
+        function runChristoffel() { document.getElementById('christTable').innerHTML = christData[document.getElementById('christType').value]; }
+
+        function parseMat(str) { return str.split('|').map(row => row.trim().split(/\s+/).map(Number)); }
+        function matMul(A, B) { let n = A.length; return A.map((row, i) => B[0].map((_, j) => row.reduce((s, v, k) => s + v * B[k][j], 0))); }
+        function trace(M) { return M.reduce((s, row, i) => s + row[i], 0); }
+        function det3(M) { return M[0][0] * (M[1][1] * M[2][2] - M[1][2] * M[2][1]) - M[0][1] * (M[1][0] * M[2][2] - M[1][2] * M[2][0]) + M[0][2] * (M[1][0] * M[2][1] - M[1][1] * M[2][0]); }
+        function runTensorOps() {
+            try {
+                let A = parseMat(document.getElementById('tensorA').value), B = parseMat(document.getElementById('tensorB').value);
+                if (A.length !== 3 || B.length !== 3) return;
+                let AB = matMul(A, B), trA = trace(A), detA = det3(A), froA = Math.sqrt(A.flat().reduce((s, v) => s + v * v, 0));
+                let r = `<b class="text-emerald-300">A·B (contraction):</b><br>${AB.map(row => row.map(v => v.toFixed(1).padStart(6)).join(' ')).join('<br>')}<br><br><b class="text-emerald-300">Tr(A) = ${trA.toFixed(4)}</b><br><b class="text-emerald-300">det(A) = ${detA.toFixed(4)}</b><br><b class="text-emerald-300">‖A‖_F = ${froA.toFixed(4)}</b><br>Symmetric: ${A.every((row, i) => row.every((v, j) => Math.abs(v - A[j][i]) < 1e-9)) ? '✓' : '✗'}`;
+                document.getElementById('tensorResult').innerHTML = r;
+            } catch (e) { document.getElementById('tensorResult').innerHTML = '<span class="text-red-400">Parse error — check format</span>'; }
+        }
+
+        const refItems = [
+            { name: "Tensor", def: "A multilinear map from product of vector spaces to scalars. Type (p,q): p contravariant indices (up), q covariant (down). Scalars: (0,0). Vectors: (1,0). 1-forms: (0,1)." },
+            { name: "Covariant Derivative", def: "∇ᵢVᵏ = ∂ᵢVᵏ + ΓᵏᵢⱼVʲ. Generalizes partial derivative to curved spaces. Accounts for change of basis vectors." },
+            { name: "Lie Derivative", def: "L_X T measures the change of tensor T along the flow of vector field X. L_X f = X(f) for scalars. L_X Y = [X,Y] for vector fields." },
+            { name: "Riemann Curvature", def: "Rˡₖᵢⱼ measures failure of parallel transport around a loop. Rˡₖᵢⱼ = 0 everywhere ⟺ flat space." },
+            { name: "Ricci Tensor", def: "Rᵢⱼ = Rˡᵢˡⱼ (trace of Riemann). Enters Einstein field equations Gᵢⱼ = 8πGTᵢⱼ. Zero in vacuum." },
+            { name: "Einstein Tensor", def: "Gᵢⱼ = Rᵢⱼ − ½Rgᵢⱼ where R=Rⁱᵢ (Ricci scalar). Automatically: ∇ʲGᵢⱼ=0 (energy-momentum conservation)." },
+            { name: "Hodge Star", def: "*: Ωᵖ(M)→Ωⁿ⁻ᵖ(M). Maps p-forms to (n-p)-forms. Used in Maxwell's equations: dF = 0, d*F = *J." },
+            { name: "Exterior Derivative", def: "d: Ωᵖ→Ωᵖ⁺¹. Key property: d² = 0. Stokes' theorem: ∫_M dω = ∫_{∂M} ω. Generalizes gradient, curl, divergence." },
+        ];
+        function renderRef() { document.getElementById('tensorRef').innerHTML = refItems.map(r => `<div class="bg-black/40 p-4 rounded-xl border border-emerald-500/20"><div class="text-emerald-300 font-bold text-sm mb-1">${r.name}</div><div class="text-xs text-gray-400 font-mono leading-relaxed">${r.def}</div></div>`).join(''); }
+        renderIndex();
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

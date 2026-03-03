@@ -1,0 +1,372 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graph Theory - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-btn {
+            padding: .55rem .9rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .8rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(251, 146, 60, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(251, 146, 60, 0.25);
+            color: white;
+            border-color: #fb923c;
+            box-shadow: 0 0 12px rgba(251, 146, 60, 0.4);
+        }
+
+        .g-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(251, 146, 60, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            width: 100%;
+            font-family: monospace;
+        }
+
+        .g-input:focus {
+            border-color: #fdba74;
+            outline: none;
+        }
+
+        #graphCanvas {
+            cursor: crosshair;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-500 pb-2">
+            <i class="fas fa-project-diagram text-orange-400"></i> Graph Theory Lab
+        </h2>
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-orange-500/30">
+            <button class="tab-btn active" onclick="switchTab('builder',this)">Graph Builder</button>
+            <button class="tab-btn" onclick="switchTab('algo',this)">Algorithms</button>
+            <button class="tab-btn" onclick="switchTab('matrix2',this)">Adjacency Matrix</button>
+            <button class="tab-btn" onclick="switchTab('props',this)">Graph Properties</button>
+        </div>
+
+        <!-- Graph Builder -->
+        <div id="tab-builder" class="tab-content flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-orange-500/30 flex flex-col gap-4">
+                <div class="flex flex-wrap gap-2 items-center">
+                    <button class="btn bg-orange-700 hover:bg-orange-600 text-sm font-bold"
+                        onclick="setMode('addNode')">Add Node</button>
+                    <button class="btn bg-orange-700 hover:bg-orange-600 text-sm font-bold"
+                        onclick="setMode('addEdge')">Add Edge</button>
+                    <button class="btn bg-red-800 hover:bg-red-700 text-sm font-bold"
+                        onclick="setMode('delete')">Delete</button>
+                    <button class="btn bg-slate-700 hover:bg-slate-600 text-sm font-bold"
+                        onclick="clearGraph()">Clear</button>
+                    <button class="btn bg-slate-700 hover:bg-slate-600 text-sm font-bold"
+                        onclick="loadPreset('petersen')">Petersen</button>
+                    <button class="btn bg-slate-700 hover:bg-slate-600 text-sm font-bold"
+                        onclick="loadPreset('complete4')">K₄</button>
+                    <button class="btn bg-slate-700 hover:bg-slate-600 text-sm font-bold"
+                        onclick="loadPreset('tree')">Binary Tree</button>
+                    <div class="flex items-center gap-2 ml-2"><input type="checkbox" id="directedMode"
+                            onchange="drawGraph()"><label class="text-xs text-gray-400">Directed</label></div>
+                    <div class="flex items-center gap-2"><input type="checkbox" id="weightedMode"
+                            onchange="drawGraph()"><label class="text-xs text-gray-400">Weighted</label></div>
+                </div>
+                <div class="text-xs text-gray-400">Mode: <span id="modeLabel" class="text-orange-300 font-bold">Add
+                        Node</span> | Nodes: <span id="nodeCount" class="text-orange-300 font-mono">0</span> | Edges:
+                    <span id="edgeCount" class="text-orange-300 font-mono">0</span></div>
+                <div class="bg-black/60 rounded-xl border border-gray-700 overflow-hidden">
+                    <canvas id="graphCanvas" class="w-full block" style="height:400px"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Algorithms -->
+        <div id="tab-algo" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-orange-500/30 flex flex-col gap-4">
+                <h3 class="text-orange-300 font-bold text-xl">Graph Algorithms</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <div><label class="text-xs text-gray-400">Start node</label><input type="number" id="algoStart"
+                            class="g-input" value="0" min="0"></div>
+                    <div><label class="text-xs text-gray-400">End node (Dijkstra)</label><input type="number"
+                            id="algoEnd" class="g-input" value="0" min="0"></div>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button class="btn bg-orange-700 hover:bg-orange-600 font-bold" onclick="runBFS()">BFS</button>
+                    <button class="btn bg-orange-700 hover:bg-orange-600 font-bold" onclick="runDFS()">DFS</button>
+                    <button class="btn bg-orange-700 hover:bg-orange-600 font-bold" onclick="runDijkstra()">Dijkstra
+                        SSSP</button>
+                    <button class="btn bg-orange-700 hover:bg-orange-600 font-bold" onclick="runMST()">Prim's
+                        MST</button>
+                    <button class="btn bg-orange-700 hover:bg-orange-600 font-bold" onclick="runColor()">Graph
+                        Coloring</button>
+                    <button class="btn bg-orange-700 hover:bg-orange-600 font-bold" onclick="runTopSort()">Topological
+                        Sort</button>
+                </div>
+                <div id="algoResult"
+                    class="bg-black/50 border border-orange-500/40 rounded-xl p-4 text-gray-300 font-mono text-sm min-h-16 leading-relaxed">
+                </div>
+                <div class="bg-black/60 rounded-xl border border-gray-700 overflow-hidden">
+                    <canvas id="algoCanvas" class="w-full block" style="height:360px"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Adjacency Matrix -->
+        <div id="tab-matrix2" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-orange-500/30 flex flex-col gap-4">
+                <h3 class="text-orange-300 font-bold text-xl">Adjacency & Degree Matrix</h3>
+                <div class="flex flex-wrap gap-2">
+                    <button class="btn bg-orange-700 hover:bg-orange-600 text-sm font-bold"
+                        onclick="genAdjMatrix()">Refresh Matrix</button>
+                    <button class="btn bg-slate-700 hover:bg-slate-600 text-sm font-bold"
+                        onclick="loadPreset('complete4');genAdjMatrix()">Load K₄</button>
+                </div>
+                <div class="overflow-x-auto" id="adjMatrixDiv"></div>
+                <div class="flex flex-wrap gap-3 mt-2" id="degreeList"></div>
+            </div>
+        </div>
+
+        <!-- Graph Properties -->
+        <div id="tab-props" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-orange-500/30 flex flex-col gap-4">
+                <h3 class="text-orange-300 font-bold text-xl">Graph Properties</h3>
+                <button class="btn bg-orange-700 hover:bg-orange-600 font-bold w-48" onclick="analyzeGraph()">Analyze
+                    Current Graph</button>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3" id="propsGrid"></div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); document.getElementById('tab-' + id).classList.remove('hidden'); if (id === 'builder') initCanvas(); if (id === 'algo') { initAlgoCanvas(); drawAlgoGraph(); } if (id === 'matrix2') genAdjMatrix(); if (id === 'props') analyzeGraph(); }
+
+        let nodes = [], edges = [], mode = 'addNode', selectedNode = null;
+
+        function setMode(m) { mode = m; selectedNode = null; document.getElementById('modeLabel').innerText = m === 'addNode' ? 'Add Node' : m === 'addEdge' ? 'Add Edge (click 2 nodes)' : 'Delete'; drawGraph(); }
+
+        function initCanvas() {
+            const c = document.getElementById('graphCanvas'); c.width = c.offsetWidth; c.height = 400;
+            c.onclick = e => { const r = c.getBoundingClientRect(); let mx = e.clientX - r.left, my = e.clientY - r.top; handleClick(mx, my, c); };
+            if (nodes.length === 0) loadPreset('petersen');
+            drawGraph();
+        }
+
+        function handleClick(mx, my, c) {
+            let hit = nodes.findIndex(n => Math.hypot(n.x - mx, n.y - my) < 18);
+            if (mode === 'addNode' && hit < 0) { nodes.push({ x: mx, y: my, id: nodes.length, label: `v${nodes.length}` }); drawGraph(); }
+            else if (mode === 'addEdge') {
+                if (hit < 0) return;
+                if (selectedNode === null) { selectedNode = hit; }
+                else if (selectedNode !== hit) {
+                    let w = document.getElementById('weightedMode').checked ? Math.floor(Math.random() * 9 + 1) : 1;
+                    edges.push({ from: selectedNode, to: hit, w });
+                    if (!document.getElementById('directedMode').checked && selectedNode !== hit) edges.push({ from: hit, to: selectedNode, w });
+                    selectedNode = null;
+                } else selectedNode = null;
+                drawGraph();
+            } else if (mode === 'delete') {
+                if (hit >= 0) { edges = edges.filter(e => e.from !== hit && e.to !== hit); const id = nodes[hit].id; nodes.splice(hit, 1); nodes.forEach((n, i) => { n.id = i; n.label = `v${i}`; }); edges = edges.map(e => ({ from: e.from >= hit ? e.from - 1 : e.from, to: e.to >= hit ? e.to - 1 : e.to, w: e.w })); drawGraph(); }
+            }
+            document.getElementById('nodeCount').innerText = nodes.length; document.getElementById('edgeCount').innerText = edges.length;
+        }
+
+        function drawGraph(highlight = {}) {
+            const c = document.getElementById('graphCanvas'); if (!c.width) return;
+            const cx = c.getContext('2d'), W = c.width, H = c.height;
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            const dir = document.getElementById('directedMode').checked;
+            const wt = document.getElementById('weightedMode').checked;
+            // Edges
+            edges.filter(e => e.from < nodes.length && e.to < nodes.length).forEach(e => {
+                let a = nodes[e.from], b = nodes[e.to];
+                cx.strokeStyle = highlight.edge && highlight.edge.includes(`${e.from}-${e.to}`) ? '#fb923c' : '#334155';
+                cx.lineWidth = cx.strokeStyle === '#fb923c' ? 3 : 1.5;
+                cx.beginPath(); cx.moveTo(a.x, a.y); cx.lineTo(b.x, b.y); cx.stroke();
+                if (wt) { cx.fillStyle = '#94a3b8'; cx.font = '10px monospace'; cx.fillText(e.w, (a.x + b.x) / 2 + 4, (a.y + b.y) / 2 - 4); }
+                if (dir) { let dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy); let nx = dx / len, ny = dy / len; let ax = b.x - nx * 20, ay = b.y - ny * 20; cx.fillStyle = '#fb923c'; cx.beginPath(); cx.moveTo(ax + ny * 5, ay - nx * 5); cx.lineTo(b.x - nx * 18, b.y - ny * 18); cx.lineTo(ax - ny * 5, ay + nx * 5); cx.fill(); }
+            });
+            // Nodes
+            nodes.forEach((n, i) => {
+                let col = highlight.nodes ? highlight.nodes[i] || '#1e3a5f' : '#1e3a5f';
+                cx.beginPath(); cx.arc(n.x, n.y, 18, 0, Math.PI * 2); cx.fillStyle = i === selectedNode ? '#ea580c' : col; cx.fill();
+                cx.strokeStyle = '#fb923c'; cx.lineWidth = i === selectedNode ? 3 : 1.5; cx.stroke();
+                cx.fillStyle = 'white'; cx.font = 'bold 11px monospace'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(n.label, n.x, n.y); cx.textAlign = 'start'; cx.textBaseline = 'alphabetic';
+            });
+        }
+
+        let algoCanvas2;
+        function initAlgoCanvas() { const c = document.getElementById('algoCanvas'); c.width = c.offsetWidth; c.height = 360; }
+        function drawAlgoGraph(highlight = {}) {
+            const c = document.getElementById('algoCanvas'); if (!c.width) return;
+            const cx = c.getContext('2d'), W = c.width, H = c.height;
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            const dir = document.getElementById('directedMode').checked;
+            edges.filter(e => e.from < nodes.length && e.to < nodes.length).forEach(e => {
+                let a = nodes[e.from], b = nodes[e.to];
+                let ehk = highlight.edges && highlight.edges.includes(`${e.from}-${e.to}`);
+                cx.strokeStyle = ehk ? '#fb923c' : '#1e3a5f'; cx.lineWidth = ehk ? 3 : 1.5;
+                cx.beginPath(); cx.moveTo(a.x, a.y); cx.lineTo(b.x, b.y); cx.stroke();
+                cx.fillStyle = '#94a3b8'; cx.font = '10px monospace'; cx.fillText(e.w, (a.x + b.x) / 2 + 4, (a.y + b.y) / 2 - 4);
+            });
+            const colors2 = ['#1e3a5f', '#fb923c', '#34d399', '#f87171', '#fbbf24', '#c084fc', '#60a5fa'];
+            nodes.forEach((n, i) => {
+                let colIdx = highlight.colors ? highlight.colors[i] || 0 : 0;
+                cx.beginPath(); cx.arc(n.x, n.y, 18, 0, Math.PI * 2); cx.fillStyle = colors2[colIdx % colors2.length]; cx.fill();
+                cx.strokeStyle = '#fb923c'; cx.lineWidth = 1.5; cx.stroke();
+                let dist = highlight.dist && highlight.dist[i] !== undefined ? highlight.dist[i] : '';
+                cx.fillStyle = 'white'; cx.font = 'bold 11px monospace'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(n.label, n.x, n.y);
+                if (dist !== '') cx.fillText(dist === Infinity ? '∞' : dist, n.x + 14, n.y - 14);
+                cx.textAlign = 'start'; cx.textBaseline = 'alphabetic';
+            });
+        }
+
+        function buildAdj() {
+            let n = nodes.length; let adj = Array.from({ length: n }, () => Array(n).fill(Infinity));
+            for (let i = 0; i < n; i++)adj[i][i] = 0;
+            edges.forEach(e => { if (e.from < n && e.to < n) adj[e.from][e.to] = Math.min(adj[e.from][e.to], e.w || 1); });
+            return adj;
+        }
+        function buildAdjList() {
+            let n = nodes.length; let adj = Array.from({ length: n }, () => []);
+            edges.forEach(e => { if (e.from < n && e.to < n) adj[e.from].push({ to: e.to, w: e.w || 1 }); });
+            return adj;
+        }
+
+        function runBFS() {
+            let start = parseInt(document.getElementById('algoStart').value) || 0;
+            if (start >= nodes.length) { document.getElementById('algoResult').innerHTML = '<span class="text-red-400">Invalid start node</span>'; return; }
+            let n = nodes.length, vis = new Array(n).fill(false), queue = [start], order = [], parent = new Array(n).fill(-1), adj = buildAdjList();
+            vis[start] = true;
+            while (queue.length) { let u = queue.shift(); order.push(u); for (let { to } of adj[u]) { if (!vis[to]) { vis[to] = true; parent[to] = u; queue.push(to); } } }
+            let ehk = []; for (let i = 0; i < n; i++)if (parent[i] >= 0) ehk.push(`${parent[i]}-${i}`);
+            document.getElementById('algoResult').innerHTML = `<b class="text-green-400">BFS Order:</b> ${order.map(i => nodes[i].label).join(' → ')}`;
+            initAlgoCanvas(); drawAlgoGraph({ edges: ehk });
+        }
+
+        function runDFS() {
+            let start = parseInt(document.getElementById('algoStart').value) || 0;
+            if (start >= nodes.length) return;
+            let n = nodes.length, vis = new Array(n).fill(false), order = [], parent = new Array(n).fill(-1), adj = buildAdjList();
+            function dfs(u) { vis[u] = true; order.push(u); for (let { to } of adj[u]) if (!vis[to]) { parent[to] = u; dfs(to); } }
+            dfs(start);
+            let ehk = []; for (let i = 0; i < n; i++)if (parent[i] >= 0) ehk.push(`${parent[i]}-${i}`);
+            document.getElementById('algoResult').innerHTML = `<b class="text-green-400">DFS Order:</b> ${order.map(i => nodes[i].label).join(' → ')}`;
+            initAlgoCanvas(); drawAlgoGraph({ edges: ehk });
+        }
+
+        function runDijkstra() {
+            let s = parseInt(document.getElementById('algoStart').value) || 0;
+            let t = parseInt(document.getElementById('algoEnd').value) || 0;
+            let n = nodes.length, dist = new Array(n).fill(Infinity), prev = new Array(n).fill(-1), vis2 = new Array(n).fill(false), adj = buildAdjList();
+            dist[s] = 0;
+            for (let i = 0; i < n; i++) { let u = -1; for (let j = 0; j < n; j++)if (!vis2[j] && (u < 0 || dist[j] < dist[u])) u = j; if (u < 0 || dist[u] === Infinity) break; vis2[u] = true; for (let { to, w } of adj[u]) if (dist[u] + w < dist[to]) { dist[to] = dist[u] + w; prev[to] = u; } }
+            let path = [], cur = t; while (cur >= 0) { path.unshift(cur); cur = prev[cur]; }
+            let ehk = []; for (let i = 1; i < path.length; i++)ehk.push(`${path[i - 1]}-${path[i]}`);
+            let distDisplay = dist.map((d, i) => isFinite(d) ? `<span class="text-orange-300">${nodes[i].label}:${d}</span>` : `<span class="text-gray-600">${nodes[i].label}:∞</span>`).join(' ');
+            document.getElementById('algoResult').innerHTML = `<b class="text-green-400">Dijkstra from ${nodes[s]?.label || s}:</b><br>${distDisplay}<br>Path to ${nodes[t]?.label || t}: ${isFinite(dist[t]) ? path.map(i => nodes[i].label).join(' → ') : 'No path'}`;
+            initAlgoCanvas(); drawAlgoGraph({ edges: ehk, dist: dist.map(d => isFinite(d) ? d : '∞') });
+        }
+
+        function runMST() {
+            let n = nodes.length; if (n < 2) return;
+            let inMST = new Array(n).fill(false), key = new Array(n).fill(Infinity), parent2 = new Array(n).fill(-1);
+            key[0] = 0; let mstEdges = [];
+            for (let i = 0; i < n; i++) {
+                let u = -1; for (let j = 0; j < n; j++)if (!inMST[j] && (u < 0 || key[j] < key[u])) u = j; if (u < 0) break; inMST[u] = true; if (parent2[u] >= 0) mstEdges.push(`${parent2[u]}-${u}`);
+                for (let { to, w } of buildAdjList()[u]) if (!inMST[to] && w < key[to]) { key[to] = w; parent2[to] = u; }
+            }
+            let totalW = mstEdges.reduce((s, e) => { let [a, b] = e.split('-'); let ed = edges.find(e => e.from == a && e.to == b); return s + (ed ? ed.w : 1); }, 0);
+            document.getElementById('algoResult').innerHTML = `<b class="text-green-400">Prim's MST:</b> Edges: ${mstEdges.length} | Total weight: ${totalW}`;
+            initAlgoCanvas(); drawAlgoGraph({ edges: mstEdges });
+        }
+
+        function runColor() {
+            let n = nodes.length, cols = new Array(n).fill(-1), adj = buildAdjList();
+            for (let u = 0; u < n; u++) { let used = new Set(adj[u].map(e => cols[e.to]).filter(c => c >= 0)); let c = 0; while (used.has(c)) c++; cols[u] = c; }
+            let numColors = Math.max(...cols) + 1;
+            document.getElementById('algoResult').innerHTML = `<b class="text-green-400">Graph Coloring:</b> ${numColors} colors used. ${nodes.map((v, i) => `${v.label}:color${cols[i]}`).join(', ')}`;
+            initAlgoCanvas(); drawAlgoGraph({ colors: cols });
+        }
+
+        function runTopSort() {
+            let n = nodes.length, vis3 = new Array(n).fill(false), stack = [], adj = buildAdjList();
+            function dfs2(u) { vis3[u] = true; for (let { to } of adj[u]) if (!vis3[to]) dfs2(to); stack.unshift(u); }
+            for (let i = 0; i < n; i++)if (!vis3[i]) dfs2(i);
+            document.getElementById('algoResult').innerHTML = `<b class="text-green-400">Topological Sort:</b> ${stack.map(i => nodes[i].label).join(' → ')}`;
+            initAlgoCanvas(); drawAlgoGraph();
+        }
+
+        function clearGraph() { nodes = []; edges = []; selectedNode = null; drawGraph(); document.getElementById('nodeCount').innerText = 0; document.getElementById('edgeCount').innerText = 0; }
+
+        function loadPreset(name) {
+            clearGraph();
+            const W = 560, H = 400, cx2 = W / 2, cy2 = H / 2;
+            if (name === 'petersen') {
+                let r1 = 140, r2 = 60; for (let i = 0; i < 5; i++) { nodes.push({ x: cx2 + r1 * Math.cos((i * 2 * Math.PI / 5) - Math.PI / 2), y: cy2 + r1 * Math.sin((i * 2 * Math.PI / 5) - Math.PI / 2), id: i, label: `v${i}` }); }
+                for (let i = 0; i < 5; i++) { nodes.push({ x: cx2 + r2 * Math.cos((i * 2 * Math.PI / 5) - Math.PI / 2), y: cy2 + r2 * Math.sin((i * 2 * Math.PI / 5) - Math.PI / 2), id: i + 5, label: `v${i + 5}` }); }
+                for (let i = 0; i < 5; i++) { edges.push({ from: i, to: (i + 1) % 5, w: 1 }); edges.push({ from: (i + 1) % 5, to: i, w: 1 }); edges.push({ from: i + 5, to: ((i + 2) % 5) + 5, w: 1 }); edges.push({ from: ((i + 2) % 5) + 5, to: i + 5, w: 1 }); edges.push({ from: i, to: i + 5, w: 1 }); edges.push({ from: i + 5, to: i, w: 1 }); }
+            } else if (name === 'complete4') {
+                for (let i = 0; i < 4; i++)nodes.push({ x: cx2 + 120 * Math.cos(i * Math.PI / 2 - Math.PI / 4), y: cy2 + 120 * Math.sin(i * Math.PI / 2 - Math.PI / 4), id: i, label: `v${i}` });
+                for (let i = 0; i < 4; i++)for (let j = i + 1; j < 4; j++) { edges.push({ from: i, to: j, w: Math.floor(Math.random() * 9 + 1) }); edges.push({ from: j, to: i, w: edges[edges.length - 1].w }); }
+            } else if (name === 'tree') {
+                let pos = [{ x: cx2, y: 60 }, { x: cx2 - 160, y: 160 }, { x: cx2 + 160, y: 160 }, { x: cx2 - 220, y: 280 }, { x: cx2 - 100, y: 280 }, { x: cx2 + 100, y: 280 }, { x: cx2 + 220, y: 280 }];
+                pos.forEach((p, i) => nodes.push({ ...p, id: i, label: `v${i}` }));
+                [[0, 1], [0, 2], [1, 3], [1, 4], [2, 5], [2, 6]].forEach(([a, b]) => { edges.push({ from: a, to: b, w: 1 }); edges.push({ from: b, to: a, w: 1 }); });
+            }
+            document.getElementById('nodeCount').innerText = nodes.length; document.getElementById('edgeCount').innerText = edges.length;
+            drawGraph();
+        }
+
+        function genAdjMatrix() {
+            let n = nodes.length; if (n === 0) { document.getElementById('adjMatrixDiv').innerHTML = '<p class="text-gray-500 text-sm">No graph loaded. Use Graph Builder.</p>'; return; }
+            let adj2 = Array.from({ length: n }, () => new Array(n).fill(0));
+            edges.forEach(e => { if (e.from < n && e.to < n) adj2[e.from][e.to] = e.w || 1; });
+            let html = `<table class="border-collapse text-xs font-mono"><tr><td class="px-2 py-1 bg-gray-900 border border-gray-700"></td>${nodes.map(n => `<td class="px-2 py-1 bg-gray-900 border border-gray-700 text-orange-300 font-bold">${n.label}</td>`).join('')}</tr>`;
+            adj2.forEach((row, i) => { html += `<tr><td class="px-2 py-1 bg-gray-900 border border-gray-700 text-orange-300 font-bold">${nodes[i].label}</td>${row.map(v => `<td class="px-2 py-1 border border-gray-700 text-center ${v ? 'text-orange-200' : 'text-gray-700'}">${v || 0}</td>`).join('')}</tr>`; });
+            html += '</table>';
+            document.getElementById('adjMatrixDiv').innerHTML = html;
+            let degrees = new Array(n).fill(0); edges.forEach(e => { if (e.from < n) degrees[e.from]++; });
+            document.getElementById('degreeList').innerHTML = nodes.map((v, i) => `<div class="bg-black/40 px-3 py-2 rounded-lg border border-orange-500/20 text-sm"><span class="text-orange-300 font-bold">${v.label}</span> deg=${degrees[i]}</div>`).join('');
+        }
+
+        function analyzeGraph() {
+            let n = nodes.length, e = edges.length;
+            let adj = buildAdjList();
+            let degrees = nodes.map((_, i) => adj[i].length);
+            let maxDeg = Math.max(0, ...degrees), minDeg = Math.min(Infinity, ...degrees);
+            let isReg = maxDeg === minDeg;
+            // Connected check (BFS)
+            let vis4 = new Array(n).fill(false), q = [0]; vis4[0] = true; while (q.length) { let u = q.shift(); for (let { to } of adj[u]) if (!vis4[to]) { vis4[to] = true; q.push(to); } }
+            let isConn = vis4.every(Boolean);
+            let euler = edges.length > 0 && nodes.every((_, i) => adj[i].length % 2 === 0) ? 'Eulerian circuit exists' : 'No Eulerian circuit';
+            const cards = [
+                ['Nodes', n, 'text-orange-300'], ['Edges (directed)', e, 'text-orange-300'], ['Max Degree', maxDeg, 'text-amber-300'], ['Min Degree', minDeg, 'text-amber-300'],
+                ['Regular?', isReg ? 'Yes' : 'No', isReg ? 'text-green-400' : 'text-gray-400'], ['Connected?', isConn ? 'Yes' : 'No (undirected approx)', isConn ? 'text-green-400' : 'text-red-400'],
+                ['Avg Degree', (degrees.reduce((a, v) => a + v, 0) / Math.max(n, 1)).toFixed(2), 'text-orange-300'], ['Euler Circuit', euler, 'text-sm text-gray-300'],
+            ];
+            document.getElementById('propsGrid').innerHTML = cards.map(([k, v, col]) => `<div class="bg-black/50 border border-orange-500/30 rounded-xl p-3 text-center"><div class="text-xs text-gray-500">${k}</div><div class="${col} font-bold font-mono">${v}</div></div>`).join('');
+        }
+
+        loadPreset('petersen');
+        setTimeout(() => { const c = document.getElementById('graphCanvas'); if (c) { c.width = c.offsetWidth; c.height = 400; c.onclick = e => { const r = c.getBoundingClientRect(); handleClick(e.clientX - r.left, e.clientY - r.top, c); }; drawGraph(); } }, 100);
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

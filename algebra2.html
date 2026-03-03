@@ -1,0 +1,266 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abstract Algebra II - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-btn {
+            padding: .55rem 1rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .8rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(168, 85, 247, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(168, 85, 247, 0.25);
+            color: white;
+            border-color: #a855f7;
+            box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
+        }
+
+        .a-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            font-family: monospace;
+            width: 100%;
+        }
+
+        .a-input:focus {
+            border-color: #c084fc;
+            outline: none;
+        }
+
+        .val-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            border-radius: .75rem;
+            padding: .75rem;
+            text-align: center;
+        }
+
+        .ring-cell {
+            display: inline-block;
+            width: 2rem;
+            height: 2rem;
+            line-height: 2rem;
+            text-align: center;
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            border-radius: .25rem;
+            font-family: monospace;
+            font-size: .85rem;
+            cursor: pointer;
+            transition: .2s;
+        }
+
+        .ring-cell:hover {
+            background: rgba(168, 85, 247, 0.3);
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-fuchsia-500 pb-2">
+            <i class="fas fa-ring text-purple-400"></i> Abstract Algebra II — Rings & Fields
+        </h2>
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-purple-500/30">
+            <button class="tab-btn active" onclick="switchTab('rings',this)">Ring Theory</button>
+            <button class="tab-btn" onclick="switchTab('fields',this)">Field Extensions</button>
+            <button class="tab-btn" onclick="switchTab('polyrings',this)">Polynomial Rings</button>
+            <button class="tab-btn" onclick="switchTab('ideals',this)">Ideals & Quotients</button>
+            <button class="tab-btn" onclick="switchTab('reference',this)">Reference</button>
+        </div>
+
+        <!-- Ring Theory -->
+        <div id="tab-rings" class="tab-content flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-purple-500/30 flex flex-col gap-4">
+                <h3 class="text-purple-300 font-bold text-xl">Ring ℤₙ — Arithmetic & Properties</h3>
+                <p class="text-sm text-gray-400">A ring (R, +, ·) has two operations. If every non-zero element has a
+                    multiplicative inverse, it's a field.</p>
+                <div class="flex gap-3 items-end flex-wrap">
+                    <div><label class="text-xs text-gray-400">Modulus n (ring ℤₙ)</label><input type="number" id="ringN"
+                            class="a-input w-32" value="6" min="2" max="20" oninput="buildRing()"></div>
+                    <button class="btn bg-purple-700 hover:bg-purple-600 font-bold" onclick="buildRing()">Build
+                        Ring</button>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="ringCards"></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <div class="text-xs text-gray-400 mb-1">Cayley table — Addition mod n</div>
+                        <div id="addTable" class="overflow-x-auto"></div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-400 mb-1">Cayley table — Multiplication mod n</div>
+                        <div id="mulTable" class="overflow-x-auto"></div>
+                    </div>
+                </div>
+                <div id="ringProps" class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300"></div>
+            </div>
+        </div>
+
+        <!-- Field Extensions -->
+        <div id="tab-fields" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-purple-500/30 flex flex-col gap-4">
+                <h3 class="text-purple-300 font-bold text-xl">Field Extensions & Finite Fields GF(pⁿ)</h3>
+                <div class="flex gap-3 items-end flex-wrap">
+                    <div><label class="text-xs text-gray-400">Prime p</label><input type="number" id="gfP"
+                            class="a-input w-24" value="2" min="2" oninput="buildGF()"></div>
+                    <div><label class="text-xs text-gray-400">Exponent n</label><input type="number" id="gfN"
+                            class="a-input w-24" value="3" min="1" max="4" oninput="buildGF()"></div>
+                    <button class="btn bg-purple-700 hover:bg-purple-600 font-bold" onclick="buildGF()">Show
+                        GF(pⁿ)</button>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="gfCards"></div>
+                <div id="gfTable" class="overflow-x-auto text-sm font-mono"></div>
+                <div class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300">
+                    <b class="text-purple-300">Key facts:</b><br>
+                    A finite field GF(q) exists iff q = pⁿ for prime p.<br>
+                    GF(p) = ℤ_p (integers mod p). |GF(pⁿ)| = pⁿ.<br>
+                    GF(pⁿ) is the splitting field of x^(pⁿ)−x over GF(p).<br>
+                    All finite fields of the same order are isomorphic.
+                </div>
+            </div>
+        </div>
+
+        <!-- Polynomial Rings -->
+        <div id="tab-polyrings" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-purple-500/30 flex flex-col gap-4">
+                <h3 class="text-purple-300 font-bold text-xl">Polynomial Rings ℤ[x] and GF(p)[x]</h3>
+                <p class="text-sm text-gray-400">Polynomials over a ring form a ring. Over a field, GCD and
+                    irreducibility are well-defined via Euclidean algorithm.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-3">
+                        <div><label class="text-xs text-gray-400">f(x) (coeffs high→low, e.g. 1 0 1 for
+                                x²+1)</label><input type="text" id="prF" class="a-input" value="1 0 1"></div>
+                        <div><label class="text-xs text-gray-400">g(x) (coeffs high→low)</label><input type="text"
+                                id="prG" class="a-input" value="1 1"></div>
+                        <div><label class="text-xs text-gray-400">Prime modulus p (0 = over ℤ)</label><input
+                                type="number" id="prP" class="a-input" value="2" min="0"></div>
+                        <button class="btn bg-purple-700 hover:bg-purple-600 font-bold"
+                            onclick="runPolyRing()">Compute</button>
+                    </div>
+                    <div id="polyRingResult"
+                        class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300 flex flex-col gap-1"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ideals -->
+        <div id="tab-ideals" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-purple-500/30 flex flex-col gap-4">
+                <h3 class="text-purple-300 font-bold text-xl">Ideals of ℤₙ & Quotient Rings</h3>
+                <div class="flex gap-3 items-end flex-wrap">
+                    <div><label class="text-xs text-gray-400">Ring ℤ modulus n</label><input type="number" id="idealN"
+                            class="a-input w-32" value="12" min="2" max="60" oninput="runIdeals()"></div>
+                </div>
+                <div id="idealList" class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300"></div>
+                <div class="bg-black/40 p-4 rounded-xl text-sm font-mono text-gray-300">
+                    <b class="text-purple-300">Key theorems:</b><br>
+                    Every ideal of ℤ is principal: I = (n) = nℤ.<br>
+                    Quotient ring ℤ/nℤ ≅ ℤₙ.<br>
+                    (n) is maximal iff n is prime (ℤₙ is then a field).<br>
+                    (n) is prime iff n is 0 or prime.<br>
+                    Chinese Remainder Theorem: ℤ/mnℤ ≅ ℤ/mℤ × ℤ/nℤ if gcd(m,n)=1.
+                </div>
+            </div>
+        </div>
+
+        <!-- Reference -->
+        <div id="tab-reference" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-purple-500/30">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="refGrid"></div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); document.getElementById('tab-' + id).classList.remove('hidden'); if (id === 'rings') buildRing(); if (id === 'fields') buildGF(); if (id === 'polyrings') runPolyRing(); if (id === 'ideals') runIdeals(); if (id === 'reference') renderRef(); }
+        function card(k, v) { return `<div class="val-card"><span class="text-xs text-gray-500 block">${k}</span><span class="text-lg font-mono text-purple-300 font-bold">${v}</span></div>`; }
+        function gcd(a, b) { while (b) { [a, b] = [b, a % b]; } return a; }
+        function isPrime(n) { if (n < 2) return false; for (let i = 2; i * i <= n; i++)if (n % i === 0) return false; return true; }
+        function modInverse(a, n) { for (let x = 1; x < n; x++)if ((a * x) % n === 1) return x; return null; }
+
+        function buildRing() {
+            let n = parseInt(document.getElementById('ringN').value) || 6; if (n < 2 || n > 20) return;
+            let units = [], nilpotents = [], idempotents = [], zeroDivisors = [];
+            for (let a = 0; a < n; a++) {
+                let inv = modInverse(a, n); if (inv !== null && a > 0) units.push(a);
+                let isNil = false; for (let k = 1; k <= n; k++) { if (Math.pow(a, k) % n === 0 && a > 0) { isNil = true; break; } } if (isNil) nilpotents.push(a);
+                if ((a * a) % n === a && a !== 1 && a !== 0) idempotents.push(a);
+                if (a > 0) { for (let b = 1; b < n; b++) { if (b !== a && (a * b) % n === 0) { zeroDivisors.push(a); break; } } }
+            }
+            let isField = isPrime(n);
+            document.getElementById('ringCards').innerHTML = [['Order |ℤₙ|', n], ['Units', units.join(' ') || 'none'], ['Zero divisors', zeroDivisors.join(' ') || 'none'], ['Is field?', isField ? '✓ Yes (p prime)' : '✗ No']].map(([k, v]) => card(k, v)).join('');
+            function makeTable(op) { let h = '<div class="flex flex-col gap-0.5">'; h += `<div class="flex gap-0.5"><span class="ring-cell bg-purple-900/30">${op}</span>${Array.from({ length: n }, (_, i) => `<span class="ring-cell bg-purple-900/30 text-purple-300">${i}</span>`).join('')}</div>`; for (let i = 0; i < n; i++) { h += `<div class="flex gap-0.5"><span class="ring-cell bg-purple-900/30 text-purple-300">${i}</span>${Array.from({ length: n }, (_, j) => `<span class="ring-cell">${op === '+' ? (i + j) % n : (i * j) % n}</span>`).join('')}</div>`; } return h + '</div>'; }
+            document.getElementById('addTable').innerHTML = makeTable('+');
+            document.getElementById('mulTable').innerHTML = makeTable('×');
+            document.getElementById('ringProps').innerHTML = `<b class="text-purple-300">Properties:</b><br>Commutative: Yes | Has identity: Yes (add: 0, mul: 1) | Is integral domain: ${zeroDivisors.length === 0 ? '✓ Yes' : '✗ No (has zero divisors)'} | Nilpotents: [${nilpotents.join(', ') || 'none'}] | Non-trivial idempotents: [${idempotents.join(', ') || 'none'}]`;
+        }
+
+        function buildGF() {
+            let p = parseInt(document.getElementById('gfP').value) || 2, n = parseInt(document.getElementById('gfN').value) || 3;
+            if (!isPrime(p)) { document.getElementById('gfCards').innerHTML = '<div class="col-span-4 text-red-400">p must be prime</div>'; return; }
+            let q = Math.pow(p, n);
+            document.getElementById('gfCards').innerHTML = [['|GF(pⁿ)|', q], ['Characteristic', p], ['Degree [GF:ℤₚ]', n], ['Cyclic group?', 'Yes — ℤ_(q-1)']].map(([k, v]) => card(k, v)).join('');
+            if (n === 1) {
+                let rows = []; for (let a = 0; a < p; a++) { let row = []; for (let b = 0; b < p; b++)row.push(`(${a}·${b}=${(a * b) % p})`); rows.push(row); }
+                document.getElementById('gfTable').innerHTML = `<div class="text-purple-300 font-bold mb-1">GF(${p}) = ℤ_${p} multiplication table</div>` + rows.map(r => `<div>${r.join(' ')}</div>`).join('');
+            } else {
+                document.getElementById('gfTable').innerHTML = `<div class="text-gray-400">GF(${p}^${n}) has ${q} elements. Elements are polynomials of degree &lt; ${n} over GF(${p}), i.e. a₀+a₁x+...+a_{n-1}x^{n-1} with aᵢ ∈ {0,...,${p - 1}}, arithmetic mod an irreducible degree-${n} polynomial. Examples:<br>${Array.from({ length: Math.min(8, q) }, (_, i) => i.toString(p).padStart(n, '0').split('').reverse().join('')).map((s, i) => `${i}: ${s}`).join(', ')} ...</div>`;
+            }
+        }
+
+        function runPolyRing() {
+            let fStr = document.getElementById('prF').value.trim(), gStr = document.getElementById('prG').value.trim();
+            let p = parseInt(document.getElementById('prP').value) || 0;
+            let f = fStr.split(/\s+/).map(Number), g = gStr.split(/\s+/).map(Number);
+            function polyStr(c) { return c.map((v, i) => { let deg = c.length - 1 - i; return v === 0 ? null : `${v === 1 && deg > 0 ? '' : v}${deg > 1 ? 'x^' + deg : deg === 1 ? 'x' : ''}` }).filter(Boolean).join(' + ') || '0'; }
+            function polyAdd(a, b) { let r = []; let la = a.length, lb = b.length; for (let i = 0; i < Math.max(la, lb); i++) { let va = i < la ? a[la - 1 - i] : 0, vb = i < lb ? b[lb - 1 - i] : 0; r.unshift(p ? ((va + vb) % p + p) % p : va + vb); } return r.filter((v, i) => !(v === 0 && i === 0)) || [0]; }
+            function polyMul(a, b) { let r = new Array(a.length + b.length - 1).fill(0); a.forEach((av, i) => b.forEach((bv, j) => r[i + j] += av * bv)); if (p) r = r.map(v => ((v % p) + p) % p); return r; }
+            let sum = polyAdd(f, g), prod = polyMul(f, g);
+            document.getElementById('polyRingResult').innerHTML = [`<b class="text-purple-300">Ring:</b> ${p ? 'GF(' + p + ')[x]' : 'ℤ[x]'}`, `<b class="text-purple-300">f(x) =</b> ${polyStr(f)}`, `<b class="text-purple-300">g(x) =</b> ${polyStr(g)}`, `<b class="text-purple-300">f+g =</b> ${polyStr(sum)}`, `<b class="text-purple-300">f·g =</b> ${polyStr(prod)}`, `<span class="text-gray-400">deg(f)=${f.length - 1}, deg(g)=${g.length - 1}, deg(f·g)=${prod.length - 1}</span>`].map(s => `<div>${s}</div>`).join('');
+        }
+
+        function runIdeals() {
+            let n = parseInt(document.getElementById('idealN').value) || 12;
+            let divs = []; for (let d = 1; d <= n; d++)if (n % d === 0) divs.push(d);
+            let html = `<b class="text-purple-300">Ideals of ℤ (generated by divisors of ${n}):</b><br>`;
+            divs.forEach(d => { let ideal = []; for (let k = 0; k * d < n; k++)ideal.push(k * d); let quot = n / d; html += `<div class="mb-1">(${d}) = {${ideal.join(', ')}} — ℤ/(${d}) ≅ ℤ<sub>${quot}</sub>${isPrime(quot) ? ` <span class="text-green-400">← maximal (${quot} prime, quotient is a field)</span>` : ''}</div>`; });
+            html += `<div class="mt-2 text-gray-400">Total proper ideals: ${divs.length - 1} (excluding (1)=ℤ itself)</div>`;
+            document.getElementById('idealList').innerHTML = html;
+        }
+
+        const refItems = [
+            { name: "Ring Definition", def: "A set R with + and · where (R,+) is abelian group, (R,·) is monoid, and · distributes over +. Commutative if ab=ba." },
+            { name: "Integral Domain", def: "Commutative ring with 1, no zero-divisors (ab=0 ⟹ a=0 or b=0). ℤ is the prototypical example." },
+            { name: "Field", def: "Commutative ring where every non-zero element has a multiplicative inverse. ℚ, ℝ, ℂ, GF(p) are fields." },
+            { name: "Ideal", def: "Subset I ⊆ R closed under + and absorption: aI ⊆ I for all a ∈ R. Generated by (a) = {ra : r∈R}." },
+            { name: "Quotient Ring", def: "R/I: cosets {a+I} with (a+I)+(b+I)=(a+b)+I. First Isomorphism: R/ker(φ) ≅ Im(φ)." },
+            { name: "UFD", def: "Unique Factorization Domain: every non-zero non-unit factors uniquely into irreducibles. ℤ and F[x] are UFDs." },
+            { name: "PID", def: "Principal Ideal Domain: every ideal is principal I=(a). PIDs are UFDs. ℤ[x] is UFD but not PID." },
+            { name: "Noetherian Ring", def: "Every ascending chain of ideals stabilizes. Equivalent: every ideal is finitely generated. ℤ and F[x] are Noetherian." },
+        ];
+        function renderRef() { document.getElementById('refGrid').innerHTML = refItems.map(r => `<div class="bg-black/40 p-4 rounded-xl border border-purple-500/20"><div class="text-purple-300 font-bold text-sm mb-1">${r.name}</div><div class="text-xs text-gray-400 font-mono leading-relaxed">${r.def}</div></div>`).join(''); }
+        buildRing();
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

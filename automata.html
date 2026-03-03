@@ -1,0 +1,332 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automata Theory - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-btn {
+            padding: .55rem 1rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: .3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: .8rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(234, 179, 8, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(234, 179, 8, 0.25);
+            color: white;
+            border-color: #eab308;
+            box-shadow: 0 0 12px rgba(234, 179, 8, 0.4);
+        }
+
+        .a-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(234, 179, 8, 0.4);
+            color: white;
+            border-radius: .5rem;
+            padding: .5rem .75rem;
+            font-family: monospace;
+            width: 100%;
+        }
+
+        .a-input:focus {
+            border-color: #fde047;
+            outline: none;
+        }
+
+        .char-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: .5rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(234, 179, 8, 0.4);
+            color: #fde047;
+            font-family: monospace;
+            font-weight: bold;
+            font-size: .9rem;
+            cursor: pointer;
+            transition: .15s;
+            touch-action: manipulation;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6">
+        <h2
+            class="text-3xl md:text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-500 pb-2">
+            <i class="fas fa-robot text-yellow-400"></i> Automata Theory
+        </h2>
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-yellow-500/30">
+            <button class="tab-btn active" onclick="switchTab('dfa',this)">DFA Simulator</button>
+            <button class="tab-btn" onclick="switchTab('regex',this)">Regex Tester</button>
+            <button class="tab-btn" onclick="switchTab('pda',this)">PDA (Context-Free)</button>
+            <button class="tab-btn" onclick="switchTab('turing',this)">Turing Machine</button>
+        </div>
+
+        <!-- DFA -->
+        <div id="tab-dfa" class="tab-content flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-yellow-500/30 flex flex-col gap-4">
+                <h3 class="text-yellow-300 font-bold text-xl">Interactive DFA Simulator</h3>
+                <div class="flex gap-3 items-center flex-wrap">
+                    <div><label class="text-xs text-gray-400">Preset DFA</label>
+                        <select id="dfaPreset" class="a-input mt-1 w-52" onchange="loadDFAPreset()">
+                            <option value="even0">Even number of 0s</option>
+                            <option value="end1">Strings ending in 1</option>
+                            <option value="contain01">Contains "01"</option>
+                            <option value="div3">Binary divisible by 3</option>
+                        </select>
+                    </div>
+                </div>
+                <canvas id="dfaCanvas" class="w-full block rounded-xl bg-black border border-gray-700"
+                    style="height:220px"></canvas>
+                <div class="flex flex-col gap-2">
+                    <div class="flex gap-2 items-center flex-wrap">
+                        <input type="text" id="dfaInput" class="a-input flex-1" value="0011" oninput="runDFA()">
+                        <button class="btn bg-yellow-700 hover:bg-yellow-600 font-bold" onclick="runDFA()">Run</button>
+                        <button class="btn bg-gray-700 hover:bg-gray-600 text-sm" onclick="stepDFA()">Step</button>
+                        <button class="btn bg-gray-700 hover:bg-gray-600 text-sm" onclick="resetDFA()">Reset</button>
+                    </div>
+                    <div class="flex gap-2 flex-wrap" id="dfaCharBtns"></div>
+                </div>
+                <div class="bg-black/50 border border-yellow-500/40 rounded-xl p-4 text-sm font-mono text-gray-300 leading-relaxed"
+                    id="dfaTrace"></div>
+                <div id="dfaResult" class="text-2xl font-bold text-center py-2"></div>
+            </div>
+        </div>
+
+        <!-- Regex -->
+        <div id="tab-regex" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-yellow-500/30 flex flex-col gap-4">
+                <h3 class="text-yellow-300 font-bold text-xl">Regular Expression Tester</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-3">
+                        <div><label class="text-xs text-gray-400">Regex pattern</label><input type="text" id="rePattern"
+                                class="a-input" value="^(0|1)*01(0|1)*$" oninput="runRegex()"></div>
+                        <div><label class="text-xs text-gray-400">Test strings (one per line)</label>
+                            <textarea id="reStrings" class="a-input h-40" oninput="runRegex()">01
+001
+10
+0100
+11
+10110</textarea>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <button class="btn text-xs bg-yellow-900 hover:bg-yellow-800"
+                                onclick="setRE('^(00)*$')">Even 0s</button>
+                            <button class="btn text-xs bg-yellow-900 hover:bg-yellow-800"
+                                onclick="setRE('^1(0|1)*1$|^1$')">Start/end 1</button>
+                            <button class="btn text-xs bg-yellow-900 hover:bg-yellow-800"
+                                onclick="setRE('^[a-zA-Z][a-zA-Z0-9_]*$')">Identifier</button>
+                            <button class="btn text-xs bg-yellow-900 hover:bg-yellow-800"
+                                onclick="setRE('^[0-9]+(\\.[0-9]+)?$')">Number</button>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-3">
+                        <div id="reResults" class="flex flex-col gap-2"></div>
+                        <div class="bg-black/40 p-4 rounded-xl text-xs font-mono text-gray-300 flex flex-col gap-1">
+                            <div class="text-yellow-300 font-bold mb-1">Quick Reference</div>
+                            <div><span class="text-yellow-400">a|b</span> → a or b</div>
+                            <div><span class="text-yellow-400">a*</span> → 0+ repetitions</div>
+                            <div><span class="text-yellow-400">a+</span> → 1+ repetitions</div>
+                            <div><span class="text-yellow-400">a?</span> → optional</div>
+                            <div><span class="text-yellow-400">^</span> → start, <span class="text-yellow-400">$</span>
+                                → end</div>
+                            <div><span class="text-yellow-400">[abc]</span> → char class</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PDA -->
+        <div id="tab-pda" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-yellow-500/30 flex flex-col gap-4">
+                <h3 class="text-yellow-300 font-bold text-xl">Pushdown Automaton — Context-Free Languages</h3>
+                <div class="flex flex-wrap gap-2">
+                    <button class="btn text-xs bg-yellow-900 hover:bg-yellow-800" onclick="setPDA('balanced')">Balanced
+                        Brackets</button>
+                    <button class="btn text-xs bg-yellow-900 hover:bg-yellow-800" onclick="setPDA('anbn')">aⁿbⁿ</button>
+                    <button class="btn text-xs bg-yellow-900 hover:bg-yellow-800"
+                        onclick="setPDA('palindrome')">Palindrome {a,b}</button>
+                    <button class="btn text-xs bg-yellow-900 hover:bg-yellow-800" onclick="setPDA('wcwrev')">wcwᴿ
+                        (w∈{a,b}*)</button>
+                </div>
+                <div><label class="text-xs text-gray-400">Input</label><input type="text" id="pdaInput" class="a-input"
+                        value="aaabbb" oninput="runPDA()"></div>
+                <div class="flex gap-2 flex-wrap" id="pdaCharBtns"></div>
+                <div id="pdaResult"
+                    class="bg-black/50 border border-yellow-500/40 rounded-xl p-4 text-sm font-mono text-gray-300 leading-relaxed">
+                </div>
+            </div>
+        </div>
+
+        <!-- Turing -->
+        <div id="tab-turing" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-5 rounded-2xl border border-yellow-500/30 flex flex-col gap-4">
+                <h3 class="text-yellow-300 font-bold text-xl">Turing Machine Simulator</h3>
+                <div class="flex flex-wrap gap-2">
+                    <button class="btn text-xs bg-yellow-900 hover:bg-yellow-800" onclick="setTM('increment')">Binary
+                        Increment</button>
+                    <button class="btn text-xs bg-yellow-900 hover:bg-yellow-800" onclick="setTM('even1s')">Even 1s
+                        Checker</button>
+                    <button class="btn text-xs bg-yellow-900 hover:bg-yellow-800" onclick="setTM('unary_add')">Unary
+                        Addition</button>
+                </div>
+                <div class="flex gap-3 items-center flex-wrap">
+                    <div class="flex-1"><label class="text-xs text-gray-400">Tape input</label><input type="text"
+                            id="tmInput" class="a-input" value="1011"></div>
+                    <button class="btn bg-yellow-700 hover:bg-yellow-600 font-bold" onclick="runTM()">Run All</button>
+                    <button class="btn bg-gray-700 hover:bg-gray-600" onclick="stepTM()">Step</button>
+                    <button class="btn bg-gray-700 hover:bg-gray-600" onclick="resetTM()">Reset</button>
+                </div>
+                <div class="overflow-x-auto bg-black/40 rounded-xl p-4 border border-gray-700">
+                    <div id="tmTape" class="flex gap-0 justify-center min-h-10"></div>
+                    <div id="tmHead" class="flex gap-0 justify-center mt-1 text-yellow-400 font-bold text-xs"></div>
+                </div>
+                <div id="tmLog"
+                    class="bg-black/50 border border-yellow-500/40 rounded-xl p-4 text-xs font-mono text-gray-300 max-h-40 overflow-y-auto leading-relaxed">
+                </div>
+                <div id="tmResult" class="text-xl font-bold text-center py-2"></div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        function switchTab(id, btn) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden')); document.getElementById('tab-' + id).classList.remove('hidden'); if (id === 'dfa') drawDFA(); if (id === 'regex') runRegex(); }
+
+        // ---- DFA ----
+        const dfaPresets = {
+            even0: { states: ['q0', 'q1'], alphabet: ['0', '1'], transitions: { q0: { '0': 'q1', '1': 'q0' }, q1: { '0': 'q0', '1': 'q1' } }, start: 'q0', accept: ['q0'] },
+            end1: { states: ['q0', 'q1'], alphabet: ['0', '1'], transitions: { q0: { '0': 'q0', '1': 'q1' }, q1: { '0': 'q0', '1': 'q1' } }, start: 'q0', accept: ['q1'] },
+            contain01: { states: ['q0', 'q1', 'q2'], alphabet: ['0', '1'], transitions: { q0: { '0': 'q1', '1': 'q0' }, q1: { '0': 'q1', '1': 'q2' }, q2: { '0': 'q2', '1': 'q2' } }, start: 'q0', accept: ['q2'] },
+            div3: { states: ['q0', 'q1', 'q2'], alphabet: ['0', '1'], transitions: { q0: { '0': 'q0', '1': 'q1' }, q1: { '0': 'q2', '1': 'q0' }, q2: { '0': 'q1', '1': 'q2' } }, start: 'q0', accept: ['q0'] },
+        };
+        let DFA = dfaPresets.even0, dfaCurState = 'q0', dfaStepIdx = 0;
+
+        function loadDFAPreset() { let k = document.getElementById('dfaPreset').value; DFA = dfaPresets[k]; resetDFA(); let ab = DFA.alphabet; document.getElementById('dfaCharBtns').innerHTML = ab.map(c => `<button class="char-btn" onclick="document.getElementById('dfaInput').value+=\'${c}\';runDFA()">${c}</button>`).join('') + `<button class="char-btn" style="color:#f87171;border-color:#7f1d1d" onclick="document.getElementById('dfaInput').value='';runDFA()">✕</button>`; drawDFA(); }
+
+        function drawDFA() {
+            const cv = document.getElementById('dfaCanvas'); cv.width = cv.offsetWidth; cv.height = 220;
+            const cx = cv.getContext('2d'), W = cv.width, H = 220;
+            cx.fillStyle = '#050818'; cx.fillRect(0, 0, W, H);
+            let n = DFA.states.length;
+            let pos = DFA.states.map((_, i) => ({ x: 70 + i * (W - 140) / (Math.max(n - 1, 1)), y: H / 2 }));
+            cx.font = '11px monospace'; cx.textAlign = 'center'; cx.textBaseline = 'middle';
+            // Transitions
+            DFA.states.forEach((from, fi) => {
+                let tr = DFA.transitions[from] || {};
+                Object.entries(tr).forEach(([sym, to]) => {
+                    let ti = DFA.states.indexOf(to), px = pos[fi], py2 = pos[ti];
+                    if (fi === ti) { cx.strokeStyle = 'rgba(234,179,8,0.6)'; cx.lineWidth = 1.5; cx.beginPath(); cx.arc(px.x, px.y - 32, 18, 0.2, Math.PI * 2 - 0.2); cx.stroke(); cx.fillStyle = '#94a3b8'; cx.fillText(sym, px.x, px.y - 54); }
+                    else { cx.strokeStyle = 'rgba(148,163,184,0.4)'; cx.lineWidth = 1.5; cx.beginPath(); cx.moveTo(px.x + 20, px.y); cx.lineTo(py2.x - 20, py2.y); cx.stroke(); cx.fillStyle = '#94a3b8'; cx.fillText(sym, (px.x + py2.x) / 2, (px.y + py2.y) / 2 - 8); }
+                });
+            });
+            // Start arrow
+            cx.strokeStyle = '#94a3b8'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(pos[0].x - 38, H / 2); cx.lineTo(pos[0].x - 22, H / 2); cx.stroke();
+            // States
+            DFA.states.forEach((s, i) => {
+                let isCur = s === dfaCurState, isAcc = DFA.accept.includes(s);
+                cx.beginPath(); cx.arc(pos[i].x, pos[i].y, 20, 0, Math.PI * 2); cx.fillStyle = isCur ? 'rgba(234,179,8,0.3)' : 'rgba(15,23,42,0.9)'; cx.fill(); cx.strokeStyle = isCur ? '#eab308' : isAcc ? '#34d399' : '#334155'; cx.lineWidth = isCur ? 3 : 1.5; cx.stroke();
+                if (isAcc) { cx.beginPath(); cx.arc(pos[i].x, pos[i].y, 25, 0, Math.PI * 2); cx.strokeStyle = '#34d399'; cx.lineWidth = 1; cx.stroke(); }
+                cx.fillStyle = 'white'; cx.font = 'bold 11px monospace'; cx.fillText(s, pos[i].x, pos[i].y);
+            }); cx.textAlign = 'start'; cx.textBaseline = 'alphabetic';
+        }
+
+        function resetDFA() { dfaCurState = DFA.start; dfaStepIdx = 0; document.getElementById('dfaTrace').innerText = ''; document.getElementById('dfaResult').innerText = ''; drawDFA(); }
+        function runDFA() {
+            let inp = document.getElementById('dfaInput').value, state = DFA.start, trace = 'Start: ' + state, ok = true;
+            for (let ch of inp) { let nx = DFA.transitions[state]?.[ch]; if (!nx) { trace += `\nRead '${ch}' from ${state} → No transition ✗`; ok = false; break; } trace += `\nRead '${ch}': ${state}→${nx}`; state = nx; }
+            dfaCurState = state; drawDFA();
+            document.getElementById('dfaTrace').innerText = trace;
+            let acc = ok && DFA.accept.includes(state); document.getElementById('dfaResult').innerHTML = acc ? '<span class="text-green-400">✓ ACCEPTED</span>' : '<span class="text-red-400">✗ REJECTED</span>';
+        }
+        function stepDFA() {
+            let inp = document.getElementById('dfaInput').value;
+            if (dfaStepIdx === 0) { dfaCurState = DFA.start; document.getElementById('dfaTrace').innerText = ''; }
+            if (dfaStepIdx >= inp.length) { runDFA(); return; }
+            let ch = inp[dfaStepIdx], nx = DFA.transitions[dfaCurState]?.[ch];
+            if (!nx) { document.getElementById('dfaResult').innerHTML = '<span class="text-red-400">✗ Stuck</span>'; return; }
+            document.getElementById('dfaTrace').innerText += `\nStep${dfaStepIdx + 1}: '${ch}': ${dfaCurState}→${nx}`;
+            dfaCurState = nx; dfaStepIdx++; drawDFA();
+            if (dfaStepIdx === inp.length) { let acc = DFA.accept.includes(dfaCurState); document.getElementById('dfaResult').innerHTML = acc ? '<span class="text-green-400">✓ ACCEPTED</span>' : '<span class="text-red-400">✗ REJECTED</span>'; }
+        }
+
+        // ---- REGEX ----
+        function setRE(p) { document.getElementById('rePattern').value = p; runRegex(); }
+        function runRegex() {
+            let pat = document.getElementById('rePattern').value, strs = document.getElementById('reStrings').value.split('\n'), html = '';
+            try { let re = new RegExp(pat); strs.forEach(s => { let m = re.test(s); html += `<div class="flex items-center gap-3 p-2 rounded-lg border ${m ? 'border-green-500/30 bg-green-900/10' : 'border-red-500/20 bg-red-900/10'}"><span class="${m ? 'text-green-400' : 'text-red-400'} text-lg font-bold">${m ? '✓' : '✗'}</span><code class="text-gray-300 font-mono">${s || '(empty)'}</code></div>`; }); }
+            catch (e) { html = `<div class="text-red-400 text-sm">Invalid regex: ${e.message}</div>`; }
+            document.getElementById('reResults').innerHTML = html;
+        }
+
+        // ---- PDA ----
+        let pdaMode = 'balanced';
+        function appendPDAChar(c) { document.getElementById('pdaInput').value += c; runPDA(); }
+        function setPDA(mode) {
+            pdaMode = mode;
+            let defaults = { balanced: '(())[{}]', anbn: 'aaabbb', palindrome: 'abba', wcwrev: 'abcba' };
+            let alphabets = { balanced: '()[]{}'.split(''), anbn: ['a', 'b'], palindrome: ['a', 'b'], wcwrev: ['a', 'b', 'c'] };
+            document.getElementById('pdaInput').value = defaults[mode] || '';
+            document.getElementById('pdaCharBtns').innerHTML = alphabets[mode].map(c => `<button class="char-btn" onclick="appendPDAChar('${c}')">${c}</button>`).join('') + `<button class="char-btn" style="color:#f87171;border-color:#7f1d1d" onclick="document.getElementById('pdaInput').value='';runPDA()">✕</button>`;
+            runPDA();
+        }
+        function runPDA() {
+            let s = document.getElementById('pdaInput').value; let ok = false, reason = '';
+            if (pdaMode === 'balanced') { let stack = [], p = { '(': ')', '[': ']', '{': '}' }; ok = true; for (let c of s) { if (p[c]) stack.push(p[c]); else if (')]}'.includes(c)) { if (stack.pop() !== c) { ok = false; reason = 'Mismatched'; break; } } } if (stack.length) { ok = false; reason = 'Unclosed: ' + stack.join(''); } }
+            else if (pdaMode === 'anbn') { let m = s.match(/^(a*)(b*)$/); ok = m && m[1].length === m[2].length; reason = ok ? '' : 'n(a)≠n(b) or invalid chars'; }
+            else if (pdaMode === 'palindrome') { ok = s === s.split('').reverse().join(''); reason = ok ? '' : 'Not a palindrome'; }
+            else if (pdaMode === 'wcwrev') { let half = Math.floor(s.length / 2); let left = s.slice(0, half), right = s.slice(s.length - half).split('').reverse().join(''); ok = s.length % 2 === 1 && left === right; reason = ok ? '' : 'w≠wᴿ or even length'; }
+            document.getElementById('pdaResult').innerHTML = ok ? `<span class="text-green-400 text-xl font-bold">✓ ACCEPTED</span>` : `<span class="text-red-400 text-xl font-bold">✗ REJECTED</span>${reason ? ' — ' + reason : ''}`;
+        }
+
+        // ---- TURING ----
+        const TMs = {
+            increment: { start: 'q0', accept: 'qA', trans: { q0: { '0': ['q0', '0', 'R'], '1': ['q0', '1', 'R'], 'B': ['q1', 'B', 'L'] }, q1: { '0': ['qA', '1', 'N'], '1': ['q1', '0', 'L'], 'B': ['qA', '1', 'N'] } } },
+            even1s: { start: 'qE', accept: 'qE', trans: { qE: { '0': ['qE', '0', 'R'], '1': ['qO', '1', 'R'], 'B': ['qE', 'B', 'N'] }, qO: { '0': ['qO', '0', 'R'], '1': ['qE', '1', 'R'], 'B': ['qO', 'B', 'N'] } } },
+            unary_add: { start: 'q0', accept: 'qA', trans: { q0: { '1': ['q0', '1', 'R'], '0': ['q1', '1', 'R'], 'B': ['qA', 'B', 'N'] }, q1: { '1': ['q1', '1', 'R'], 'B': ['q2', 'B', 'L'] }, q2: { '1': ['qA', 'B', 'N'] } } },
+        };
+        let tmCur = { machine: 'increment', tape: [], head: 0, state: '', stepN: 0 };
+
+        function setTM(name) { tmCur.machine = name; let defaults = { increment: '1011', even1s: '11011', unary_add: '111011' }; document.getElementById('tmInput').value = defaults[name] || '1011'; resetTM(); }
+        function resetTM() { let def = TMs[tmCur.machine]; let inp = document.getElementById('tmInput').value; tmCur.tape = [...inp.split(''), ...'BBBBB'.split('')]; tmCur.head = 0; tmCur.state = def.start; tmCur.stepN = 0; renderTape(); document.getElementById('tmLog').innerHTML = ''; document.getElementById('tmResult').innerText = ''; }
+        function renderTape() {
+            let show = tmCur.tape.slice(0, Math.max(tmCur.head + 6, 10));
+            document.getElementById('tmTape').innerHTML = show.map((c, i) => `<div style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:1px solid ${i === tmCur.head ? '#eab308' : '#334155'};background:${i === tmCur.head ? 'rgba(234,179,8,0.2)' : 'rgba(0,0,0,0.4)'};font-family:monospace;font-weight:bold;color:${i === tmCur.head ? '#fde047' : 'white'}">${c}</div>`).join('');
+            let heads = new Array(Math.max(tmCur.head + 6, 10)).fill('&nbsp;'); heads[tmCur.head] = '▲';
+            document.getElementById('tmHead').innerHTML = heads.map(c => `<div style="width:32px;text-align:center;font-size:10px">${c}</div>`).join('');
+        }
+        function stepTM() {
+            let def = TMs[tmCur.machine]; if (tmCur.state === def.accept || tmCur.state === 'qR' || tmCur.state === 'qO') return;
+            let sym = tmCur.tape[tmCur.head] || 'B', t = def.trans[tmCur.state]?.[sym];
+            if (!t) { tmCur.state = 'qR'; document.getElementById('tmResult').innerHTML = '<span class="text-red-400">✗ REJECTED</span>'; renderTape(); return; }
+            let [ns, wr, mv] = t; let log = `Step ${++tmCur.stepN}: (${tmCur.state},${sym})→(${ns},${wr},${mv})`;
+            document.getElementById('tmLog').innerHTML += log + '<br>'; document.getElementById('tmLog').scrollTop = 9999;
+            tmCur.tape[tmCur.head] = wr; tmCur.state = ns; if (mv === 'R') tmCur.head++; else if (mv === 'L') tmCur.head = Math.max(0, tmCur.head - 1);
+            while (tmCur.tape.length <= tmCur.head + 4) tmCur.tape.push('B'); renderTape();
+            if (tmCur.state === def.accept) document.getElementById('tmResult').innerHTML = `<span class="text-green-400">✓ ACCEPTED — tape: ${tmCur.tape.join('').replace(/B*$/, '')}</span>`;
+            else if (tmCur.state === 'qR') document.getElementById('tmResult').innerHTML = '<span class="text-red-400">✗ REJECTED</span>';
+        }
+        function runTM() { resetTM(); for (let i = 0; i < 200; i++) { let def = TMs[tmCur.machine]; if (tmCur.state === def.accept || tmCur.state === 'qR') break; stepTM(); } }
+
+        loadDFAPreset(); setPDA('balanced'); setTM('increment');
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>

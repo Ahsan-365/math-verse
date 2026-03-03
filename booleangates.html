@@ -1,0 +1,381 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logic Gate Simulator - Math Verse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tab-btn {
+            padding: 0.6rem 1.25rem;
+            border-radius: 999px;
+            font-weight: bold;
+            transition: 0.3s;
+            color: #cbd5e1;
+            border: 1px solid transparent;
+            font-size: 0.85rem;
+        }
+
+        .tab-btn:hover {
+            background: rgba(245, 158, 11, 0.1);
+        }
+
+        .tab-btn.active {
+            background: rgba(245, 158, 11, 0.25);
+            color: white;
+            border-color: #f59e0b;
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+        }
+
+        .bit-btn {
+            width: 52px;
+            height: 52px;
+            border-radius: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border: 2px solid;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .bit-btn.on {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: #10b981;
+            color: #34d399;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+        }
+
+        .bit-btn.off {
+            background: rgba(100, 116, 139, 0.1);
+            border-color: #475569;
+            color: #64748b;
+        }
+
+        .gate-out-on {
+            background: #059669;
+            color: white;
+        }
+
+        .gate-out-off {
+            background: #1e293b;
+            color: #64748b;
+        }
+
+        .tt-cell {
+            padding: 0.4rem 0.8rem;
+            text-align: center;
+            font-family: monospace;
+            border: 1px solid #1e293b;
+        }
+
+        .tt-head {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fcd34d;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .tt-0 {
+            color: #f87171;
+            font-weight: bold;
+        }
+
+        .tt-1 {
+            color: #34d399;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center p-4 lg:p-8 relative">
+    <div class="glass-panel w-full max-w-5xl p-6 lg:p-10 flex flex-col fade-in-up mt-4 md:mt-8 gap-6 relative">
+        <h2
+            class="text-3xl md:text-5xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-500 pb-2">
+            <i class="fas fa-microchip text-amber-400"></i> Logic Gate Simulator
+        </h2>
+
+        <div class="flex flex-wrap justify-center gap-2 bg-black/40 p-2 rounded-full border border-amber-500/30">
+            <button class="tab-btn active" onclick="switchTab('gates', this)">Gate Simulator</button>
+            <button class="tab-btn" onclick="switchTab('boolean', this)">Boolean Algebra</button>
+            <button class="tab-btn" onclick="switchTab('truth', this)">Truth Tables</button>
+        </div>
+
+        <!-- Gate Simulator -->
+        <div id="tab-gates" class="tab-content flex flex-col gap-6">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-amber-500/30">
+                <h3 class="text-amber-300 font-bold mb-4">Select Gate & Toggle Inputs</h3>
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <button id="gateSelAND" class="tab-btn active !rounded-lg"
+                        onclick="setGate('AND', this)">AND</button>
+                    <button class="tab-btn !rounded-lg" onclick="setGate('OR', this)">OR</button>
+                    <button class="tab-btn !rounded-lg" onclick="setGate('NAND', this)">NAND</button>
+                    <button class="tab-btn !rounded-lg" onclick="setGate('NOR', this)">NOR</button>
+                    <button class="tab-btn !rounded-lg" onclick="setGate('XOR', this)">XOR</button>
+                    <button class="tab-btn !rounded-lg" onclick="setGate('XNOR', this)">XNOR</button>
+                    <button class="tab-btn !rounded-lg" onclick="setGate('NOT', this)">NOT</button>
+                    <button class="tab-btn !rounded-lg" onclick="setGate('BUFFER', this)">BUFFER</button>
+                </div>
+
+                <div class="flex flex-col md:flex-row items-center justify-center gap-8">
+                    <!-- Inputs -->
+                    <div class="flex flex-col items-center gap-4">
+                        <label class="text-xs text-gray-500 uppercase font-bold tracking-widest">Inputs</label>
+                        <div class="bit-btn on" id="inputA" onclick="toggleInput('A')">1</div>
+                        <div class="bit-btn on" id="inputB" onclick="toggleInput('B')">1</div>
+                    </div>
+
+                    <!-- Gate SVG Visual -->
+                    <div class="flex-1 flex justify-center items-center">
+                        <canvas id="gateCanvas" width="260" height="120"></canvas>
+                    </div>
+
+                    <!-- Output -->
+                    <div class="flex flex-col items-center gap-2">
+                        <label class="text-xs text-gray-500 uppercase font-bold tracking-widest">Output</label>
+                        <div id="gateOutput"
+                            class="w-20 h-20 rounded-full flex items-center justify-center text-4xl font-bold font-mono border-4 border-emerald-500 gate-out-on transition-all">
+                            1</div>
+                        <span id="gateOutputLabel" class="text-xs text-gray-500">HIGH</span>
+                    </div>
+                </div>
+
+                <!-- Gate description -->
+                <div class="mt-4 bg-black/40 p-3 rounded-lg border border-amber-500/20 text-sm text-gray-400 text-center"
+                    id="gateDesc">
+                    AND: Output is 1 only when ALL inputs are 1. Boolean: A · B
+                </div>
+            </div>
+        </div>
+
+        <!-- Boolean Algebra Simplifier -->
+        <div id="tab-boolean" class="tab-content hidden flex flex-col gap-6">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-amber-500/30 flex flex-col gap-4">
+                <h3 class="text-amber-300 font-bold text-xl">Boolean Expression Evaluator</h3>
+                <p class="text-sm text-gray-400">Enter a boolean expression using variables A-Z and operators. Evaluates
+                    all combinations.</p>
+                <div class="flex gap-2 items-center flex-wrap">
+                    <input type="text" id="boolExpr" placeholder="e.g. A AND (B OR NOT C)"
+                        class="flex-1 bg-black/60 border border-amber-500/40 text-white rounded-0.5rem p-2 font-mono outline-none focus:border-amber-400 rounded-lg"
+                        value="A AND (B OR NOT C)">
+                    <button class="btn bg-amber-600 hover:bg-amber-500 font-bold"
+                        onclick="evalBoolExpr()">Evaluate</button>
+                </div>
+                <div class="flex flex-wrap gap-2 text-xs text-gray-500">
+                    <span class="bg-gray-800 px-2 py-1 rounded">AND / &</span>
+                    <span class="bg-gray-800 px-2 py-1 rounded">OR / |</span>
+                    <span class="bg-gray-800 px-2 py-1 rounded">NOT / !</span>
+                    <span class="bg-gray-800 px-2 py-1 rounded">XOR / ^</span>
+                    <span class="bg-gray-800 px-2 py-1 rounded">NAND</span>
+                    <span class="bg-gray-800 px-2 py-1 rounded">NOR</span>
+                    <span class="bg-gray-800 px-2 py-1 rounded">XNOR</span>
+                </div>
+                <div id="boolResult" class="hidden bg-black/50 border border-amber-500/30 rounded-xl overflow-auto p-4">
+                    <table id="boolTable" class="text-sm w-full"></table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Truth Tables -->
+        <div id="tab-truth" class="tab-content hidden flex flex-col gap-4">
+            <div class="bg-gray-900/50 p-6 rounded-2xl border border-amber-500/30 flex flex-col gap-4">
+                <h3 class="text-amber-300 font-bold text-xl mb-2">Standard Gate Truth Tables</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Dynamically filled -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        let inputA = 1, inputB = 1, currentGate = 'AND';
+        const gateDescs = {
+            AND: 'AND: Output is 1 only when ALL inputs are 1. Boolean: A · B',
+            OR: 'OR: Output is 1 when ANY input is 1. Boolean: A + B',
+            NAND: 'NAND: Opposite of AND. Output is 0 only when all inputs are 1. Boolean: ¬(A · B)',
+            NOR: 'NOR: Opposite of OR. Output is 1 only when all inputs are 0. Boolean: ¬(A + B)',
+            XOR: 'XOR: Output is 1 when inputs DIFFER. Boolean: A ⊕ B',
+            XNOR: 'XNOR: Output is 1 when inputs are the SAME. Boolean: ¬(A ⊕ B)',
+            NOT: 'NOT: Inverts the single input A. Boolean: ¬A',
+            BUFFER: 'BUFFER: Passes input unchanged. Used for signal strength. Boolean: A'
+        };
+
+        function switchTab(id, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById('tab-' + id).classList.remove('hidden');
+            if (id === 'truth') buildTruthTables();
+        }
+
+        function setGate(g, btn) {
+            currentGate = g;
+            document.querySelectorAll('#tab-gates .tab-btn, #tab-gates .\\!rounded-lg').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('inputB').style.visibility = ['NOT', 'BUFFER'].includes(g) ? 'hidden' : 'visible';
+            document.getElementById('gateDesc').innerText = gateDescs[g];
+            updateGate();
+        }
+
+        function toggleInput(x) {
+            if (x === 'A') { inputA = 1 - inputA; }
+            else { inputB = 1 - inputB; }
+            let el = document.getElementById('input' + x);
+            el.innerText = x === 'A' ? inputA : inputB;
+            el.className = 'bit-btn ' + ((x === 'A' ? inputA : inputB) ? 'on' : 'off');
+            updateGate();
+        }
+
+        function evalGate(g, a, b) {
+            if (g === 'AND') return a & b;
+            if (g === 'OR') return a | b;
+            if (g === 'NAND') return ~(a & b) & 1;
+            if (g === 'NOR') return ~(a | b) & 1;
+            if (g === 'XOR') return a ^ b;
+            if (g === 'XNOR') return ~(a ^ b) & 1;
+            if (g === 'NOT') return (~a) & 1;
+            if (g === 'BUFFER') return a;
+            return 0;
+        }
+
+        function updateGate() {
+            let out = evalGate(currentGate, inputA, inputB);
+            let el = document.getElementById('gateOutput');
+            el.innerText = out;
+            el.className = `w-20 h-20 rounded-full flex items-center justify-center text-4xl font-bold font-mono border-4 transition-all ${out ? 'border-emerald-500 gate-out-on' : 'border-gray-600 gate-out-off'}`;
+            document.getElementById('gateOutputLabel').innerText = out ? 'HIGH (1)' : 'LOW (0)';
+            drawGateSVG(currentGate, inputA, inputB, out);
+        }
+
+        function drawGateSVG(g, a, b, out) {
+            const c = document.getElementById('gateCanvas');
+            const cx = c.getContext('2d');
+            cx.clearRect(0, 0, 260, 120);
+            cx.fillStyle = '#0f172a'; cx.fillRect(0, 0, 260, 120);
+
+            const W = 260, H = 120;
+            let gx = 80, gy = 30, gw = 80, gh = 60;
+            let singleInput = ['NOT', 'BUFFER'].includes(g);
+
+            // Input lines
+            cx.strokeStyle = a ? '#34d399' : '#94a3b8'; cx.lineWidth = 3;
+            cx.beginPath(); cx.moveTo(20, H / 2 - (singleInput ? 0 : 15)); cx.lineTo(gx, H / 2 - (singleInput ? 0 : 15)); cx.stroke();
+            if (!singleInput) {
+                cx.strokeStyle = b ? '#34d399' : '#94a3b8';
+                cx.beginPath(); cx.moveTo(20, H / 2 + 15); cx.lineTo(gx, H / 2 + 15); cx.stroke();
+            }
+            // Input labels
+            cx.fillStyle = '#cbd5e1'; cx.font = 'bold 14px monospace';
+            cx.fillText(`A=${a}`, 4, H / 2 - (singleInput ? 0 : 15) + 5);
+            if (!singleInput) cx.fillText(`B=${b}`, 4, H / 2 + 20);
+
+            // Gate body
+            cx.strokeStyle = '#f59e0b'; cx.lineWidth = 2.5;
+            cx.fillStyle = 'rgba(245,158,11,0.1)';
+            // Simple rectangle placeholder with text (simplified gate)
+            cx.fillRect(gx, gy, gw, gh);
+            cx.strokeRect(gx, gy, gw, gh);
+            cx.fillStyle = '#fbbf24'; cx.font = 'bold 18px monospace'; cx.textAlign = 'center';
+            cx.fillText(g, gx + gw / 2, gy + gh / 2 + 6);
+            cx.textAlign = 'start';
+
+            // Output line
+            cx.strokeStyle = out ? '#34d399' : '#94a3b8'; cx.lineWidth = 3;
+            cx.beginPath(); cx.moveTo(gx + gw, H / 2); cx.lineTo(240, H / 2); cx.stroke();
+            cx.fillStyle = out ? '#34d399' : '#94a3b8'; cx.font = 'bold 13px monospace';
+            cx.fillText(`Out=${out}`, 198, H / 2 - 6);
+
+            // NOT bubble
+            if (g === 'NOT' || g === 'NAND' || g === 'NOR' || g === 'XNOR') {
+                cx.beginPath(); cx.arc(gx + gw + 8, H / 2, 5, 0, Math.PI * 2);
+                cx.strokeStyle = '#f59e0b'; cx.fillStyle = 'transparent'; cx.stroke();
+            }
+        }
+
+        function evalBoolExpr() {
+            let expr = document.getElementById('boolExpr').value;
+            // Find all uppercase vars
+            let varSet = new Set(expr.match(/[A-Z]/g) || []);
+            let vars = [...varSet].sort();
+            if (vars.length === 0 || vars.length > 5) {
+                document.getElementById('boolResult').classList.remove('hidden');
+                document.getElementById('boolTable').innerHTML = '<tr><td class="text-rose-400 tt-cell">Use 1–5 single-letter variables (A–Z)</td></tr>';
+                return;
+            }
+
+            let rows = 1 << vars.length;
+            let table = document.getElementById('boolTable');
+            // Header
+            let headerRow = '<tr>' + vars.map(v => `<th class="tt-cell tt-head">${v}</th>`).join('') + `<th class="tt-cell tt-head">Result</th></tr>`;
+            let bodyRows = '';
+
+            for (let i = 0; i < rows; i++) {
+                let vals = {};
+                vars.forEach((v, vi) => { vals[v] = (i >> (vars.length - 1 - vi)) & 1; });
+                let jsExpr = expr
+                    .replace(/\bNAND\b/g, '@NAND@').replace(/\bNOR\b/g, '@NOR@').replace(/\bXNOR\b/g, '@XNOR@')
+                    .replace(/\bAND\b/g, '&&').replace(/\bOR\b/g, '||').replace(/\bNOT\b/g, '!').replace(/\bXOR\b/g, '!!')
+                    .replace(/[A-Z]/g, v => vals[v]);
+                let res = 0;
+                try { res = Function('"use strict"; return !(!(' + jsExpr + '))')() ? 1 : 0; } catch (e) { res = '?'; }
+                let row = vars.map(v => `<td class="tt-cell tt-${vals[v]}">${vals[v]}</td>`).join('');
+                row += `<td class="tt-cell tt-${res} font-bold">${res}</td>`;
+                bodyRows += `<tr>${row}</tr>`;
+            }
+            table.innerHTML = headerRow + bodyRows;
+            document.getElementById('boolResult').classList.remove('hidden');
+        }
+
+        function buildTruthTables() {
+            const gates = [
+                { n: 'AND', fn: (a, b) => a && b, ins: 2 },
+                { n: 'OR', fn: (a, b) => a || b, ins: 2 },
+                { n: 'NAND', fn: (a, b) => !(a && b), ins: 2 },
+                { n: 'NOR', fn: (a, b) => !(a || b), ins: 2 },
+                { n: 'XOR', fn: (a, b) => a ^ b, ins: 2 },
+                { n: 'XNOR', fn: (a, b) => !(a ^ b), ins: 2 },
+                { n: 'NOT', fn: (a) => !a, ins: 1 },
+                { n: 'BUFFER', fn: (a) => a, ins: 1 },
+                { n: 'IMPLICATION (A→B)', fn: (a, b) => !a || b, ins: 2 }
+            ];
+
+            let cont = document.querySelector('#tab-truth .grid');
+            cont.innerHTML = '';
+            gates.forEach(g => {
+                let div = document.createElement('div');
+                div.className = 'bg-black/40 p-4 rounded-xl border border-amber-500/20';
+                let html = `<h4 class="text-amber-300 font-bold mb-2 text-sm">${g.n}</h4><table class="w-full text-sm">`;
+                if (g.ins === 2) {
+                    html += `<tr><th class="tt-cell tt-head">A</th><th class="tt-cell tt-head">B</th><th class="tt-cell tt-head">Out</th></tr>`;
+                    for (let a = 0; a <= 1; a++) for (let b = 0; b <= 1; b++) {
+                        let r = g.fn(a, b) ? 1 : 0;
+                        html += `<tr><td class="tt-cell tt-${a}">${a}</td><td class="tt-cell tt-${b}">${b}</td><td class="tt-cell tt-${r} font-bold">${r}</td></tr>`;
+                    }
+                } else {
+                    html += `<tr><th class="tt-cell tt-head">A</th><th class="tt-cell tt-head">Out</th></tr>`;
+                    for (let a = 0; a <= 1; a++) {
+                        let r = g.fn(a) ? 1 : 0;
+                        html += `<tr><td class="tt-cell tt-${a}">${a}</td><td class="tt-cell tt-${r} font-bold">${r}</td></tr>`;
+                    }
+                }
+                html += '</table>';
+                div.innerHTML = html;
+                cont.appendChild(div);
+            });
+        }
+
+        // Init
+        updateGate();
+    </script>
+    <script src="ai-chat.js"></script>
+</body>
+
+</html>
