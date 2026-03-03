@@ -294,7 +294,7 @@
                 let a = points[i * 2], b = points[i * 2 + 1], c2 = points[i * 2 + 2], d = points[i * 2 + 3];
                 if (!a || !b || !c2 || !d) continue;
                 let avgZ = (a.z + b.z + c2.z + d.z) / 4;
-                let t = Math.max(0, Math.min(1, (avgZ + 200) / 400);
+                let t = Math.max(0, Math.min(1, (avgZ + 200) / 400));
                 cx.beginPath(); cx.moveTo(a.x, a.y); cx.lineTo(b.x, b.y); cx.lineTo(d.x, d.y); cx.lineTo(c2.x, c2.y); cx.closePath();
                 let col = i % 2 === 0 ? `hsla(280,70%,${40 + t * 30}%,0.9)` : `hsla(260,80%,${50 + t * 30}%,0.9)`;
                 cx.fillStyle = col; cx.fill(); cx.strokeStyle = 'rgba(168,85,247,0.3)'; cx.lineWidth = 0.5; cx.stroke();
